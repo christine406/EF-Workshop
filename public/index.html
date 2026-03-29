@@ -702,7 +702,7 @@
       <div class="field-row">
         <div class="field">
           <div class="field-label">Purity</div>
-          <select id="metalPurity" onchange="calculate()">
+          <select id="metalPurity" onchange="updateMetalEstimate();calculate()">
             <option value="18k">18k Yellow</option>
             <option value="18kw">18k White</option>
             <option value="14k">14k Yellow</option>
@@ -720,10 +720,30 @@
       <div class="field-row">
         <div class="field">
           <div class="field-label">Est. grams</div>
-          <input type="number" id="metalGrams" step="0.1" min="0" placeholder="0.0" oninput="calculate()">
+          <input type="number" id="metalGrams" step="0.1" min="0" placeholder="0.0" oninput="updateMetalEstimate();calculate()">
         </div>
       </div>
       <div class="inline-note" id="gramHint"></div>
+
+      <!-- METAL COST ESTIMATE -->
+      <div id="metalEstBox" style="display:none;background:#e8d9b8;border:1px solid #c9a84c;border-radius:3px;padding:10px;margin-top:6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div>
+            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#7a5a20">Metal estimate</div>
+            <div style="font-size:11px;color:#9a7a40;margin-top:2px">spot × purity × grams × 1.25 casting × 1.05 sprue</div>
+          </div>
+          <div style="font-size:18px;color:#7f0034;font-weight:400" id="metalEstDisplay">—</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="metalOverrideToggle" style="width:15px;height:15px;accent-color:#7f0034;cursor:pointer" onchange="toggleMetalOverride()">
+          <label for="metalOverrideToggle" style="font-size:12px;color:#7a5a20;cursor:pointer">Override with my own estimate</label>
+        </div>
+        <div id="metalOverrideField" style="display:none;margin-top:8px">
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a5a20;margin-bottom:4px">My metal cost estimate ($)</div>
+          <input type="number" id="metalOverride" min="0" placeholder="0" oninput="calculate()"
+            style="width:100%;background:#fafaf7;border:1px solid #c9a84c;color:#7f0034;font-family:var(--font-mono);font-size:16px;padding:8px 10px;border-radius:3px;outline:none">
+        </div>
+      </div>
     </div>
 
     <!-- INCLUDE CHAIN -->
@@ -2023,9 +2043,12 @@ function calculate() {
   // Metal cost
   const gpg = goldPerGram(purity);
   const rawMetalCost = grams * gpg;
-  const metalWithCasting = rawMetalCost * 1.25 * 1.05; // +25% casting +5% sprue loss
-  document.getElementById('metalCostDisplay').textContent = grams ? '$' + Math.round(metalWithCasting).toLocaleString() : '—';
-  document.getElementById('metalSub').textContent = grams ? `${grams}g · $${gpg.toFixed(2)}/g · +25% casting +5% metal loss` : '—';
+  const metalWithCasting = getMetalCost(grams, purity);
+  const isOverride = document.getElementById('metalOverrideToggle')?.checked && parseFloat(document.getElementById('metalOverride')?.value);
+  document.getElementById('metalCostDisplay').textContent = (grams || isOverride) ? '$' + Math.round(metalWithCasting).toLocaleString() : '—';
+  document.getElementById('metalSub').textContent = isOverride ? 'manual estimate' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · +25% casting +5% metal loss` : '—';
+  // Update the estimate box too
+  updateMetalEstimate();
 
   // Stones
   const stoneCalc = calcStoneRetail();
@@ -2119,6 +2142,31 @@ function calculate() {
 }
 
 // =================== SAVE QUOTE ===================
+function updateMetalEstimate() {
+  const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
+  const purity = document.getElementById('metalPurity').value;
+  const box = document.getElementById('metalEstBox');
+  const display = document.getElementById('metalEstDisplay');
+  if (!grams) { box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const gpg = goldPerGram(purity);
+  const est = Math.round(grams * gpg * 1.25 * 1.05);
+  display.textContent = est ? '$' + est.toLocaleString() : '—';
+}
+
+function toggleMetalOverride() {
+  const checked = document.getElementById('metalOverrideToggle').checked;
+  document.getElementById('metalOverrideField').style.display = checked ? 'block' : 'none';
+  calculate();
+}
+
+function getMetalCost(grams, purity) {
+  const overrideToggle = document.getElementById('metalOverrideToggle');
+  const overrideVal = parseFloat(document.getElementById('metalOverride')?.value) || 0;
+  if (overrideToggle?.checked && overrideVal) return overrideVal;
+  return grams * goldPerGram(purity) * 1.25 * 1.05;
+}
+
 function toggleOccasionOther(fieldId, val) {
   const el = document.getElementById(fieldId);
   if (el) el.style.display = val === 'Other' ? 'block' : 'none';
@@ -2188,7 +2236,7 @@ function saveQuote(quoteType = 'client') {
   const notes = document.getElementById('quoteNotes').value;
   const stoneCalc = calcStoneRetail();
   const gpg = goldPerGram(purity);
-  const metalWithCasting = grams * gpg * 1.25 * 1.05;
+  const metalWithCasting = getMetalCost(grams, purity);
   const laborRetail = labor * 1.4;
 
   let chainWholesaleCost = 0;
@@ -2281,6 +2329,8 @@ function clearQuote() {
   document.getElementById('chainSelectedLabel').textContent = 'None selected';
   document.getElementById('chainSelectedLabel').style.color = 'var(--text-mid)';
   if (document.getElementById('meleeCost')) document.getElementById('meleeCost').value = '';
+  if (document.getElementById('metalOverrideToggle')) { document.getElementById('metalOverrideToggle').checked = false; document.getElementById('metalOverrideField').style.display = 'none'; document.getElementById('metalOverride').value = ''; }
+  if (document.getElementById('metalEstBox')) document.getElementById('metalEstBox').style.display = 'none';
   document.getElementById('discountValue').value = '';
   document.getElementById('discountType').value = 'pct';
   document.getElementById('quoteNotes').value = '';
