@@ -555,10 +555,13 @@
   }
 
   .quote-meta {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-dim);
     display: flex;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+    margin-top: 4px;
   }
 
   .quote-status {
@@ -2194,7 +2197,7 @@ function buildQuoteCard(q) {
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
-    + '<div class="quote-meta" style="margin-top:3px"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + occasionTag + '</div>'
+    + '<div class="quote-meta"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + occasionTag + '</div>'
     + '</div>'
     + '<div style="text-align:right">'
     + '<div class="quote-amount" style="' + displayAmountColor + '">' + displayAmountStr + '</div>'
