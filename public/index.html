@@ -3420,15 +3420,13 @@ function saveInventoryStone() {
     const inv = getInventory();
     const idx = inv.findIndex(s => s.id === parseInt(editingId));
     if (idx !== -1) {
-      // Derive status from category unless stone is in-use
+      // Derive status from category — allow override even if in-use
       const currentStatus = inv[idx].status;
       let newStatus = currentStatus;
-      if (currentStatus !== 'in-use' && currentStatus !== 'out-with-jeweler' && currentStatus !== 'sold-by-dealer') {
-        if (category === 'owned-reserved') newStatus = 'unavailable';
-        else if (category === 'owned-available') newStatus = 'available';
-        else if (category === 'memo') newStatus = 'available';
-        else if (category === 'viewed') newStatus = 'available';
-      }
+      if (category === 'owned-reserved') newStatus = 'unavailable';
+      else if (category === 'owned-available' && currentStatus !== 'in-use') newStatus = 'available';
+      else if (category === 'memo' && currentStatus !== 'in-use') newStatus = 'available';
+      else if (category === 'viewed' && currentStatus !== 'in-use') newStatus = 'available';
       inv[idx] = { ...inv[idx], category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique, status: newStatus };
       window._inventory = inv;
       persistInventory();
@@ -3523,6 +3521,21 @@ function markStoneAvailable(id) {
     renderStoneInventory();
     showToast('Marked as available');
   }
+}
+
+function releaseStone(id) {
+  const inv = getInventory();
+  const s = inv.find(i => i.id === id);
+  if (!s) return;
+  s.status = 'available';
+  s.usedInProjectId = null;
+  if (s.category === 'owned-available' || s.category === 'owned-reserved' || s.category === 'viewed' || s.category === 'memo') {
+    // keep category as-is
+  }
+  window._inventory = inv;
+  persistInventory();
+  renderStoneInventory();
+  showToast('Stone released — marked available');
 }
 
 function markStoneSoldByDealer(id) {
@@ -3650,9 +3663,15 @@ function renderStoneInventory() {
     if (s.status !== 'sold-by-dealer') {
       html += `<button class="convert-btn" onclick="markStoneSoldByDealer(${s.id})" style="border-color:var(--red);color:var(--red)">Sold by dealer</button>`;
     }
+    if (s.status === 'in-use') {
+      const activeProject = getSavedQuotes().find(q => q.id === s.usedInProjectId);
+      if (!activeProject) {
+        html += `<button class="convert-btn" style="border-color:var(--green);color:var(--green-bright)" onclick="releaseStone(${s.id})">← Release</button>`;
+      }
+    }
     if (s.status === 'out-with-jeweler') {
       html += `<button class="convert-btn" style="border-color:#ccc07a;color:#ccc07a" onclick="markStoneAvailable(${s.id})">← Back in circulation</button>`;
-    } else if (s.status !== 'sold-by-dealer') {
+    } else if (s.status !== 'sold-by-dealer' && s.status !== 'in-use') {
       html += `<button class="convert-btn" style="border-color:#ccc07a;color:#ccc07a" onclick="markStoneOutWithJeweler(${s.id})">Out w/ jeweler</button>`;
     }
     html += `<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="editInventoryStone(${s.id})">Edit</button>`;
