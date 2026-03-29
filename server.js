@@ -92,6 +92,63 @@ app.post('/api/honeybook', async (req, res) => {
   }
 });
 
+
+// ─── Gold price proxy ─────────────────────────────────────────────────────────
+let cachedGoldPrice = null;
+let cacheTime = 0;
+
+app.get('/api/gold-price', async (req, res) => {
+  // Cache for 5 minutes
+  if (cachedGoldPrice && Date.now() - cacheTime < 5 * 60 * 1000) {
+    return res.json({ price: cachedGoldPrice, cached: true });
+  }
+
+  // Try metals-api (no key needed for basic endpoint)
+  const sources = [
+    { host: 'api.gold-api.com', path: '/price/XAU', parse: d => d.price },
+    { host: 'metals-api.com', path: '/api/latest?access_key=&base=USD&symbols=XAU', parse: d => d.rates && d.rates.XAU ? 1/d.rates.XAU : null },
+  ];
+
+  for (const source of sources) {
+    try {
+      const price = await new Promise((resolve, reject) => {
+        const options = {
+          hostname: source.host,
+          path: source.path,
+          method: 'GET',
+          headers: { 'User-Agent': 'EFWorkshop/1.0' },
+          timeout: 5000
+        };
+        const req2 = https.request(options, (r) => {
+          let data = '';
+          r.on('data', c => data += c);
+          r.on('end', () => {
+            try {
+              const parsed = JSON.parse(data);
+              const price = source.parse(parsed);
+              if (price && price > 1000 && price < 10000) resolve(price);
+              else reject(new Error('Invalid price: ' + price));
+            } catch(e) { reject(e); }
+          });
+        });
+        req2.on('error', reject);
+        req2.on('timeout', () => { req2.destroy(); reject(new Error('timeout')); });
+        req2.end();
+      });
+
+      cachedGoldPrice = price;
+      cacheTime = Date.now();
+      return res.json({ price, source: source.host });
+    } catch(e) {
+      console.log('Gold source failed:', source.host, e.message);
+    }
+  }
+
+  // Fallback to cached if we have it
+  if (cachedGoldPrice) return res.json({ price: cachedGoldPrice, cached: true, stale: true });
+  res.status(503).json({ error: 'Could not fetch gold price' });
+});
+
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

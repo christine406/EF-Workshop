@@ -1433,7 +1433,7 @@ async function fetchGold() {
   document.getElementById('goldSub').textContent = 'fetching...';
   try {
     
-    const r = await fetch('https://api.gold-api.com/price/XAU');
+    const r = await fetch('/api/gold-price');
     const d = await r.json();
     goldSpotOz = d.price;
     document.getElementById('goldDisplay').value = goldSpotOz.toFixed(2);
