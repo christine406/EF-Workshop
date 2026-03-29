@@ -734,7 +734,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div>
             <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#7a5a20">Metal estimate</div>
-            <div style="font-size:11px;color:#9a7a40;margin-top:2px">spot × purity factor × grams × 1.35</div>
+            <div style="font-size:11px;color:#9a7a40;margin-top:2px">spot × purity × grams × 1.25 casting × 1.05 sprue × 1.35</div>
           </div>
           <div style="font-size:18px;color:#7f0034;font-weight:400" id="metalEstDisplay">—</div>
         </div>
@@ -743,7 +743,7 @@
           <label for="metalOverrideToggle" style="font-size:12px;color:#7a5a20;cursor:pointer">Override with my own estimate</label>
         </div>
         <div id="metalOverrideField" style="display:none;margin-top:8px">
-          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a5a20;margin-bottom:4px">My metal cost estimate (incl. casting, excl. sprue)</div>
+          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a5a20;margin-bottom:4px">Casting company bill (incl. casting fee, excl. sprue loss)</div>
           <input type="number" id="metalOverride" min="0" placeholder="0" oninput="calculate()"
             style="width:100%;background:#fafaf7;border:1px solid #ccc07a;color:#7f0034;font-family:var(--font-mono);font-size:16px;padding:8px 10px;border-radius:3px;outline:none">
         </div>
@@ -2027,7 +2027,7 @@ function calcStoneRetail() {
   const meleeCost = parseFloat(document.getElementById('meleeCost')?.value) || 0;
   smallCost += meleeCost;
 
-  const smallRetail = smallCost * 1.35;
+  const smallRetail = smallCost * 1.75;
   const mainRetail = mainCost * stoneMarkupProject(mainCost);
   return { smallCost, mainCost, meleeCost, smallRetail, mainRetail, total: smallRetail + mainRetail };
 }
@@ -2050,7 +2050,7 @@ function calculate() {
   const metalWithCasting = getMetalCost(grams, purity);
   const isOverride = document.getElementById('metalOverrideToggle')?.checked && parseFloat(document.getElementById('metalOverride')?.value);
   document.getElementById('metalCostDisplay').textContent = (grams || isOverride) ? '$' + Math.round(metalWithCasting).toLocaleString() : '—';
-  document.getElementById('metalSub').textContent = isOverride ? 'manual estimate' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.35` : '—';
+  document.getElementById('metalSub').textContent = isOverride ? 'manual estimate' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.25 casting ×1.05 sprue ×1.35` : '—';
   // Update the estimate box too
   updateMetalEstimate();
 
@@ -2061,7 +2061,7 @@ function calculate() {
   if (stones.length) {
     let sub = [];
     if (stoneCalc.mainCost) sub.push(`main ×${stoneMarkupProject(stoneCalc.mainCost)}`);
-    if (stoneCalc.smallCost) sub.push(`melee ×1.35`);
+    if (stoneCalc.smallCost) sub.push(`melee ×1.75`);
     document.getElementById('stoneSub').textContent = sub.join(' · ');
   } else {
     document.getElementById('stoneSub').textContent = '—';
@@ -2095,7 +2095,7 @@ function calculate() {
   const overhead = Math.round((metalMarkup + chainMarkup + laborRetail + designFee) * 0.13);
   document.getElementById('overheadDisplay').textContent = overhead ? '$' + overhead.toLocaleString() : '—';
   document.getElementById('metalCostDisplay').textContent = (grams || isOverride) ? '$' + metalMarkup.toLocaleString() : '—';
-  document.getElementById('metalSub').textContent = isOverride ? 'manual entry + 5% sprue loss' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.35` : '—';
+  document.getElementById('metalSub').textContent = isOverride ? 'casting bill + 5% sprue + ×1.35' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.25 casting ×1.05 sprue ×1.35` : '—';
 
   // Total = stone_markup + metal×1.35 + chain×1.35 + labor×1.4 + design_fee, rounded to $50
   const hasAny = grams || stones.length || labor;
@@ -2157,7 +2157,7 @@ function updateMetalEstimate() {
   if (!grams) { box.style.display = 'none'; return; }
   box.style.display = 'block';
   const gpg = goldPerGram(purity);
-  const est = Math.round(grams * gpg * 1.35); // raw metal × 1.35
+  const est = Math.round(grams * gpg * 1.25 * 1.05 * 1.35);
   display.textContent = est ? '$' + est.toLocaleString() : '—';
 }
 
@@ -2170,8 +2170,13 @@ function toggleMetalOverride() {
 function getMetalCost(grams, purity) {
   const overrideToggle = document.getElementById('metalOverrideToggle');
   const overrideVal = parseFloat(document.getElementById('metalOverride')?.value) || 0;
-  if (overrideToggle?.checked && overrideVal) return overrideVal;
-  return grams * goldPerGram(purity) * 1.35; // metal cost × 1.35 materials markup
+  if (overrideToggle?.checked && overrideVal) {
+    // Casting company bill: includes casting fee, excludes 5% sprue loss
+    // Apply sprue loss then materials markup
+    return overrideVal * 1.05 * 1.35;
+  }
+  // From grams: raw metal × 1.25 casting × 1.05 sprue × 1.35 materials markup
+  return grams * goldPerGram(purity) * 1.25 * 1.05 * 1.35;
 }
 
 function toggleOccasionOther(fieldId, val) {
