@@ -3099,7 +3099,7 @@ function toggleInventoryPicker() {
 function renderInventoryPicker() {
   const list = document.getElementById('inventoryPickerList');
   const available = getInventory().filter(s =>
-    (s.category === 'owned-available' || s.category === 'memo') && (!s.status || s.status === 'available')
+    (!s.status || s.status === 'available')
   );
 
   if (!available.length) {
