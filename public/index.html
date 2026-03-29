@@ -2262,9 +2262,8 @@ function saveQuote(quoteType = 'client') {
     }
   }
 
-  const metalMarkupSave = Math.round(metalWithCasting * 1.35);
+  const metalMarkupSave = Math.round(metalWithCasting); // getMetalCost already includes ×1.35
   const chainMarkupSave = Math.round(chainWholesaleCost * 1.35);
-  const restBeforeOverhead = metalMarkupSave + chainMarkupSave + Math.round(laborRetail) + designFee;
   const rawTotal = Math.round(stoneCalc.total) + (metalMarkupSave + chainMarkupSave + Math.round(laborRetail) + designFee) * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
