@@ -2092,14 +2092,15 @@ function calculate() {
   // Formula: stone×markup + metal×1.35 + chain×1.35 + labor×1.4 + design_fee
   const metalMarkup = Math.round(metalWithCasting); // getMetalCost already applies ×1.35
   const chainMarkup = Math.round(chainWholesaleCost * 1.35);
-  document.getElementById('overheadDisplay').textContent = '—';
+  const overhead = Math.round((metalMarkup + chainMarkup + laborRetail + designFee) * 0.13);
+  document.getElementById('overheadDisplay').textContent = overhead ? '$' + overhead.toLocaleString() : '—';
   document.getElementById('metalCostDisplay').textContent = (grams || isOverride) ? '$' + metalMarkup.toLocaleString() : '—';
   document.getElementById('metalSub').textContent = isOverride ? 'manual entry + 5% sprue loss' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.35` : '—';
 
   // Total = stone_markup + metal×1.35 + chain×1.35 + labor×1.4 + design_fee, rounded to $50
   const hasAny = grams || stones.length || labor;
   if (hasAny) {
-    const rawTotal = Math.round(stoneRetailTotal) + metalMarkup + chainMarkup + laborRetail + designFee;
+    const rawTotal = Math.round(stoneRetailTotal) + (metalMarkup + chainMarkup + laborRetail + designFee) * 1.13;
     const total = Math.round(rawTotal / 50) * 50;
     document.getElementById('totalDisplay').textContent = '$' + total.toLocaleString();
 
@@ -2259,7 +2260,7 @@ function saveQuote(quoteType = 'client') {
   const metalMarkupSave = Math.round(metalWithCasting * 1.35);
   const chainMarkupSave = Math.round(chainWholesaleCost * 1.35);
   const restBeforeOverhead = metalMarkupSave + chainMarkupSave + Math.round(laborRetail) + designFee;
-  const rawTotal = Math.round(stoneCalc.total) + metalMarkupSave + chainMarkupSave + Math.round(laborRetail) + designFee;
+  const rawTotal = Math.round(stoneCalc.total) + (metalMarkupSave + chainMarkupSave + Math.round(laborRetail) + designFee) * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
   const quote = {
@@ -3001,7 +3002,7 @@ function saveActuals(id) {
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const laborRetail = laborCost * 1.4;
   const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + laborRetail + designFee;
-  q.actualTotal = Math.round((stoneRetail + rest) / 50) * 50;
+  q.actualTotal = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
 
   window._savedQuotes = quotes;
   persistQuotes();
@@ -3058,7 +3059,7 @@ function calcNewProject() {
   const total = Math.round(rawTotal / 50) * 50;
 
   document.getElementById('npStoneDisplay').textContent = '$' + Math.round(stoneRetail).toLocaleString();
-  document.getElementById('npRestDisplay').textContent = '$' + Math.round(rest).toLocaleString();
+  document.getElementById('npRestDisplay').textContent = '$' + Math.round(rest * 1.13).toLocaleString();
   document.getElementById('npTotalDisplay').textContent = '$' + total.toLocaleString();
   document.getElementById('npResult').style.display = 'block';
 }
