@@ -1116,6 +1116,10 @@
               <input type="checkbox" id="np-antique" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
               <label for="np-antique" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
             </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+              <input type="checkbox" id="np-add-inv" style="width:16px;height:16px;accent-color:var(--teal-dim);cursor:pointer">
+              <label for="np-add-inv" style="font-size:13px;color:var(--teal-dim);cursor:pointer">Add to stone inventory</label>
+            </div>
           </div>
         </div>
 
@@ -1981,6 +1985,11 @@ function renderStones() {
             onchange="updateStone(${s.id},'antique',this.checked)">
           <label for="qs-antique-${s.id}" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <input type="checkbox" id="qs-inv-${s.id}" ${s.addToInventory?'checked':''} style="width:16px;height:16px;accent-color:var(--teal-dim);cursor:pointer"
+            onchange="updateStone(${s.id},'addToInventory',this.checked)">
+          <label for="qs-inv-${s.id}" style="font-size:13px;color:var(--teal-dim);cursor:pointer">Add to stone inventory</label>
+        </div>
       </div>` : ''}`;
 
     list.appendChild(card);
@@ -2352,7 +2361,8 @@ function saveQuote(quoteType = 'client') {
       const invStone = inv.find(i => i.id === s.inventoryId);
       if (invStone) { invStone.status = 'in-use'; invStone.usedInProjectId = quote.id; invChanged = true; }
     } else if (s.gia || s.carat || (s.color && s.clarity)) {
-      // Stone has detail info — add to inventory as in-use
+      // Stone has detail info — add to inventory only if explicitly flagged
+      if (!s.addToInventory) return;
       const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
       const newInvStone = {
         id: Date.now() + Math.random(),
@@ -2395,6 +2405,7 @@ function clearQuote() {
   if (document.getElementById('fingerSize')) document.getElementById('fingerSize').value = '';
   if (document.getElementById('clientBudget')) document.getElementById('clientBudget').value = '';
   if (document.getElementById('budgetRow')) document.getElementById('budgetRow').style.display = 'none';
+  stones.forEach(s => { s.addToInventory = false; });
   if (document.getElementById('metalOverrideToggle')) { document.getElementById('metalOverrideToggle').checked = false; document.getElementById('metalOverrideField').style.display = 'none'; document.getElementById('metalOverride').value = ''; }
   if (document.getElementById('metalEstBox')) document.getElementById('metalEstBox').style.display = 'none';
   document.getElementById('discountValue').value = '';
@@ -2550,6 +2561,10 @@ function editQuoteCard(id, e) {
           <input type="checkbox" id="ep-antique-${id}" ${_epAntique?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
           <label for="ep-antique-${id}" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+          <input type="checkbox" id="ep-add-inv-${id}" ${(!_linkedInv && !q.stoneDetail)?'':'checked'} style="width:16px;height:16px;accent-color:var(--teal-dim);cursor:pointer">
+          <label for="ep-add-inv-${id}" style="font-size:13px;color:var(--teal-dim);cursor:pointer">${_linkedInv ? '↗ Already in inventory' : 'Add to stone inventory'}</label>
+        </div>
       </div>
     </div>
     <div style="margin-bottom:8px">
@@ -2603,12 +2618,13 @@ function saveQuoteEdit(id) {
     dealer: document.getElementById('ep-dealer-' + id)?.value || '',
     antique: document.getElementById('ep-antique-' + id)?.checked || false,
   };
+  const epAddToInv = document.getElementById('ep-add-inv-' + id)?.checked;
   if (stoneDetail.gia || stoneDetail.carat || stoneDetail.color) {
     q.stoneDetail = stoneDetail;
-    // Write to inventory if not already there
+    // Write to inventory only if explicitly flagged and not already there
     const inv = getInventory();
     const alreadyIn = inv.find(i => i.usedInProjectId === id || (stoneDetail.gia && i.gia === stoneDetail.gia));
-    if (!alreadyIn) {
+    if (!alreadyIn && epAddToInv) {
       inv.push({
         id: Date.now() + Math.random(),
         category: 'owned-available',
@@ -3225,8 +3241,9 @@ function saveDirectProject(projectType = 'client') {
   window._savedQuotes = updated;
   persistQuotes();
 
-  // Write stone to inventory if details were filled in
-  if (project.stoneDetail) {
+  // Write stone to inventory only if explicitly flagged
+  const npAddToInv = document.getElementById('np-add-inv')?.checked;
+  if (project.stoneDetail && npAddToInv) {
     const inv = getInventory();
     const alreadyIn = inv.find(i => stoneDetail.gia && i.gia === stoneDetail.gia);
     if (!alreadyIn) {
