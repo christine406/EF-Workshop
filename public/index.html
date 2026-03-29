@@ -670,6 +670,16 @@
         <div class="field-label">Client name</div>
         <input type="text" id="clientName" placeholder="e.g. Sarah M.">
       </div>
+      <div class="field-row" style="margin-top:8px">
+        <div class="field">
+          <div class="field-label">Finger size</div>
+          <input type="text" id="fingerSize" placeholder="e.g. 6.5" style="width:100%">
+        </div>
+        <div class="field">
+          <div class="field-label">Client budget</div>
+          <input type="number" id="clientBudget" min="0" placeholder="0" style="width:100%">
+        </div>
+      </div>
     </div>
 
     <!-- PIECE TYPE -->
@@ -933,6 +943,13 @@
           <div class="result-value" id="profitDisplay" style="font-size:14px">—</div>
           <div id="profitAfterDisplay" style="font-size:14px;color:var(--teal-dim);margin-top:2px"></div>
         </div>
+      </div>
+      <div class="result-row" id="budgetRow" style="display:none">
+        <div>
+          <div class="result-label">Client budget</div>
+          <div class="result-sub" id="budgetSub">—</div>
+        </div>
+        <div class="result-value" id="budgetDisplay" style="color:#ccc07a">—</div>
       </div>
     </div>
 
@@ -2153,6 +2170,16 @@ function calculate() {
     document.getElementById('profitRow').style.display = 'flex';
     document.getElementById('profitDisplay').textContent = '$' + profitBefore.toLocaleString();
     document.getElementById('profitDisplay').style.color = profitBefore >= 0 ? 'var(--green-bright)' : 'var(--red)';
+    const budget = parseFloat(document.getElementById('clientBudget')?.value) || 0;
+    if (budget) {
+      document.getElementById('budgetRow').style.display = 'flex';
+      document.getElementById('budgetDisplay').textContent = '$' + budget.toLocaleString();
+      const diff = budget - total;
+      document.getElementById('budgetSub').textContent = diff >= 0 ? '✓ $' + diff.toLocaleString() + ' under budget' : '$' + Math.abs(diff).toLocaleString() + ' over budget';
+      document.getElementById('budgetSub').style.color = diff >= 0 ? 'var(--green-bright)' : 'var(--red)';
+    } else {
+      document.getElementById('budgetRow').style.display = 'none';
+    }
 
     const subLines = [];
     if (discountVal > 0) subLines.push(`after disc: $${profitAfterDiscount.toLocaleString()}`);
@@ -2265,6 +2292,8 @@ function saveQuote(quoteType = 'client') {
   const labor = parseFloat(document.getElementById('laborCost').value) || 0;
   const designFee = parseFloat(document.getElementById('designFee').value) || 0;
   const notes = document.getElementById('quoteNotes').value;
+  const fingerSize = document.getElementById('fingerSize')?.value?.trim() || '';
+  const clientBudget = parseFloat(document.getElementById('clientBudget')?.value) || 0;
   const stoneCalc = calcStoneRetail();
   const gpg = goldPerGram(purity);
   const metalWithCasting = getMetalCost(grams, purity);
@@ -2304,6 +2333,8 @@ function saveQuote(quoteType = 'client') {
     discountType: document.getElementById('discountType').value,
     clientPrice: 0,
     total,
+    fingerSize,
+    clientBudget,
     date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
     actualLabor: null,
     actualStones: null,
@@ -2361,6 +2392,9 @@ function clearQuote() {
   document.getElementById('chainSelectedLabel').textContent = 'None selected';
   document.getElementById('chainSelectedLabel').style.color = 'var(--text-mid)';
   if (document.getElementById('meleeCost')) document.getElementById('meleeCost').value = '';
+  if (document.getElementById('fingerSize')) document.getElementById('fingerSize').value = '';
+  if (document.getElementById('clientBudget')) document.getElementById('clientBudget').value = '';
+  if (document.getElementById('budgetRow')) document.getElementById('budgetRow').style.display = 'none';
   if (document.getElementById('metalOverrideToggle')) { document.getElementById('metalOverrideToggle').checked = false; document.getElementById('metalOverrideField').style.display = 'none'; document.getElementById('metalOverride').value = ''; }
   if (document.getElementById('metalEstBox')) document.getElementById('metalEstBox').style.display = 'none';
   document.getElementById('discountValue').value = '';
@@ -2453,6 +2487,16 @@ function editQuoteCard(id, e) {
         </select>
       </div>
     </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div class="field-label">Finger size</div>
+        <input type="text" id="eq-fingersize-${id}" value="${q.fingerSize||''}" placeholder="e.g. 6.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+      <div>
+        <div class="field-label">Client budget ($)</div>
+        <input type="number" id="eq-budget-${id}" value="${q.clientBudget||''}" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+    </div>
 
     <div style="margin-bottom:8px">
       <div class="field-label">Occasion</div>
@@ -2537,6 +2581,8 @@ function saveQuoteEdit(id) {
   q.occasion = occasionSel === 'Other' ? (occasionOther || 'Other') : occasionSel;
   q.purity = document.getElementById('eq-purity-' + id).value;
   q.notes = document.getElementById('eq-notes-' + id).value.trim();
+  q.fingerSize = document.getElementById('eq-fingersize-' + id)?.value?.trim() || q.fingerSize || '';
+  q.clientBudget = parseFloat(document.getElementById('eq-budget-' + id)?.value) || q.clientBudget || 0;
 
   const newType = document.getElementById('eq-quotetype-' + id).value;
   if (newType !== q.quoteType) {
@@ -2643,7 +2689,8 @@ function buildQuoteCard(q) {
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
-    + '<div class="quote-meta"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + occasionTag + '</div>'
+    + '<div class="quote-meta"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + occasionTag + '</div>'
+    + (q.clientBudget ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">Budget <span style="color:#ccc07a">$' + q.clientBudget.toLocaleString() + '</span>' + (q.total ? ' · <span style="color:' + (q.clientBudget >= q.total ? 'var(--green-bright)' : 'var(--red)') + '">' + (q.clientBudget >= q.total ? '✓ $' + (q.clientBudget - q.total).toLocaleString() + ' under' : '$' + (q.total - q.clientBudget).toLocaleString() + ' over') + '</span>' : '') + '</div>' : '')
     + '</div>'
     + '<div style="text-align:right">'
     + '<div class="quote-amount" style="' + displayAmountColor + '">' + displayAmountStr + '</div>'
