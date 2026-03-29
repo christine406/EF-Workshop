@@ -2191,11 +2191,10 @@ function buildQuoteCard(q) {
     : '';
 
   // HEADER — always visible, tap to expand
-  let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer">'
+  let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
-    + '<div class="quote-meta" style="margin-top:3px"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag
-    + occasionTag + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
+    + '<div class="quote-meta" style="margin-top:3px"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + occasionTag + '</div>'
     + '</div>'
     + '<div style="text-align:right">'
     + '<div class="quote-amount" style="' + displayAmountColor + '">' + displayAmountStr + '</div>'
