@@ -2794,12 +2794,17 @@ function renderPL() {
 
   const isExpanded = el.dataset.expanded === '1';
 
+  if (!isExpanded) {
+    el.innerHTML = `<button onclick="togglePL()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:3px;cursor:pointer;width:100%">P&amp;L Summary ▾</button>`;
+    return;
+  }
+
   let html = `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--teal-dim);border-radius:4px;overflow:hidden">
     <div onclick="togglePL()" style="cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">P&amp;L Summary</div>
+      <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">P&amp;L Summary ▴</div>
       <div style="text-align:right">
         <div style="font-size:16px;color:${totalProfit>=0?'var(--green-bright)':'var(--red)'}">$${totalProfit.toLocaleString()} profit</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">$${totalRevenue.toLocaleString()} revenue · $${totalCost.toLocaleString()} costs · ${completed.length} project${completed.length!==1?'s':''} ▾</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">$${totalRevenue.toLocaleString()} revenue · $${totalCost.toLocaleString()} costs · ${completed.length} project${completed.length!==1?'s':''}</div>
       </div>
     </div>`;
 
@@ -3093,7 +3098,7 @@ function saveActuals(id) {
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const laborRetail = laborCost * 1.4;
   const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + laborRetail + designFee;
-  q.actualTotal = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
+  q.actualTotal = Math.round(rawTotal / 50) * 50;
 
   window._savedQuotes = quotes;
   persistQuotes();
@@ -3146,7 +3151,7 @@ function calcNewProject() {
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const laborRetail = laborCost * 1.4;
   const rest = Math.round(metalCost * 1.35) + Math.round(chainWholesale * 1.35) + laborRetail + designFee;
-  const rawTotal = stoneRetail + rest;
+  const rawTotal = stoneRetail + rest * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
   document.getElementById('npStoneDisplay').textContent = '$' + Math.round(stoneRetail).toLocaleString();
@@ -3184,10 +3189,10 @@ function saveDirectProject(projectType = 'client') {
   };
 
   const totalStoneCost = stoneCost + meleeCost;
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.35;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
   const laborRetail = laborCost * 1.4;
   const rest = Math.round(metalCost * 1.35) + Math.round(chainWholesale * 1.35) + laborRetail + designFee;
-  const rawTotal = stoneRetail + rest;
+  const rawTotal = stoneRetail + rest * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
   const project = {
