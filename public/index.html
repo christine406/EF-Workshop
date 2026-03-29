@@ -2490,6 +2490,7 @@ function editQuoteCard(id, e) {
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="saveQuoteEdit(${id})">Save</button>
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-form').remove()">Cancel</button>
     </div>`;
+  card.insertAdjacentElement('afterend', form);
   form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
