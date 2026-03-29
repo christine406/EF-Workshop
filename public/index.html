@@ -1382,8 +1382,8 @@
         <div class="result-value" id="looseTotalDisplay">—</div>
       </div>
     </div>
-    <div id="looseMarkSoldWrap" style="display:none;padding:0 16px 16px">
-      <button onclick="markLooseStoneSold()" style="width:100%;background:var(--red);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:12px;cursor:pointer;border-radius:3px">Mark stone as sold by dealer</button>
+    <div id="looseMarkSoldWrap" style="padding:0 16px 16px">
+      <button onclick="markLooseStoneSold()" style="width:100%;background:var(--red);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:12px;cursor:pointer;border-radius:3px">Mark as sold — record in P&amp;L</button>
     </div>
   </div>
 
@@ -2724,7 +2724,7 @@ function renderPL() {
   const all = getSavedQuotes();
   // Only include projects/collection with a client price filled in
   const completed = all.filter(q =>
-    (q.status === 'project' || q.status === 'collection' || q.status === 'completed') && q.clientPrice > 0
+    ((q.status === 'project' || q.status === 'collection' || q.status === 'completed' || q.status === 'loose-sale')) && q.clientPrice > 0
   );
 
   if (!completed.length) { el.innerHTML = ''; return; }
@@ -2763,7 +2763,7 @@ function renderPL() {
       html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)">
         <div>
           <div style="font-size:13px;color:var(--text)">${q.client}</div>
-          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.pieceType||''}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.looseSale ? '💎 loose sale' : (q.pieceType||'')}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal && !q.looseSale?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:13px;color:${profit>=0?'var(--green-bright)':'var(--red)'}">$${profit.toLocaleString()}</div>
@@ -3794,17 +3794,60 @@ function clearLooseSelection() {
 }
 
 function markLooseStoneSold() {
-  if (!_looseSelectedStoneId) return;
-  if (!confirm('Mark this stone as sold by dealer? This will update its status in inventory.')) return;
-  const inv = getInventory();
-  const s = inv.find(i => i.id === _looseSelectedStoneId);
-  if (s) {
-    s.status = 'sold-by-dealer';
-    window._inventory = inv;
-    persistInventory();
-    showToast('Stone marked as sold by dealer');
-    clearLooseSelection();
+  if (!_looseSelectedStoneId && !document.getElementById('looseCost').value) {
+    showToast('Enter a stone cost first'); return;
   }
+  const cost = parseFloat(document.getElementById('looseCost').value) || 0;
+  const desc = document.getElementById('looseDesc').value.trim() || 'Loose stone';
+  if (!cost) { showToast('Enter a stone cost first'); return; }
+
+  // Calculate retail price
+  let mult;
+  if (cost <= 2000) mult = 2.2;
+  else if (cost <= 5000) mult = 1.85;
+  else if (cost <= 10000) mult = 1.65;
+  else if (cost <= 20000) mult = 1.45;
+  else mult = 1.35;
+  const salePrice = Math.round(cost * mult);
+
+  const clientPrice = parseFloat(prompt('What did you actually sell it for? (Suggested: $' + salePrice.toLocaleString() + ')', salePrice));
+  if (!clientPrice || isNaN(clientPrice)) return;
+
+  // Record as a loose sale entry in saved quotes for P&L
+  const sale = {
+    id: Date.now(),
+    client: desc,
+    status: 'loose-sale',
+    quoteType: 'loose',
+    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    actualStoneCost: cost,
+    actualMetalCost: 0,
+    actualLabor: 0,
+    chainCost: 0,
+    designFee: 0,
+    clientPrice,
+    total: salePrice,
+    looseSale: true,
+    inventoryStoneId: _looseSelectedStoneId || null,
+  };
+  const updated = [sale, ...getSavedQuotes()];
+  window._savedQuotes = updated;
+  persistQuotes();
+
+  // Update inventory stone status if one was selected
+  if (_looseSelectedStoneId) {
+    const inv = getInventory();
+    const s = inv.find(i => i.id === _looseSelectedStoneId);
+    if (s) {
+      s.status = 'sold-by-dealer';
+      window._inventory = inv;
+      persistInventory();
+    }
+  }
+
+  showToast('Sale recorded — $' + clientPrice.toLocaleString());
+  clearLooseSelection();
+  renderSaved();
 }
 
 function calcLoose() {
