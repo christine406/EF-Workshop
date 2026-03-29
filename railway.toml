@@ -1,8 +1,2 @@
 [deploy]
 startCommand = "node server.js"
-
-[[services]]
-name = "EF-Workshop"
-
-[services.networking]
-port = 8080
