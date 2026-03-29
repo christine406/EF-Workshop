@@ -1345,6 +1345,17 @@
   <div class="screen" id="screen-loose">
     <div class="section">
       <div class="section-label">💎 Loose stone sale</div>
+      <button class="add-stone-btn" onclick="toggleLoosePicker()" id="loosePickerToggle" style="margin-bottom:10px">📦 Pick from inventory</button>
+      <div id="loosePickerList" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:3px;margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
+      <div id="looseSelectedStone" style="display:none;background:var(--surface2);border:1px solid var(--teal-dim);border-radius:3px;padding:10px;margin-bottom:10px;font-size:13px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="color:var(--teal-dim);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px">From inventory</div>
+            <div id="looseSelectedDesc" style="color:var(--text)"></div>
+          </div>
+          <button onclick="clearLooseSelection()" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:0 4px">×</button>
+        </div>
+      </div>
       <div class="field-row">
         <div class="field">
           <div class="field-label">Stone cost ($)</div>
@@ -1370,6 +1381,9 @@
         <div class="result-label">Retail price</div>
         <div class="result-value" id="looseTotalDisplay">—</div>
       </div>
+    </div>
+    <div id="looseMarkSoldWrap" style="display:none;padding:0 16px 16px">
+      <button onclick="markLooseStoneSold()" style="width:100%;background:var(--red);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:12px;cursor:pointer;border-radius:3px">Mark stone as sold by dealer</button>
     </div>
   </div>
 
@@ -3732,6 +3746,67 @@ function addInventoryStone() { openAddStoneForm(); }
 function renderInventory() { renderStoneInventory(); }
 
 // =================== LOOSE SALE ===================
+let _looseSelectedStoneId = null;
+
+function toggleLoosePicker() {
+  const list = document.getElementById('loosePickerList');
+  const isOpen = list.style.display !== 'none';
+  if (isOpen) { list.style.display = 'none'; return; }
+  const available = getInventory().filter(s => !s.status || s.status === 'available' || s.status === 'unavailable');
+  list.innerHTML = '';
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-dim);text-align:center">No stones in inventory.</div>';
+  } else {
+    available.forEach(s => {
+      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+      const catLabel = s.category === 'memo' ? 'on memo' : s.category === 'viewed' ? 'viewed' : s.category === 'owned-reserved' ? 'reserved' : 'owned';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+      row.onmouseenter = () => row.style.background = 'var(--surface2)';
+      row.onmouseleave = () => row.style.background = '';
+      row.innerHTML = '<div><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + catLabel + ' · $' + (s.cost||0).toLocaleString() + '</div></div><button style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer">Use</button>';
+      row.querySelector('button').onclick = () => selectLooseStone(s);
+      list.appendChild(row);
+    });
+  }
+  list.style.display = 'block';
+}
+
+function selectLooseStone(s) {
+  _looseSelectedStoneId = s.id;
+  const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+  document.getElementById('looseSelectedDesc').textContent = desc + (s.gia ? ' · GIA ' + s.gia : '');
+  document.getElementById('looseSelectedStone').style.display = 'block';
+  document.getElementById('looseCost').value = s.cost || '';
+  document.getElementById('looseDesc').value = desc;
+  document.getElementById('loosePickerList').style.display = 'none';
+  document.getElementById('looseMarkSoldWrap').style.display = 'block';
+  calcLoose();
+}
+
+function clearLooseSelection() {
+  _looseSelectedStoneId = null;
+  document.getElementById('looseSelectedStone').style.display = 'none';
+  document.getElementById('looseMarkSoldWrap').style.display = 'none';
+  document.getElementById('looseCost').value = '';
+  document.getElementById('looseDesc').value = '';
+  calcLoose();
+}
+
+function markLooseStoneSold() {
+  if (!_looseSelectedStoneId) return;
+  if (!confirm('Mark this stone as sold by dealer? This will update its status in inventory.')) return;
+  const inv = getInventory();
+  const s = inv.find(i => i.id === _looseSelectedStoneId);
+  if (s) {
+    s.status = 'sold-by-dealer';
+    window._inventory = inv;
+    persistInventory();
+    showToast('Stone marked as sold by dealer');
+    clearLooseSelection();
+  }
+}
+
 function calcLoose() {
   const cost = parseFloat(document.getElementById('looseCost').value) || 0;
   if (!cost) {
