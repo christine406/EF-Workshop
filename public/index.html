@@ -2795,6 +2795,34 @@ function unarchiveItem(id, e) {
 function deleteItem(id, e) {
   e.stopPropagation();
   if (!confirm('Delete this entry permanently?')) return;
+
+  // Release any inventory stones back to available
+  const q = getSavedQuotes().find(q => q.id === id);
+  if (q) {
+    const inv = getInventory();
+    let invChanged = false;
+    // Release stones linked by inventoryId
+    (q.stones || []).forEach(s => {
+      if (s.inventoryId) {
+        const invStone = inv.find(i => i.id === s.inventoryId);
+        if (invStone && invStone.status === 'in-use') {
+          invStone.status = 'available';
+          invStone.usedInProjectId = null;
+          invChanged = true;
+        }
+      }
+    });
+    // Also release any stones where usedInProjectId matches this quote
+    inv.forEach(s => {
+      if (s.usedInProjectId === id) {
+        s.status = 'available';
+        s.usedInProjectId = null;
+        invChanged = true;
+      }
+    });
+    if (invChanged) { window._inventory = inv; persistInventory(); }
+  }
+
   const updated = getSavedQuotes().filter(q => q.id !== id);
   window._savedQuotes = updated;
   persistQuotes();
