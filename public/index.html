@@ -958,14 +958,15 @@
       <button class="btn-primary" onclick="saveQuote('collection')" style="background:var(--teal-dim)">Save — Collection</button>
     </div>
     <div style="padding:0 16px 8px">
-      <button onclick="saveAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px;cursor:pointer;border-radius:3px">+ Save as piece in multi-piece set</button>
+      <button onclick="saveAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px;cursor:pointer;border-radius:3px">+ Add this piece to a multi-piece set</button>
     </div>
     <!-- PIECE STAGING AREA -->
     <div id="pieceStagingWrap" style="display:none;margin:0 16px 12px;background:var(--surface);border:1px solid var(--gold);border-radius:4px;padding:12px">
-      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Set in progress</div>
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px">Set in progress</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Build each piece in the quote builder and tap "+ Save as piece" to add it here. When all pieces are added, name the set and save.</div>
       <div id="pieceList" style="margin-bottom:10px"></div>
       <div class="field" style="margin-bottom:8px">
-        <div class="field-label">Client name for set</div>
+        <div class="field-label">Client / project name</div>
         <input type="text" id="setClientName" placeholder="e.g. Sarah M." style="width:100%">
       </div>
       <div style="display:flex;gap:8px">
@@ -1192,7 +1193,7 @@
           <button class="btn-primary" onclick="saveDirectProject('client')">Save — Client</button>
           <button class="btn-primary" onclick="saveDirectProject('collection')" style="background:var(--teal-dim)">Save — Collection</button>
         </div>
-        <button onclick="saveDirectAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:9px;cursor:pointer;border-radius:3px;margin-top:8px">+ Save as piece in multi-piece set</button>
+        <button onclick="saveDirectAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:9px;cursor:pointer;border-radius:3px;margin-top:8px">+ Add this piece to a multi-piece set</button>
         <div style="display:none">
         </div>
         <div style="margin-top:8px">
@@ -2353,9 +2354,16 @@ function saveAsPiece() {
   };
 
   _stagedPieces.push(piece);
+  // Pre-fill client name from current quote if not already set
+  const currentClient = document.getElementById('clientName').value.trim();
+  if (currentClient && !document.getElementById('setClientName').value.trim()) {
+    document.getElementById('setClientName').value = currentClient;
+  }
   renderPieceStaging();
   clearQuote();
-  showToast('Piece added — build next piece or save set');
+  // Pre-fill client name again after clear since clearQuote wipes it
+  if (currentClient) document.getElementById('clientName').value = currentClient;
+  showToast('Piece staged — add next piece or save the set below');
 }
 
 function renderPieceStaging() {
