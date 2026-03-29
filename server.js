@@ -8,6 +8,27 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json({ limit: '10mb' }));
 
 // Serve static files
+
+// PWA icon and manifest
+app.get('/icon.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'icon.png'));
+});
+
+app.get('/manifest.json', (req, res) => {
+  res.json({
+    name: 'EF Workshop',
+    short_name: 'EF Workshop',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#fafaf7',
+    theme_color: '#ccc07a',
+    icons: [
+      { src: '/icon.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: '/icon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  });
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── Firebase REST helpers ───────────────────────────────────────────────────
