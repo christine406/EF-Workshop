@@ -1,0 +1,3270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="EF Workshop">
+<title>EF Workshop</title>
+<link rel="apple-touch-icon" href="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAEsASwDASIAAhEBAxEB/8QAHQABAAIDAQEBAQAAAAAAAAAAAAcIBQYJBAIDAf/EAE8QAAEDAwIDBAYECQYOAgMAAAEAAgMEBREGBwgSIRMxQVEUImFxgZEVMlKhI0JicoKSorHCGFRzlMHDFiQzN0NTVXR1k6Oys9Ml8DXR4//EABoBAQADAQEBAAAAAAAAAAAAAAABAgUEAwb/xAA0EQEAAQMCAwQJBAEFAAAAAAAAAQIDBAURITFREhNB8BQiMmFxkaGx0UKBweEkIzM0UvH/2gAMAwEAAhEDEQA/AK2oiI+4EREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBERAREQEREBFvO021uqtybmaeyUwiooXAVVfPlsMPsz+M78kdfPA6q5O12xGhNDRRTmgZers3BdXV8YeWu842HLWewjLvyiomXFk51rH4Txnoplo3ancPVzGS2PStfLTv6tqJmiCEjzD5C0O+BKk6z8J+u6lgfcrzYqAH8Rskkrx78MA+RKtbrbXuj9FwdrqbUFFb3FvM2Fz+aZ482xty4+8BQtqji00rSPdHp7Tlzurh07SokbTRn2j67iPeAo3lwRm5l//ao2jz4zwa9T8H87mnt9wI43Z6BlpLhj4zBfoeD446bh9f8Agv8A/dYC5cW2s5Hn6N03YKZmegn7WYge8PZ7PBYr+VRub/N9P/1N/wD7FPF6RRqM/qj6fhstRwh3loHo+taCQ+IfRPZj5OKxNVwl69bj0a/6al7888s7PdjERXlp+K3cmInnt+mp893PSSjH6soWYouLnU7CPTdJWeYZ69jNJH0+PMnFO2ox0n5NdqOFzdCIAsFknz4MrSMfrNC/H+TFup/NLV/Xm/8A6UjUHF9Su5RX6Emj7suguQfnzODGMe7KzlHxa6IcB6Zp3UUJx17JkMnXy6yN6JxVm9qEc6I8/uiWHha3PkjDnusUR+y+tdkfJhC9jeE7cYtBN40q0kdxqp8j/oqXoeKvbSSMOdRajiP2X0keR8pCF9/yqNsv5vqD+ps/9ijipORn/wDX6If/AJJu43+2tKf1qo/9Kx9w4XN0KYEwNslbjOBBWkZ/Xa1TYOKzbUzmM0GpA0DpIaSLlP8A1c/cvXR8UO108nLLJeaUdPWlosj9lxKcT0nPj9H0VU1Fs7udYWufcNGXQsaMufTMFS0DzJiLgFo00UkMropo3xyMOHMe3BB8iCuienN59r7+9kdBrK2slf0EdWXUzifIdqG5PuWf1To7SOsKQNv9htt1Y9vqSyRAvAI72yD1h7wQp3TGq3KJ2vUbfT7uZSK324vCjZ6tktXoa7yW2fBLaKuJlhcfISD12D386rJrvRGqdD3P6P1NaJ6GRxPZyEc0Uo82PHqu+ByPHCbt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">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAzMDAgMzAwIj4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLnN0MCB7IGZpbGw6ICNmZmY4ZTk7IH0KICAgICAgLnN0MSB7IGZpbGw6ICM1NjBjMjU7IH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxyZWN0IGNsYXNzPSJzdDAiIHg9Ii00LjEiIHk9Ii0xMC4xIiB3aWR0aD0iMzA2LjYiIGhlaWdodD0iMzE1LjEiLz4KICA8ZyBpZD0iVkxRRDJ3LnRpZiI+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTM3LjIsMTcyLjJjLjgtMTEuOCwzLjgtMjQuMyw1LTM2LjMsMy0zMC44LjktNjYuOCwyNy45LTg4LjYsMjMuOS0xOS40LDUxLjMtMTMuNSw3OS4xLTEyLjQsMjEuNC45LDM4LjYtMy4yLDYwLjMsMi41LDY4LjIsMTcuOCw1My41LDc1LjEsNDguOCwxMjkuNC0xLDExLjktLjQsMjIuNS0zLjMsMzQuNi0zLjgsMTUuOS0xMi41LDMxLTIzLjYsNDIuOS01LjcsNi4xLTEyLjMsMTEuNS0xOS43LDE1LjQtMTIuMyw2LjUtMjYuNSw3LjEtNDAsNy4xbC0yMi4xLTMuM2MtMzMuOC05LjItOTQuOS0yNC0xMDguOC02MC40LTEuNS00LTEuOC04LjItMy41LTEyLC4zLTYuMy0uNC0xMi43LDAtMTguOVpNNjEuOCwyMTUuNGMyMi42LDIyLjEsODMuNyw0MC42LDExNS4zLDQxLjUsMjcuNi44LDQ1LjYtMTMuNiw1OS4xLTM2LjUsMTMuNS0yMywxMS4xLTQ0LjIsMTMuMS02OS41LDIuNi0zMi45LDEzLjgtNzEuNC0xOC4yLTkzLjMtMjQuMy0xNi43LTM2LjctMTMuMy02My45LTEzLjctMjUuNi0uMy01MS42LTcuNy03Ni41LDIuMi0zOS43LDE1LjgtMzcuMyw2Ni4zLTQwLjYsMTAxLjgtMi42LDI3LjQtMTAuOSw0NS42LDExLjYsNjcuNloiLz4KICAgICAgPHBhdGggY2xhc3M9InN0MSIgZD0iTTE3Ni42LDE3NC4yYy0xNSwxMy42LTMzLjgsMjguNy01MC44LDguNHMtNi40LTExLjYtNy0xMmMtMS4zLS44LTguNi0uNy0xMi42LTIuMy0zOS44LTE1LjQtMzMuOS05Mi43LDkuMS05NS44czE4LjMuNCwyNi40LDQuNSw2LjcsMyw2LDYuNWMtMTIuMS0zLjUtMzItNi4xLTQyLjcsMS42cy0xNi45LDM1LjgtMTIuNiw1Mi4yYzIuMyw4LjksMTUsMjMuOSwyNS40LDIxLjktMS42LTEzLjIsNC4yLTM5LjQsMjEuNC0zOC45czEyLjYsNS40LDEzLDExLjVjMSwxNS43LTkuMSwyOC44LTIyLjUsMzUuOSw2LjksMTcuMiwxOC45LDE2LjMsMzIuMiw2LjJzMTEuOC0xMC4xLDEyLjEtMTAuOGMxLjUtMy4zLTIuMS0xMy0yLjUtMTcuNC0xLjEtMTIuMi0uNS0yNCw5LjUtMzIuMyw5LjctOC4xLDIyLjktOC41LDM0LjYtNC44LDIsLjYsMTkuMiwyLjgsMTMuNyw5LjctMTMuMS0yLjEtNDMuMi02LjctNDYuNiwxMS43LS42LDMuNS42LDIzLjYsMy4zLDI0LjIsNi4xLTEuNiwxMy40LTMuNiwxOS43LTMuNiwyLjksMCwxOC45LTIuOCwxOC42LDUtMTIuNCwzLjctMjUuOS44LTM3LjQsOS41LjksOS44LC43LDE5LjctMSwyOS40LTEuMiw3LTMsMTQuMS02LjcsMjAuMnMtNC40LDUuOS02LjgsOC43Yy0xLjksMi4yLTMuOSw0LjctNi4zLDYuNC02LjgsNC43LTUuMi0uNy0zLjQtNS40LDIuNi02LjcsNy0xMi40LDEwLTE4LjksNC43LTEwLjEsMy44LTIwLjcsMy44LTMxLjVaTTEyNy44LDE1Ny4zYy4zLjMsNi4yLTMuNyw3LTQuNCw0LjUtNC4zLDE0LTIzLjcsMi41LTIyLjRzLTEwLjEsMjAuMS05LjUsMjYuOVoiLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==">
+<link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #f5f5f2;
+    --surface2: #eeede9;
+    --border: #e8d9b8;
+    --border-light: #dccfa8;
+    --gold: #7f0034;
+    --gold-dim: #9e1040;
+    --gold-faint: #7f0034;
+    --gold-faint-text: #fafaf7;
+    --text: #2a1a1e;
+    --text-mid: #6b4a52;
+    --text-dim: #a88a92;
+    --green: #4a7068;
+    --green-bright: #2d6b5e;
+    --teal: #8dadaf;
+    --teal-dim: #6b9496;
+    --teal-faint: #e8f2f2;
+    --red: #8b3a3a;
+    --font-mono: 'Inconsolata', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    min-height: 100vh;
+    overscroll-behavior: none;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0 16px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-title {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: var(--gold);
+  }
+
+  .header-title span {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-left: 4px;
+    font-weight: 300;
+  }
+
+  .gold-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 72px;
+    z-index: 99;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+
+  .nav-btn {
+    flex: none;
+    padding: 10px 16px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 400;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .nav-btn.active {
+    color: var(--teal-dim);
+    border-bottom-color: var(--teal-dim);
+  }
+
+  /* MAIN */
+  .main {
+    padding: 0 0 80px 0;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* SECTIONS */
+  .section {
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+  }
+
+  .section-label {
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal-dim);
+    font-weight: 400;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* GOLD PRICE BAR */
+  .gold-bar {
+    background: #e8d9b8;
+    border: 2px solid #c9a84c;
+    border-radius: 4px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 12px 16px;
+  }
+
+  .gold-price-label {
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #7f0034;
+  }
+
+  .gold-price-value {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--gold);
+  }
+
+  .gold-price-sub {
+    font-size: 12px;
+    color: #9e5060;
+    text-align: right;
+  }
+
+  .gold-refresh {
+    background: none;
+    border: 1px solid #c9a84c;
+    color: #7f0034;
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .gold-refresh:active { background: #dcc88a; }
+
+  /* INPUTS */
+  .field-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field-label {
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--teal-dim);
+    font-weight: 400;
+  }
+
+  select, input[type="number"], input[type="text"] {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 15px;
+    padding: 10px 10px;
+    border-radius: 3px;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+
+  select:focus, input:focus {
+    border-color: var(--teal-dim);
+  }
+
+  select option {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  /* STONE CARDS */
+  .stone-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .stone-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .stone-type-tag {
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--teal-dim);
+    font-weight: 400;
+    background: var(--teal-faint);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .remove-btn {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.2s;
+  }
+  .remove-btn:active { color: var(--red); }
+
+  .add-stone-btn {
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--border-light);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+  }
+  .add-stone-btn:active { border-color: var(--gold-dim); color: var(--gold-dim); }
+
+  /* RAPNET BUTTON */
+  .rapnet-btn {
+    width: 100%;
+    background: none;
+    border: 1px solid var(--teal-dim);
+    color: var(--teal-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .rapnet-btn:active { background: var(--teal-faint); }
+
+  /* TOGGLE TABS */
+  .toggle-group {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    padding: 8px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .toggle-btn.active {
+    background: var(--teal-dim);
+    color: #fafaf7;
+  }
+
+  /* RESULT PANEL */
+  .result-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin: 12px 16px;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .result-panel-header {
+    background: var(--teal-dim);
+    border-bottom: 1px solid var(--teal);
+    padding: 10px 14px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #fafaf7;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .result-row:last-child { border-bottom: none; }
+
+  .result-row.total {
+    background: var(--teal-dim);
+    padding: 12px 14px;
+  }
+
+  .result-label {
+    font-size: 14px;
+    color: var(--text-mid);
+    letter-spacing: 0.03em;
+    font-weight: 400;
+  }
+
+  .result-value {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .result-row.total .result-label {
+    font-size: 13px;
+    color: rgba(250,250,247,0.9);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .result-row.total .result-value {
+    font-size: 32px;
+    font-weight: 400;
+    color: #fafaf7;
+  }
+
+  .result-sub {
+    font-size: 13px;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  /* ACTION BUTTONS */
+  .action-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .btn-primary {
+    flex: 1;
+    background: var(--gold);
+    color: #fafaf7;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: opacity 0.2s;
+  }
+  .btn-primary:active { opacity: 0.8; }
+
+  .btn-secondary {
+    flex: 1;
+    background: none;
+    color: var(--text-mid);
+    border: 1px solid var(--border-light);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s;
+  }
+  .btn-secondary:active { border-color: var(--gold-dim); color: var(--gold-dim); }
+
+  /* CLIENT NAME */
+  .client-input-wrap {
+    padding: 12px 16px 0;
+  }
+
+  /* TEXTAREA */
+  textarea {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 9px 10px;
+    border-radius: 3px;
+    outline: none;
+    resize: none;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+  textarea:focus { border-color: var(--gold-dim); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border-light);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 200;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* QUOTES LIST */
+  .quote-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--teal-dim);
+    border-radius: 4px;
+    padding: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .quote-item:active { border-color: var(--teal); }
+
+  .quote-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .quote-client {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  .quote-amount {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 400;
+    color: var(--teal-dim);
+  }
+
+  .quote-meta {
+    font-size: 14px;
+    color: var(--text-dim);
+    display: flex;
+    gap: 10px;
+  }
+
+  .quote-status {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  .status-quote { background: #e8d9b8; color: #5a4a2a; }
+  .status-project { background: #e8d9b8; color: #5a4a2a; }
+  .status-archived { background: var(--surface2); color: var(--text-dim); }
+
+  .convert-btn {
+    margin-top: 8px;
+    background: none;
+    border: 1px solid var(--teal-dim);
+    color: var(--teal-dim);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 400;
+    padding: 7px 11px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .convert-btn:active { background: var(--teal-faint); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border-light); }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  .inline-note {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">
+    <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0iTGF5ZXJfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgOTQxLjEgMzc1LjIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAzMC4yLjEsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMSBCdWlsZCAxKSAgLS0+CiAgPGRlZnM+CiAgICA8c3R5bGU+CiAgICAgIC5zdDAgewogICAgICAgIGZpbGw6ICM3ZjAwMzQ7CiAgICAgIH0KICAgIDwvc3R5bGU+CiAgPC9kZWZzPgogIDxnIGlkPSJ0TXFwNmoudGlmIj4KICAgIDxpbWFnZSBpZD0iTGF5ZXJfMTEiIGRhdGEtbmFtZT0iTGF5ZXJfMSIgd2lkdGg9IjIyNyIgaGVpZ2h0PSIyMzUiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDk5NCAtMzE1LjIpIHNjYWxlKC41KSIgeGxpbms6aHJlZj0iRUZXb3Jrc2hvcC0xLnBuZyIvPgogIDwvZz4KICA8ZyBpZD0iVkxRRDJ3LnRpZiI+CiAgICA8Zz4KICAgICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTY4LjIsMjE4LjRjLjgtMTEuOCwzLjgtMjQuMyw1LTM2LjMsMy0zMC44LjktNjYuOCwyNy45LTg4LjYsMjMuOS0xOS40LDUxLjMtMTMuNSw3OS4xLTEyLjQsMjEuNC45LDM4LjYtMy4yLDYwLjMsMi41LDY4LjIsMTcuOCw1My41LDc1LjEsNDguOCwxMjkuNC0xLDExLjktLjQsMjIuNS0zLjMsMzQuNi0zLjgsMTUuOS0xMi41LDMxLTIzLjYsNDIuOS01LjcsNi4xLTEyLjMsMTEuNS0xOS43LDE1LjQtMTIuMyw2LjUtMjYuNSw3LjEtNDAsNy4xbC0yMi4xLTMuM2MtMzMuOC05LjItOTQuOS0yNC0xMDguOC02MC40cy0xLjgtOC4yLTMuNS0xMmMuMy02LjMtLjQtMTIuNywwLTE4LjlaTTkyLjgsMjYxLjVjMjIuNiwyMi4xLDgzLjcsNDAuNiwxMTUuMyw0MS41LDI3LjYuOCw0NS42LTEzLjYsNTkuMS0zNi41LDEzLjUtMjMsMTEuMS00NC4yLDEzLjEtNjkuNXMxMy44LTcxLjQtMTguMi05My4zLTM2LjctMTMuMy02My45LTEzLjdjLTI1LjYtLjMtNTEuNi03LjctNzYuNSwyLjItMzkuNywxNS44LTM3LjMsNjYuMy00MC42LDEwMS44LTIuNiwyNy40LTEwLjksNDUuNiwxMS42LDY3LjZaIi8+CiAgICAgIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik0yMDcuNiwyMjAuNGMtMTUsMTMuNi0zMy44LDI4LjctNTAuOCw4LjRzLTYuNC0xMS42LTctMTJjLTEuMy0uOC04LjYtLjctMTIuNi0yLjMtMzkuOC0xNS40LTMzLjktOTIuNyw5LjEtOTUuOHMxOC4zLjQsMjYuNCw0LjUsNi43LDMsNiw2LjVjLTEyLjEtMy41LTMyLTYuMS00Mi43LDEuNnMtMTYuOSwzNS44LTEyLjYsNTIuMmMyLjMsOC45LDE1LDIzLjksMjUuNCwyMS45LTEuNi0xMy4yLDQuMi0zOS40LDIxLjQtMzguOXMxMi42LDUuNCwxMywxMS41YzEsMTUuNy05LjEsMjguOC0yMi41LDM1LjksNi45LDE3LjIsMTguOSwxNi4zLDMyLjIsNi4yczExLjgtMTAuMSwxMi4xLTEwLjhjMS41LTMuMy0yLjEtMTMtMi41LTE3LjQtMS4xLTEyLjItLjUtMjQsOS41LTMyLjNzMjIuOS04LjUsMzQuNi00LjhjMiwuNiwxOS4yLDIuOCwxMy43LDkuNy0xMy4xLTIuMS00My4yLTYuNy00Ni42LDExLjctLjYsMy41LjYsMjMuNiwzLjMsMjQuMiw2LjEtMS42LDEzLjQtMy42LDE5LjctMy42czE4LjktMi44LDE4LjYsNWMtMTIuNCwzLjctMjUuOS44LTM3LjQsOS41LjksOS44LjcsMTkuNy0xLDI5LjQtMS4yLDctMywxNC4xLTYuNywyMC4ycy00LjQsNS45LTYuOCw4LjctMy45LDQuNy02LjMsNi40Yy02LjgsNC43LTUuMi0uNy0zLjQtNS40LDIuNi02LjcsNy0xMi40LDEwLTE4LjksNC43LTEwLjEsMy44LTIwLjcsMy44LTMxLjVaTTE1OC44LDIwMy41Yy4zLjMsNi4yLTMuNyw3LTQuNCw0LjUtNC4zLDE0LTIzLjcsMi41LTIyLjRzLTEwLjEsMjAuMS05LjUsMjYuOVoiLz4KICAgIDwvZz4KICA8L2c+CiAgPGc+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDEwLjYsMjQyLjZjLTIuMS0uOC0zLjItMS43LTMuMy0yLjctLjEtLjUtLjItLjktLjItMS40czAtLjksMC0xLjNjLS44LTEuOS0xLjMtMy45LTEuNC02LS4xLS41LS4yLS45LS40LTEuMy0uNi0xLjItLjgtMi41LS44LTQtLjEtLjgtLjMtMS41LS42LTIuMi0uMy0uNy0uNS0xLjQtLjYtMi4yLS44LTIuNC0xLjQtNC45LTEuNy03LjQtLjUtMS4yLS44LTIuMy0xLjEtMy41LS4zLTEuMS0uNy0yLjMtMS4xLTMuNC0uMS0yLjEtLjYtNC0xLjQtNS44LDAtMS43LS4zLTMuMy0uOS01LTEuMi0zLjctMS45LTYuNS0yLjEtOC41LDAtLjItLjMtLjgtLjgtMi4xLS4xLS4zLS4yLS41LS4yLS44LDAtLjYuMS0xLjEuNC0xLjcuMy0uNi40LTEuMS40LTEuNCwwLS43LS40LTEuNC0xLjEtMi4yLS45LTEtMS4zLTItMS4zLTNzLS4yLTEuMy0uNi0yLjNjLTEuMS0yLjUtMS44LTUuMi0yLjEtOC0uMi0xLS40LTEuOS0uOC0yLjgtLjQtLjktLjYtMS44LS43LTIuOC0uMi0uNC0uNC0uNi0uNy0uNmgtLjNjLTEsLjctMS41LDItMS41LDRsLS4yLDEuNWgwYy0uNywxLjUtMS4xLDMuMS0xLjMsNC42LS44LDEuNy0xLjIsMy42LTEuMyw1LjYtLjYsMS4zLTEsMi43LTEuMSw0LjMtLjEsMS0uMywyLS41LDIuOC0uNCwxLS43LDItMSwzLS4yLDEtLjYsMi4xLTEsMy4ybC0uMiwxLjdjMCwxLS4yLDItLjYsMi45bC0uOCwyLjZjLS42LDEuNS0xLDMuMi0xLjIsNC45LDAsMS0uMiwyLS43LDIuOWwtLjUsMS43Yy0uMywyLjYtLjksNS4yLTEuOCw3LjdsLS44LDIuN2MtLjEuNS0uMiwxLS4yLDEuNSwwLDEtLjIsMi0uNiwzLjEtLjUuOS0uNywxLjYtLjcsMi4zLS40LDMtMS4yLDUuOS0yLjQsOC44LS4yLjctLjMsMS41LS4zLDIuNHMtLjIsMS43LS41LDIuNGMtLjQuNy0uNiwxLjQtLjYsMi4ycy0uMywxLjQtLjYsMi4xYy0uOC43LTEuNiwxLjItMi40LDEuNS0uOC4zLTEuNC41LTEuOS41LS43LDAtMS4zLS4yLTEuOS0uNi0xLjQtLjYtMi42LS45LTMuNy0uOXMtLjUsMC0uNywwYy0xLDAtMS43LDAtMi4xLDAtMS4yLS40LTEuOC0xLjktMS44LTQuNy0uNi0xLjgtMS0zLjYtMS40LTUuNS0uNS0yLjQtMS4yLTUtMi4yLTcuNywwLTIuNy0uNC01LjEtMS4zLTcuMi0uMS0yLjEtLjUtNC0xLjMtNS43LS4yLTEuMi0uNy0yLjctMS40LTQuNi0uMS0uOC0uMi0xLjgtLjItM3MtLjItMi4zLS43LTMuM2MtLjQtLjgtLjYtMS43LS42LTIuOHMtLjItMS42LS41LTIuNGMtLjUtMS0uOC0yLS45LTNsLS4zLTEuM2MtLjctMS4yLTEtMi40LTEuMS0zLjgsMC0uOC0uMi0xLjUtLjMtMi4xLS42LTEuMS0uOS0yLjMtMS0zLjcsMC0uOS0uMi0xLjctLjUtMi40LS42LTEuMi0uOS0yLjUtLjktMy45LDAtLjctLjEtMS4zLS4yLTEuOS0uNS0xLjMtLjktMi43LTEuMS00LjEtLjItMS40LS42LTIuOC0xLjItNC4zLDAtMS40LS4zLTIuOC0uOC00LjMtLjMtLjgtLjUtMS41LS42LTIuNCwwLTEuNS0uMy0yLjgtLjgtNC4xLS41LTEuMi0uNy0yLjYtLjctNC4xLS43LTEuNy0xLjEtMy4yLTEuMi00LjYsMC0xLjQtLjEtMi41LS4xLTMuM3MwLTEuOCwwLTIuN2MwLS45LDAtMS43LDAtMi41czAtMS42LDAtMi40di0uMmMwLS43LjItMS4xLjUtMS40LjktLjYsMS43LS45LDIuNC0uOSwxLjksMCwzLjIsMCwzLjgsMCwuNywwLDEuMywwLDEuOCwwczEuMSwwLDEuNiwwYzEuNC41LDIuMywxLjUsMi43LDIuOS40LDEuNC42LDIuOS42LDQuNWwuMiwxLjVjLjIuNy40LDEuMy43LDIsLjMuNy41LDEuNS41LDIuNXMuMiwyLC43LDIuOWMuNS45LjcsMS44LjcsMi45cy4yLDIsLjUsMi45Yy42LDEuMS44LDIuNS44LDQuMXMwLDEuNCwwLDIuMWwuNSwxLjNjLjYsMS4zLjgsMi42LjgsNHMwLC43LjIsMS4xYy4xLjQuMy44LjUsMS4yLjIuNC4zLjguNCwxLjEsMCwxLjYuMywzLjEuOCw0LjUuNSwxLjQuNywyLjYuNywzLjcsMCwxLjkuNCwzLjcsMS4yLDUuNCwwLDEuNS4zLDMsLjgsNC41LjUsMS40LjcsMywuOCw0LjUuOSwxLjksMS4zLDMuOSwxLjQsNiwuNiwxLjQuOSwyLjgsMS4xLDQuMi4yLDEuNC41LDIuOCwxLjEsNC4xLjIuOC4zLDEuNy4zLDIuOXMuMSwyLjEuMywyLjhjLjIuNS40LjkuNywxLjJzLjYuNS45LjUuNi0uMy43LS45Yy4xLTEuNi40LTMuMS45LTQuNS41LTEuNC43LTIuOS43LTQuNC42LTEuMiwxLTIuNCwxLjItMy42LjMtMS4yLjYtMi40LDEuMS0zLjUuMS0uNi4yLTEuMS4yLTEuNywwLS44LjItMS42LjUtMi4zLjYtMSwuOS0yLjIuOS0zLjQsMC0xLjMuNi0zLjQsMS43LTYuNS43LTEuOCwxLTMuMSwxLTMuNywwLTEuMi4yLTIuMy43LTMuNC41LTEuMS43LTIuMy43LTMuNmwuNS0yYy42LTEuNi45LTMuMywxLTUuMS41LTEuMi44LTIuNCwxLjItMy42LjMtMS4yLjctMi4zLDEuMS0zLjUuMi0yLjEuNi0zLjksMS4zLTUuNGwuMi0yYzAtMSwuMi0yLC41LTIuOS41LTEsLjgtMiwuOC0zLjIsMC0uNy4yLTEuMy4zLTEuOSwxLTIuNywxLjgtNS40LDIuNS04LjIuMy0xLjEsMS0xLjcsMi4yLTEuOCwxLjItLjEsMi4xLS4yLDIuNy0uMiwxLjIsMCwyLjUsMCwzLjguMiwxLC4xLDEuOS4yLDIuNy4yczEsMCwxLjQsMGMuOCwwLDEuMy4zLDEuNS44LjIuNS40LDEsLjUsMS43LDAsLjcuMywxLjMuNiwxLjkuNSwxLC43LDIuMi43LDMuNS4yLjcuMywxLjQuNSwyLjEuNiwxLjcuOSwzLjUsMS4xLDUuNC42LDEuOCwxLDMuNiwxLjQsNS4zLjUsMi4zLDEuMSw0LjYsMi4xLDYuOC4yLjguMywxLjcuMywyLjhzMCwxLjkuMiwyLjVjLjIuNi4zLDEsLjUsMS40LjMuNy41LDEuMy42LDIuMSwwLC43LjMsMS40LjYsMi4xLjMuNy41LDEuMy43LDIsMCwyLC41LDMuOCwxLjIsNS40LjIsMSwuNSwyLC44LDMsLjYsMS41LjksMywuOSw0LjcuMi41LjMsMSwuNSwxLjQuNC45LjYsMS44LjcsMi45LDAsMS4xLjMsMi4yLjYsMy4yLjUsMS4yLjgsMi42LjgsNC4yLjIuNi40LDEuMS42LDEuNy40LjguNiwxLjUuNiwyLjRzLjIsMi4xLjUsM2MuNiwxLjEuOSwyLjMsMSwzLjZzLjQsMi41LDEsMy43YzAsLjQuMiwxLC41LDEuOS4xLjUuMi44LjMuOGguMmMuMiwwLC40LS4yLjUtLjguMi0xLC40LTIsLjgtM2wuNS0xLjRjMC0yLjguNS01LjUsMS40LTguMSwwLTEuNC4yLTIuNi43LTMuNy41LTEsLjctMi4yLjctMy42LDAtLjguMy0xLjYuNy0yLjQuNC0uOC42LTEuNy42LTIuN3MuNC0yLjUsMS4xLTRjLjItLjguMy0xLjUuMy0yLjMsMC0xLjIuMi0yLjMuNi0zLjMuNC0xLC42LTEuOC42LTIuNCwwLTEuMy4zLTIuNS45LTMuNy4zLS43LjUtMS41LjUtMi4zczAtMS4xLjItMS43Yy45LTEuOCwxLjMtMy43LDEuMy01LjcuMi0uNi40LTEuMi42LTEuNy40LS45LjYtMS43LjYtMi40LDAtMS4xLjItMi4xLjUtMywuNi0xLjEuOS0yLjMsMS0zLjZzLjQtMi41LDEtMy42Yy4yLS44LjMtMS44LjMtMi44cy4zLTIuNi44LTMuN2MuOS0yLjksMS41LTUuMSwxLjYtNi42LjItMS40LjUtMi40LjgtMywuNC0uNiwxLS45LDEuOC0uOS44LDAsMS41LDAsMi4xLDBoNC41Yy41LjEsMSwuMiwxLjYuMiwxLC42LDEuNiwxLjQsMS43LDIuNi4xLDEuMi4yLDIuMS4yLDIuNywwLDEuMiwwLDIuNC0uMiwzLjctLjEsMS4yLS4yLDIuMy0uMiwzLjJzMCwxLjMsMCwxLjhjMCwuOS0uMywxLjctLjcsMi41LS40LjgtLjYsMS44LS42LDIuOXMtLjIsMS42LS41LDIuNGMtLjYsMS4yLS45LDIuNC0xLDMuOC0uMSwxLjQtLjQsMi42LTEsMy44bC0uMiwxLjFjLS4xLDEuNS0uNSwzLTEuMSw0LjMtLjIuNS0uMywxLS4zLDEuNS0uMS44LS4zLDEuNS0uNiwyLjEtLjYsMS4yLS44LDIuNS0uOCw0LjEtLjEuNy0uMywxLjQtLjYsMi4xLS4zLjctLjUsMS40LS42LDIuMi0uMS44LS4zLDEuNS0uNiwyLjEtLjMuNi0uNSwxLjItLjYsMS44LDAsMi0uNCwzLjktMS4yLDUuN3YuNmMtLjIuOS0uMywxLjgtLjUsMi41LS4yLjgtLjUsMS42LS45LDIuNS0uMSwyLS41LDMuOS0xLjMsNS43LS4yLjctLjIsMS4zLS4yLDIsMCwxLjEtLjIsMi4xLS42LDMtLjQuOS0uNiwxLjgtLjYsMi45LS4zLDItLjgsNC0xLjUsNS45bC0uNywyYy0uNC45LS41LDIuMS0uNSwzLjQtLjcsMi44LTEuNSw1LjQtMi40LDcuOS0uMSwxLjktLjUsMy44LTEuMyw1LjYtLjIsMi4zLS43LDQuNy0xLjYsNy4zLDAsMS4zLS41LDIuMy0xLjUsMy0uMiwwLS40LDAtLjgsMC0uMywwLS41LS4xLS44LS4zLS4zLS4xLS42LS4yLTEuMS0uMnMtLjUsMC0uOC4yYy0uMy4xLS43LjItMS4zLjJoLS44Yy0uNSwwLS45LDAtMS40LjMtLjUuMy0xLC40LTEuNS40cy0uOS0uMS0xLjQtLjNaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNDY2LjksMjQ0LjNoLTIuNGMtMSwwLTEuOC0uMi0yLjUtLjUtLjktLjYtMi4xLTEtMy44LTEuMy0uNy0uMy0xLjItLjUtMS43LS44LS41LS4zLS45LS40LTEuMy0uNS0uOC0uMS0xLjQtLjQtMS45LS45LS43LS43LTEuMi0xLjEtMS41LTEuNC0uNC0uMy0uNy0uNS0xLjEtLjYtLjYtLjMtMS40LS44LTIuMy0xLjgtMi45LTIuOS01LTYuMS02LjItOS43bC0uNS0xLjFjLS40LTEtLjgtMS45LTEuMi0yLjgtMS4yLTIuMi0xLjgtNC4xLTEuOC01LjZ2LS43YzAtLjcsMC0xLjQtLjEtMiwwLS42LS4zLTEuMi0uNS0xLjctLjMtLjUtLjUtMS0uNi0xLjZ2LTIuOWMwLDAsMC00LjEsMC00LjEsMC02LjksMC0xMS45LDAtMTQuOCwwLS43LjMtMS4zLjYtMS45LjMtLjQuNS0uOS42LTEuNHYtLjRjMC0xLjQuMy0yLjguOC00LjIuNS0xLjQsMS4xLTIuNywxLjgtNC4xLjctMS4zLDEuMy0yLjcsMS44LTQsLjMtLjYuNy0xLjEsMS4xLTEuNy43LS44LDEuMS0xLjYsMS40LTIuN3YtLjJjLjUtLjgsMS4xLTEuNSwxLjktMi4zLjgtLjgsMS42LTEuMywyLjQtMS43LjYtLjMsMS0uNywxLjQtMS4xLjQtLjQuOC0uOCwxLjEtMWwyLjEtMS4yYzEuNC0uOSwyLjktMS42LDQuMy0yLjMuNCwwLC44LDAsMS4zLDBzLjksMCwxLjMtLjJjLjUtLjEuOS0uMywxLjMtLjUuNy0uNSwxLjYtLjgsMi44LS44LDEuMiwwLDIuNCwwLDMuNiwwLDIuMywwLDQuNywwLDcuMS4yLjUuMiwxLC40LDEuNC42LjYuNSwxLjIuNywxLjkuNy40LDAsLjguMiwxLjEuMywxLC42LDIuOCwxLjYsNS41LDMsMi45LDEuNSw1LjQsMy42LDcuNCw2LjNsMy41LDRjLjMuNS42LDEuMS44LDEuOGwuOCwxLjVjLjksMS42LDEuNSwzLjMsMS43LDUuMS4xLjYuMywxLjIuNywxLjguNC42LjYsMS41LjYsMi44di44YzAsLjgsMCwxLjUsMCwyLjIuMi42LjQsMS4xLjYsMS42LjMuNS41LDEsLjYsMS42bC4yLDguMS0uMiw4LjFjLS4xLjUtLjMsMS0uNiwxLjYtLjMuNS0uNSwxLjEtLjYsMS43djMuNmMwLDEuMi0uMiwyLjQtLjcsMy41LS41LjgtLjcsMS42LS43LDIuNWwtLjIuOS0uOCwxLjhjLTEsMi43LTIuNCw1LjItNCw3LjVsLS40LjhjLS40LDEuNC0xLjMsMi41LTIuNywzLjEtLjkuNC0xLjgsMS4xLTIuNywyLjJsLTEsMS4xYy0xLjIuOS0yLjksMS45LTUuMiwzLTEuMS44LTIuMiwxLjItMy41LDEuMy0uNC4yLS43LjQtMS4xLjYtLjQuMy0uOS41LTEuNC42aC00LjFjMCwwLTYuMiwwLTYuMiwwWk00NzMuNiwyMjQuMmMuNS0uNC45LS42LDEuNC0uNy45LS4xLDEuNy0uNCwyLjYtMSwuMy0uMi43LS4zLDEuMS0uNC40LS4xLjgtLjQsMS4zLS43LjUtLjQsMS0uNiwxLjUtLjgsMS4zLS40LDIuMy0xLjMsMi44LTMsLjItLjguNy0xLjYsMS40LTIuNC40LS40LjYtLjguOS0xLjEuMi0uNC40LS43LjQtMSwwLS4zLDAtLjUuMi0uOC41LS44LjktMS42LDEuMy0yLjUuMy0uNy42LTEuNCwxLTIsLjItMi4xLjMtNC4zLjMtNi41czAtMi4yLDAtMy4zYzAtMS4xLDAtMi4xLDAtMy0uMi0uNi0uNC0xLjEtLjctMS42LS4zLS41LS41LTEtLjctMS40LS4yLS41LS4zLS45LS42LTEuMy0uMi0uNC0uNC0uOC0uNi0xLjN2LS4yYy0uMi0uNS0uNC0xLS43LTEuNC0yLjEtMi42LTQuNC01LTYuOC03LjRsLS4yLS4yYy0uMywwLS43LDAtMS4xLDAtLjksMC0xLjUtLjItMS45LS42aC0uMmMtLjYtLjYtMS4yLS45LTItLjlzLTEuNS0uMi0yLjItLjdjLS43LS41LTEuMi0uNy0xLjYtLjdoLS41Yy0uNiwwLTEuMi4zLTEuOS44LS4zLjItLjcuNC0xLjEuNS0uNC4xLS45LjItMS41LjJzLTEuMSwwLTEuNS4xYy0uNSwwLS45LjMtMS4yLjYtLjIuMS0uNC4yLS41LjQtMS43LjctMywxLjctNC4xLDMuMi0xLjMsMS41LTIuMSwyLjMtMi40LDIuNi0uNi42LTEuMiwxLjMtMS43LDEuOXMtLjgsMS41LTEsMi4zYy0uNiwxLTEuMywyLjYtMi40LDQuOC0uMS43LS4yLDEuNC0uMiwyLjF2My4xYzAsMS4xLS4xLDEuOS0uNSwyLjQtLjIuNC0uMy43LS40LDEsMCwuMy4yLjYuNC45LjQuNS41LDEuMi41LDIuMSwwLC40LjEuNy4yLDEuMXMuMy43LjUsMS4xYy41LjYuNywxLjMuNywyLjFzLjEsMS4yLjQsMS43Yy4zLjUuNiwxLDEsMS40LjQuNC43LjksMSwxLjMuNiwxLjgsMS41LDMuMywzLDQuNi40LjQuOS42LDEuNS44LjYuMi45LjQsMSwuNi42LjQsMS4xLjcsMS44LjkuNC4yLjguNSwxLjIuOC44LjUsMS40LjgsMS44LjguNCwwLC44LjEsMS4yLjMsMS41LjgsMywxLjIsNC42LDEuMnMyLjYtLjMsMy4zLS44WiIvPgogICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTUxNSwyNDNoLTIuMmMtLjcsMC0xLjMsMC0xLjgtLjItLjgtLjItMS4yLS44LTEuMy0xLjgsMC04LjIsMC0yMS41LDAtNDB2LTM5LjNjMC0xLC40LTEuNiwxLTEuOC42LS4yLDEuMy0uMywxLjktLjNoLjljMCwwLDMuNywwLDMuNywwLC43LDAsMS40LDAsMiwuMi42LjIsMSwuNiwxLjIsMS4yLDAsMS4yLDAsMi41LDAsMy43djQuMWMwLDIuMS4xLDMuMi40LDMuM2guMmMuMywwLC43LS42LDEuMy0yLjEuOS0uOSwxLjctMS45LDIuNS0yLjksMS40LTEuNywyLjktMy4zLDQuNS00LjgsMS42LTEuNSwzLjUtMi41LDUuNi0zLC41LS4yLjktLjQsMS40LS42LjUtLjMuOS0uNSwxLjItLjYsMS0uMSwyLS4yLDMuMS0uMiwxLjEsMCwyLjEuMSwzLC40LjQuMi42LjUuNy45LjEuNC4yLjguMiwxLjIsMCwuNC4xLjguMiwxLjEsMCwuNC4yLjcuNSwxLjEuMy40LjQuOC40LDEuMiwwLC43LS4yLDEuMy0uNiwyLjEtLjMuNy0uNSwxLjUtLjUsMi4zdi44YzAsLjYuMiwxLjQuNywyLjQuNC45LjYsMS42LjYsMi4ycy0uMiwxLjEtLjYsMi4yYy0uNCwxLS42LDEuOC0uNiwyLjIsMCwxLjItLjQsMS45LTEuMiwyLjEtLjYuMS0xLjQuMi0yLjQuMmgtMS45Yy0uOSwwLTEuNywwLTIuNS4yLTIuNCwxLjEtNC44LDIuNC03LDRsLTEuMSwxLjJjLTIsMS44LTMuNSw0LTQuNSw2LjUtLjUuNy0uNywxLjUtLjgsMi40bC0uMiwxLjJjMCwwLDAsLjEsMCwuMi0uNywxLjItMS4xLDIuMi0xLjEsM3YuN2MwLDAsMCwyOC41LDAsMjguNSwwLC45LS4yLDEuOC0uNywyLjYtLjUuOC0uNywxLjgtLjcsMi45cy4yLDEuOS42LDIuN2MuMi4zLjIuNi4yLjlzLS4xLjctLjQsMS4zYy0uMy42LS40LDEuMi0uNCwxLjYsMCwuOS0uMiwxLjUtLjYsMS44LS40LjMtLjkuNS0xLjQuNS0uNSwwLTEuMSwwLTEuNywwaC0xLjVaIi8+CiAgICA8cGF0aCBjbGFzcz0ic3QwIiBkPSJNNjAyLjksMjQyLjhjLS40LDAtLjcsMC0xLjEsMGgtMWMwLDAtMi43LDAtMi43LDAtLjksMC0xLjctLjEtMi41LS4zLS43LS40LTEuNC0xLTItMS44LS43LS43LTEuMS0xLjQtMS40LTIuMi0uMy0uOC0uNy0xLjYtMS4yLTIuMi0uOS0uOS0xLjUtMi4xLTItMy41LS4zLS40LS42LS44LS45LTEuMi0uNi0uNy0xLTEuNC0xLjItMi4xLS4yLS43LS43LTEuNC0xLjQtMi4zLS42LS43LTEuMS0xLjQtMS4zLTIuMi0uMy0uOC0uNy0xLjQtMS4yLTIuMS0uOC0uOC0xLjQtMS43LTEuNy0yLjctLjItLjQtLjMtLjgtLjYtMS4zLS4yLS41LS40LS45LS42LTEuNC0uMy0xLTEtMi0yLTIuOS0xLS45LTItMi41LTIuOC00LjctMS0yLjctMi4xLTQuMS0zLjEtNC4xcy0uOS4yLTEuNC41bC0yLjgsM2MtMiwxLjktMy43LDQtNS4xLDYuMy0uMiwyLjUtLjIsNS4xLS4yLDcuNnMwLDMuMSwwLDQuN2MwLDEuNSwwLDMuMSwwLDQuNiwwLDMuMS0uMSw2LjItLjQsOS4zLS4zLjUtLjYuNy0xLC44LS40LDAtLjcuMS0xLC4xaC04Yy0xLjEtLjEtMS42LS43LTEuOC0xLjl2LTM0LjZjMC05LjEsMC0xOC4yLDAtMjcuMywwLTE1LjEsMC0zMC4zLjItNDUuNHYtLjNjLjMtLjYuNy0xLDEuMi0xLjQuNS0uNC45LS41LDEuMy0uNXMuNy4xLDEuMS40Yy40LjMuOC41LDEuMi43LjYuMiwxLjEuMiwxLjguMmwyLjEtLjJjMS4yLDAsMi4xLjMsMi43LjguNCw3LjMuNiwxNC42LjYsMjEuOXMwLDcuNC0uMSwxMS4xYzAsMy43LS4xLDcuNC0uMSwxMS4xLDAsNy45LjEsMTEuOS4zLDEyLjIuMi4zLjQuNS41LjUuNCwwLDIuNC0yLDUuOS02LjEsNC40LTUsNy03LjcsNy44LTguMS40LS4yLjctLjQsMS0uNi4yLS4zLjQtLjYuNi0xLC4yLS40LjQtLjguOC0xLjIuOS0uNSwxLjUtLjksMi0xLjMuNS0uMy45LS44LDEuNC0xLjQsMS4zLTEuMywyLjYtMi43LDMuOC00LjIsMS45LTIuNSw0LjEtNC43LDYuNS02LjYsMS0uMiwyLjEtLjMsMy4xLS4zaDIuN2MwLDAsMS40LDAsMS40LDAsMiwuMSwzLjEuOCwzLjUsMi4xLjMsMS4zLjUsMi42LjUsMy43djIuMmMwLDAsMCwxLjksMCwxLjksMCwxLjEtLjIsMi4yLS43LDMuMi0yLjQsMi45LTQuOSw1LjgtNy41LDguNC0xLjMuNy0yLjMsMS40LTMuMSwyLjEtLjguOC0xLjYsMS43LTIuNSwyLjdsLS41LjVjLS41LjYtMSwxLjItMS42LDEuOC0xLjksMS44LTIuOSwzLjMtMi45LDQuNnMuMSwxLjEuNCwxLjZjLjMuNS41LDEuMS44LDEuNi41LDEuMywxLjEsMi40LDIuMSwzLjQuNC42LjcsMS4xLjksMS43LjMuOC43LDEuNSwxLjMsMi4yLjYuNywxLDEuNCwxLjMsMi4xLjMuOC43LDEuNSwxLjMsMi4yLjYuNywxLjEsMS41LDEuNCwyLjMuMy44LjcsMS41LDEuMiwyLjEuNy44LDEuMywxLjYsMS42LDIuNi40LDEsLjgsMS43LDEuMywyLjIuNi43LDEsMS40LDEuMywyLjEuMi43LjYsMS40LDEuMywyLjIuNC40LjcuOCwxLDEuMy4zLjcuNiwxLjQuOSwyLjEuNC43LjcsMS40LDEsMi4xLjMuNy43LDEuMywxLjIsMS45LjUuNi45LDEuMiwxLjIsMS45LjIsMS43LjIsMy40LjIsNS4xcy0uMSw0LS4zLDUuOWMtLjMuNy0uNywxLjEtMS4zLDEuMnMtMSwuMS0xLjMuMS0uOCwwLTEuMiwwWiIvPgogICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTYzMC41LDI0NGMtLjYtLjEtMS4xLS4zLTEuNi0uNi0uNC0uMy0uOS0uNS0xLjQtLjYtLjUtLjEtMS0uMi0xLjUtLjJoLS4zYy0uNiwwLTEuMi0uMS0xLjYtLjQtLjUtLjMtLjktLjUtMS40LS43LS40LS4yLS45LS4zLTEuMy0uMy0xLS4xLTEuOC0uNi0yLjYtMS41LS40LS40LS43LS42LTEtLjktLjMtLjItLjYtLjQtLjktLjYtLjktLjQtMS43LS45LTIuNC0xLjgtMS0xLTEuOC0yLjMtMi40LTQuMWwtLjgtLjljLS45LS45LTEuMy0xLjktMS4zLTNzLS4xLTEuMi0uNC0xLjdjLS43LTEuMi0xLTIuMy0xLTMuMnYtNC43YzAsMCwwLTIuNSwwLTIuNXYtNWMwLDAsLjQtLjcuNC0uNy4zLS42LDEuOC0uOCw0LjUtLjhoMS44Yy44LjEsMS42LjIsMi41LjIuOCwwLDEuNC42LDEuNiwxLjUuNS45LjksMi4xLDEuMywzLjdsLjQsMS41YzEuNCwyLjMsMy4zLDQuMSw1LjYsNS40LDEsLjcsMi4zLDEuMSwzLjksMS4yLjgsMCwxLjYuMiwyLjIuNy43LjUsMS4zLjcsMS45LjdzMS4xLS4xLDEuNi0uNGMuNC0uMy44LS40LDEuMy0uNS4zLDAsLjYuMiwxLC40LjQuMi43LjMsMSwuM3MuNCwwLC42LS4ybDEuNC0uOGMuNy0uMiwxLjQtLjMsMi4yLS4zaC41YzEuNSwwLDIuNi0uMywzLjMtLjhsLjgtLjVjMS4xLS42LDEuNy0xLjIsMS44LTEuOGwuMi0uNS4yLS44di0uOGMwLTEuOC0xLjYtMy40LTQuOS00LjktLjctLjQtMS4zLS43LTEuOC0xLS44LS42LTEuOC0uOS0zLS45LS41LDAtMS0uMS0xLjQtLjMtLjUtLjEtLjktLjMtMS4zLS42LS40LS4zLS44LS40LTEuMy0uNS0uNS0uMS0uOS0uMi0xLjMtLjJoLS41Yy0uOCwwLTEuNS0uMi0yLjItLjctLjctLjUtMS42LS43LTIuNy0uN3MtMS4xLDAtMS41LS4yYy0uNC0uMS0uOC0uMy0xLjItLjYtLjYtLjUtMS4zLS43LTIuMS0uOC0uNCwwLS44LDAtMS4yLS4yLTEuNC0uOS0yLjktMS43LTQuMy0yLjUtMi43LTEuNS00LjMtMi40LTQuNy0yLjgtMi0xLjktMy4zLTMuNi0zLjktNS4ybC0uNS0xLjFjLS4zLS41LS41LTEtLjctMS41LDAtMSwwLTIsMC0zdi0xNC4yYzAtMS40LjMtMi44LjktNCwuMy0uNS40LTEsLjQtMS42di0uMmwuMi0xLjJ2LS4zYzEuMS0xLjQsMi40LTIuOSwzLjgtNC4zLjUtLjUsMS0xLDEuNC0xLjUuNS0uNC45LS42LDEuNC0uOC41LS4yLDEuMy0uNywyLjctMS41LDEuNy0xLDMuMS0xLjQsNC4xLTEuNGguNGMuOCwwLDEuNS0uMywyLjEtLjcuNC0uMy44LS41LDEuMi0uNiwxLjktLjIsMy43LS4yLDUuNi0uMmg3LjNjLjguMSwxLjUuNCwyLjIuOC40LjMuOC40LDEuMi41LjQuMS44LjIsMS4zLjJzMSwwLDEuNS4yYzEuNC43LDMuNSwxLjksNi40LDMuNSwxLDEsMiwyLDMsMy4yLDEsMS4yLDEuNSwxLjgsMS42LDEuOSwxLjQsMS45LDIuMSw0LjEsMi4yLDYuNSwwLDEsLjMsMS45LjYsMi43LjUsMS4xLjgsMi4xLjgsMy4xcy0uMiwxLjktLjYsMi44Yy0uMS4yLS4yLjQtLjIuN3YuMmMuNCwxLC42LDEuNy42LDIuMXMtLjEuNi0uMy45Yy0uMi40LS40LjgtLjUsMS4yLS4yLjUtLjMuOS0uNiwxLjMtLjIuNC0uNi43LTEsLjgtMS4xLjEtMi4zLjItMy42LjJzLTIuNS0uMS0zLjYtLjNjLS43LS4zLTEuMy0uOC0xLjYtMS40LS40LS42LS43LTEuMy0xLTEuOS0uMy0uNy0uNS0xLjItLjgtMS44LTEtMi43LTIuOS00LjctNS42LTUuOC0uNS0uNC0xLS42LTEuNi0uNi0uNiwwLTEuMS0uMS0xLjgtLjFoLS41Yy0xLjEsMC0yLS4zLTIuNy0uOC0uNS0uNC0xLS41LTEuNC0uNXMtLjcuMi0xLjQuNmMtLjYuNS0xLjUuNy0yLjYuN2gtMi4xYy0zLDAtNC41LDEuMi00LjUsMy44cy4xLDEsLjMsMS42Yy4yLjUuNiwxLDEuMSwxLjMuNS40LDEsLjcsMS41LjkuNS4zLDEsLjUsMS41LjguNS4zLDEuMS41LDEuNy42LjkuMSwxLjYuNCwyLjQuOS44LjQsMS43LjUsMi42LjVoLjRjLjYsMCwxLjIsMCwxLjguMS42LDAsMS4xLjMsMS42LjcuNS40LDEuMi42LDIsLjZoLjZjLjQsMCwuNywwLDEuMS4yLjYuMiwxLjEuNCwxLjUuNi44LjUsMS43LjgsMi42LjgsMi45LjgsNS44LDIuMSw4LjQsMy44bDIuMiwxLjMsMS40LDEuNGMxLjksMS43LDMuNCwzLjYsNC40LDUuOS44LDEuNywxLjIsMy40LDEuMiw1LjNsLS4yLDMuN3Y4LjZjMCwwLDAsMi41LDAsMi41LS4xLDEuNy0uNiwzLjItMS40LDQuNy0xLjQsMy42LTMuNiw2LjYtNi41LDkuMy0uNi41LTEuMy45LTIuMSwxLjMtLjUuMy0xLC41LTEuNS44LS41LjMtMSwuNi0xLjUuOS0uNS4zLTEsLjUtMS40LjctLjQuMi0uOS4zLTEuMy4zaC0uNGMtMSwwLTEuOS4zLTIuNy44LS41LjQtMSwuNi0xLjUuN2gtNy4xYzAsMC03LjIsMC03LjIsMFoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik03MjYuMSwyNDNjLS4zLDAtLjYsMC0uOSwwaC0uOGMwLDAtMS41LjItMS41LjItMS4xLDAtMi4yLS4yLTMuMS0uNS0xLjQtLjQtMi4yLTEuNi0yLjItMy42di01MC4yYy0uMi0xLjMtLjYtMi41LTEuMy0zLjYtLjMtLjUtLjUtLjktLjctMS40LTEuOS0yLjYtNC40LTQuMi03LjUtNC44LS40LS4xLS43LS4zLTEtLjUtLjMtLjItLjYtLjMtLjktLjNzLS4zLDAtLjYuMmMtLjMuMS0uNi4yLS44LjItLjMsMC0uNiwwLS45LS4zLS4zLS4yLS42LS4zLS45LS4zLS43LDAtMS4zLjMtMS44LjYtLjguNS0xLjMuNy0xLjguN2gtLjVjLS43LDAtMS4zLDAtMS44LjMtLjYuMi0xLjEuNS0xLjYuOC0uNS4zLTEsLjYtMS41LjgtMy4zLDIuNi01LjcsNS45LTcuMSw5LjksMCwxLjEtLjMsMi4xLS44LDMtLjMuNS0uNSwxLS43LDEuNnY3LjNjMCwwLDAsNC42LDAsNC42djE4LjdjMCw1LjIsMCwxMC4zLDAsMTUuNC0uMi44LS42LDEuMi0xLjIsMS4zLS42LjEtMS4yLjItMS43LjJoLTQuMmMtLjksMC0xLjctLjEtMi42LS4zLS42LS4zLTEuMS0uNy0xLjUtMS4yLS40LS42LS42LTEuMi0uNy0xLjgsMC03LjUsMC0xOC41LDAtMzIuOXMuMi0xLjQuNS0yLjFjLjItLjQuMy0uOC4zLTEuMSwwLS40LS4xLS43LS4zLTEuMi0uMi0uNC0uNC0xLS40LTEuNiwwLTcuNiwwLTE5LjQsMC0zNS4ycy4yLTEuNy41LTIuNWMuMi0uNC4zLS44LjMtMS4xLS42LTIuOC0uOS01LjctLjktOC44czAtMi4zLjItMy40di00LjFjMCwwLDAtMiwwLTIsMC0uNy4zLTEuNC42LTIsLjQtLjYuNi0xLjMuNi0yLjJzLS4yLTEuNS0uNi0yLjJjLS40LS43LS42LTEuNC0uNi0yLjJzLjMtMS45LDEtMi42Yy43LS43LDEuNi0xLjEsMi43LTEuMWgzLjhjMSwwLDIsMCwzLC4yLjkuMiwxLjMuOCwxLjQsMS44djE3LjZjMCw1LjIsMCwxMC4zLDAsMTUuNCwwLDEsLjIsMS41LjYsMS41czEtLjQsMS44LTEuMWMuNy0uOCwxLjQtMS42LDIuMi0yLjUsMS4zLTEuNywyLjItMi43LDIuNy0yLjhsLjMtLjJjLjMtLjEuNi0uMiwxLS4yLjgsMCwxLjUtLjMsMi4xLS44LjMtLjIuNi0uMywxLS41LjMtLjIuNy0uMywxLjEtLjMuOC0uMSwxLjQtLjMsMS45LS43LjUtLjQsMS4xLS42LDEuOC0uN2gxYzAsMCwzLjctLjIsMy43LS4yLDEuOSwwLDMuOCwwLDUuNi4yLjQuMi44LjQsMS4zLjcuNS4zLjguNSwxLjEuNSwxLjUuMiwyLjguNiw0LDEuNC4yLjIuNC4zLjcuNC42LjQsMS4yLjksMS45LDEuNS42LjcsMS40LDEuMiwyLjIsMS42LjUuNC44LjksMSwxLjYuMi43LjYsMS4zLDEuMiwxLjhsLjguOWMuMy43LjYsMS4zLjgsMS45LjMuNi41LDEuMi44LDEuOC4yLjcuMiwxLjQuMiwyLjF2LjNjMCwxLjEuMywyLjEuOCwzLC41LDYuOC43LDEzLjYuNywyMC41czAsNi45LS4xLDEwLjNjMCwzLjQtLjEsNi45LS4xLDEwLjN2MTAuMmMwLDAsLjIsNy40LjIsNy40LDAsMS44LS4xLDMuNy0uNCw1LjUtLjQuNS0uOC43LTEuMy44LS40LDAtLjgsMC0xLjEsMHMtLjYsMC0uOSwwWiIvPgogICAgPHBhdGggY2xhc3M9InN0MCIgZD0iTTc2NCwyNDMuOGMtLjUtLjMtMS0uNS0xLjYtLjYtLjYtLjItMS4zLS4zLTIuMS0uM2gtMS40Yy0xLjEsMC0yLjEtLjItMy0uNS0uNy0uNC0xLjMtLjgtMi0xLjEtMS44LS44LTMuNC0xLjktNC45LTMuMy0xLjItLjgtMi4zLTEuNi0zLjQtMi40LS44LS43LTEuNC0xLjUtMS45LTIuNC0uNS0xLjMtMS4yLTIuNS0yLjEtMy42bC0uMi0uMmMtLjQtLjgtLjctMS42LTEuMS0yLjQtMi4zLTUtMy41LTguMS0zLjUtOS41di0uNmMwLTEuNS0uMi0yLjctLjctMy42LS41LS45LS43LTItLjctMy4xdi0xOC4yYzAtLjkuMy0xLjguNy0yLjYuMi0uNi40LTEuMi41LTEuOC4xLS42LjItMS4zLjItMnYtLjVjMC0xLjMuNC0yLjgsMS4zLTQuNi43LTEuMywxLjItMi42LDEuNC00LC4yLTEuMS44LTIuMywyLjEtMy41LjktLjgsMS41LTEuOCwyLTMsLjgtMi4xLDIuNC0zLjgsNS01LDEuMi0xLjIsMi40LTIuMSwzLjctMi43bDEuOC0xYzEuMy0xLDIuOC0xLjUsNC40LTEuNmguOGMuNCwwLC44LDAsMS4xLDBsMS43LS43Yy45LS41LDItLjcsMy4yLS44aDEuOGMuNiwwLDEuMiwwLDEuOSwwLC42LDAsMS4zLS4xLDEuOS0uMSwxLjgsMCwzLjUuNCw1LjIsMS4xLjYuMywxLjIuNSwyLC41aC4zYzEuMywwLDIuNC41LDMuMywxLjUuOC44LDEuNiwxLjMsMi43LDEuNS43LjEsMS4zLjQsMS45LjgsMS43LDEuNywzLjQsMy42LDUsNS41bDIuMywyLjVjMS4yLDIuMywyLjMsNC4xLDMuMSw1LjNsLjQsMS42Yy4yLDEsLjYsMi4xLDEuMSwzLjMuMiwxLjEuNCwyLjEuOCwzLC4zLjcuNSwxLjQuNywyLjJ2MTEuNmMwLDAsMCwxNi4zLDAsMTYuMywwLDEuNS0uNCwyLjgtMS4xLDMuOS0uNCwyLjEtMSw0LjEtMi4xLDUuOWwtLjgsMS45Yy0uNywyLTEuNiwzLjgtMyw1LjUtMS4zLDEuNy0yLjcsMy4zLTQuMiw0LjhsLS41LjRjLS42LjYtMS4yLDEtMS44LDEuNC0uOC41LTEuNS45LTIsMS40LS43LjgtMS42LDEuMy0yLjcsMS41LS43LjEtMS40LjMtMiwuNy0uNi40LTEuMi42LTEuOC43LS42LjEtMS4yLjMtMS43LjYtLjguNS0xLjYuOC0yLjUuOXMtMi4yLjEtMy45LjFoLS45YzAsMC0xLjgsMC0xLjgsMC0xLjEsMC0yLjEtLjItMy0uN1pNNzY4LjgsMjI1YzEuNCwwLDIuNi0uNCwzLjctMS4xLDEuOC0uMywzLjMtLjksNC43LTEuOWwuNi0uM2MxLjgtMS43LDQtNC4xLDYuNS03LjIsMS4xLTIuMywyLjItNC43LDMuMi03LjEuMi0xLjQuMi0yLjguMi00LjJ2LTUuOGMtLjItMS0uNS0xLjktMS0yLjd2LS4yYy0uMy0uNS0uNC0xLS40LTEuNiwwLS41LS4xLTEuMS0uMy0xLjYsMCwwLDAtLjEsMC0uMi0uOC0yLjEtMi00LTMuNi01LjYtLjYtLjYtMS4xLTEuMi0xLjYtMS44LTEuMi0xLjctMi43LTIuOS00LjUtMy44LTEtLjgtMi4xLTEuMS0zLjMtMS4xLS41LS4yLTEtLjQtMS41LS44LS41LS40LTEuMS0uNi0xLjgtLjZoLTIuNGMtLjYsMC0xLjIsMC0xLjgsMC0uOS4xLTEuNi40LTIuNC45LS41LjMtMSwuNC0xLjYuNS0xLjEuMS0yLC42LTIuNywxLjQtLjMuNC0uNi43LTEsLjktMi43LDEuMy00LjYsMy40LTUuNiw2LjMtLjIuMy0uNS42LS44LDEtLjMuNC0uNi43LS44LDEuMS0uMy40LS40LjktLjUsMS4zLDAsLjUtLjEuOS0uMiwxLjNzLS4zLDEtLjgsMS45Yy0uMy42LS40LDEuMS0uNCwxLjgsMCwuNC0uMS43LS4yLDEuMS0uMS40LS4zLjctLjUsMS4xLS41LjctLjcsMS44LS43LDMuMXMuMiwxLjguNiwyLjdjLjQuOS43LDEuOS43LDIuOXYuNWMwLC41LDAsLjkuMiwxLjQuMi41LjQsMSwuNiwxLjZsLjIuNWMuNSwxLjMsMSwyLjIsMS42LDIuOS40LjQuOCwxLDEuMywyLjEuNCwxLC45LDEuOSwxLjYsMi43LjgsMSwxLjcsMS42LDIuNSwyLjEuOS40LDEuNi45LDIuMSwxLjYuNC41LjguOCwxLjQsMS4xLjQuMS43LjIsMS4xLjJoLjhjLjgsMCwxLjQuMiwyLC41LDEsLjcsMi4xLDEuMSwzLjMsMS4xaDEuMVoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDAiIGQ9Ik04MTEuMiwyNzAuNmMtLjYsMC0xLjMtLjEtMS45LS4xcy0uOCwwLTEuMSwwYy0xLjEtLjMtMS43LS45LTEuNy0yLjF2LTEwNS44YzAtLjcuMi0xLjMuNS0xLjkuMy0uNi44LTEsMS40LTEuMi4zLDAsLjUsMCwuOC4yLjMuMS41LjIuNy4yLjMsMCwuNi0uMiwxLS40LjMtLjIuNy0uNCwxLjMtLjUuNS0uMSwxLS4yLDEuNi0uMi44LDAsMS42LjEsMi40LjMsMS43LjUsMi41LDEuOSwyLjUsNC4yczAsMS4zLjEsMS43YzAsLjQuMy42LjcuNy44LS40LDEuNC0xLDIuMS0xLjguNS0uNi45LTEsMS4zLTEuNCwxLjUtLjksMy0xLjcsNC43LTIuNS44LS41LDEuNC0uOCwyLS45LjYtLjEsMS40LS4yLDIuNS0uMnMyLS4zLDIuNy0uOGwxLjEtLjVjLjctLjIsMS40LS4yLDIuMS0uMmgxLjFjMCwwLDEuOSwwLDEuOSwwaC43Yy44LDAsMS44LjMsMywuOWwuNy4zYy41LjEsMSwuMiwxLjYuMi42LDAsMS4xLjEsMS42LjIuNS4xLDEsLjMsMS41LjcuNS40LDEsLjYsMS42LjcuOS4yLDEuNS40LDEuOC43LDAsMCwuMSwwLC4zLjEuMSwwLC40LjIuNy4zLjkuMywxLjcuOCwyLjQsMS41LDEsMS4yLDIuMSwyLjQsMy4yLDMuNSwxLjQsMS41LDIuOCwzLDQsNC41LDEuMiwxLjUsMi4yLDMuMywyLjksNS4xLjIsMS42LjcsMy4yLDEuNCw0LjYuMS40LjIuNy4yLDEuMSwwLC43LjIsMS40LjcsMi4xLjMuNS41LDEsLjYsMS42LDAsMS40LDAsNC41LDAsOS4zcy4yLDEuNy42LDIuNGMuNC44LjYsMS4zLjYsMS42cy0uMS43LS4zLDEuMWgwYy0uNS44LS44LDEuNy0uOCwyLjYsMCwuOC4yLDEuNS41LDIuMi40LjcuNSwxLjMuNSwxLjhzLS4yLjktLjUsMS40di42YzAsLjUsMCwuOSwwLDEuMnYuNWMwLC4zLDAsLjYtLjQsMS4xLDAsMCwwLC4xLDAsLjJsLS4yLjNjLS4xLjQtLjIsMS0uMiwxLjlzLS4xLDEuNy0uNCwyLjRjLS40LjctLjcsMS4zLS44LDEuOS0uMS42LS4yLDEuMi0uMiwxLjgsMCwxLjItMSwzLjktMi45LDcuOS0uNiwxLjItMS4yLDIuNC0xLjcsMy43LTIuMSwyLjUtNC4xLDQuOC02LjEsNi44LTEuNSwxLTMuMSwxLjktNC43LDIuNy0xLjMuNy0yLjYsMS40LTMuOSwyLjItMi4yLjQtNC41LjUtNi44LjVzLTEuOSwwLTIuOCwwYy0xLDAtMiwwLTMsMGgtM2MtMS4yLDAtMi4zLS4zLTMuMy0xbC0xLjgtLjljLTEtLjctMS43LTEtMi4zLTEtLjYsMC0xLjEtLjEtMS42LS4zLS45LS43LTEuOC0xLjYtMi43LTIuNy0xLjItMS41LTItMi4zLTIuNS0yLjMtLjUsMC0uOC43LS44LDJ2MTguNGMwLDQuMiwwLDguMy0uMiwxMi40LS43LDEuMy0xLjYsMi0yLjYsMi4xLTEsLjItMS45LjItMi43LjJzLTEuMiwwLTEuOS0uMVpNODQyLjQsMjI0LjRjLjgtLjEsMS41LS41LDIuMi0xLjEuOC0uNCwxLjYtLjcsMi4zLTEuMi43LS40LDEuNS0uOCwyLjItMS4yLDItMS45LDMuOC00LDUuNS02LjFsLjItLjNjLjItLjguNC0xLjUuOC0yLjIuNC0uNy42LTEuNC42LTIuMXMuMi0xLjMuNi0yYy4zLS41LjUtMSwuNi0xLjV2LTUuNmMwLDAsMC00LjcsMC00LjctLjEtLjYtLjMtMS4yLS42LTEuNi0uMy0uNS0uNS0xLjItLjctMiwwLTEtLjMtMS45LS44LTIuN2wtLjItLjNjLS41LTEuNC0xLjItMi43LTIuMy0zLjgtLjUtLjUtLjktLjktMS4zLTEuNC0xLjEtMS41LTIuNS0yLjctNC4yLTMuNS0uOS0uNi0xLjgtMS4xLTIuNy0xLjQtLjktLjgtMi0xLjEtMy4yLTEuMWgtNS43Yy0xLjQsMC0yLjcsMC00LC4yLS40LjItLjguNC0xLjIuNy0uNC4zLS44LjUtMS4zLjctLjcuMy0xLjQuOC0xLjksMS42LS42LjctMS4yLDEuMi0xLjgsMS4zLS44LjMtMS4zLjgtMS41LDEuNy0uMi43LS41LDEuMy0xLjEsMS44LS45LjktMS40LDEuOC0xLjcsMi45bC0uNSwxLjFjLS40LjYtLjYsMS4yLS44LDEuOCwwLC4zLS4yLjctLjUsMS4yLS4zLjYtLjUsMS0uNiwxLjR2NC44YzAsMi40LDAsNC44LDAsNy4yLjIuNi40LDEuMS42LDEuNS41LjkuNywxLjguNywyLjcsMCwuNi4yLDEsLjUsMS40LjMuNC41LjguNiwxLjEsMCwuNS4yLDEuMS42LDEuOCwxLjMsMS42LDIuNywzLjEsNC4yLDQuNiwxLjUsMS40LDMuMiwyLjUsNS4xLDMuM2gwYzAsMCwwLDAsMCwwLDAsMCwuMS4xLjMuMi4xLDAsLjMuMS40LjIuMSwwLC4yLjEuMy4yaDBjLjYuNCwxLjEuNiwxLjcuNy42LDAsMS4xLDAsMS41LDBoNWMuNiwwLDEuMiwwLDEuOCwwWiIvPgogIDwvZz4KPC9zdmc+" style="height:56px;display:block" alt="EF Workshop">
+  </div>
+  <div class="gold-dot" id="goldDot"></div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showScreen('quote')">Quote</button>
+  <button class="nav-btn" onclick="showScreen('saved')">Saved</button>
+  <button class="nav-btn" onclick="showScreen('stones')">Stones</button>
+  <button class="nav-btn" onclick="showScreen('chains')">Chains</button>
+  <button class="nav-btn" onclick="showScreen('loose')">Loose Sale</button>
+</nav>
+
+<div class="main">
+
+  <!-- GOLD PRICE BAR (shown on quote screen) -->
+  <div class="gold-bar" id="goldBar">
+    <div>
+      <div class="gold-price-label">💰 Gold spot / troy oz</div>
+      <div style="display:flex;align-items:baseline;gap:2px">
+        <span style="font-size:20px;font-weight:500;color:#7f0034">$</span>
+        <input id="goldDisplay" type="number" step="0.01" min="0"
+          style="background:none;border:none;border-bottom:1px solid #c9a84c;font-family:var(--font-mono);font-size:20px;font-weight:500;color:#7f0034;width:130px;padding:2px 0;outline:none"
+          oninput="goldSpotOz=parseFloat(this.value)||0;calculate()" placeholder="0.00">
+      </div>
+      <div class="gold-price-sub" id="goldSub">loading...</div>
+    </div>
+    <button class="gold-refresh" onclick="fetchGold()">↻ refresh</button>
+  </div>
+
+  <!-- =================== QUOTE SCREEN =================== -->
+  <div class="screen active" id="screen-quote">
+
+    <div class="client-input-wrap">
+      <div class="field">
+        <div class="field-label">Client name</div>
+        <input type="text" id="clientName" placeholder="e.g. Sarah M.">
+      </div>
+    </div>
+
+    <!-- PIECE TYPE -->
+    <div class="section">
+      <div class="section-label">💍 Piece</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Type</div>
+          <select id="pieceType" onchange="updateWeightOptions()">
+            <option value="">Select type</option>
+            <optgroup label="Rings">
+              <option value="ring">Ring</option>
+            </optgroup>
+            <optgroup label="Pendants">
+              <option value="pendant">Pendant</option>
+            </optgroup>
+            <optgroup label="Earrings">
+              <option value="earrings">Earrings</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Occasion</div>
+          <select id="projectOccasion">
+            <option value="">None</option>
+            <option value="engagement">Engagement ring</option>
+            <option value="new-baby">New baby</option>
+            <option value="commemorative">Commemorative piece</option>
+            <option value="just-because">Just because</option>
+            <option value="gift">Gift</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Purity</div>
+          <select id="metalPurity" onchange="calculate()">
+            <option value="18k">18k Yellow</option>
+            <option value="18kw">18k White</option>
+            <option value="14k">14k Yellow</option>
+            <option value="14kw">14k White</option>
+            <option value="plat">Platinum</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Weight category</div>
+          <select id="weightCategory" onchange="calculate()">
+            <option value="">Select after piece type</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Est. grams</div>
+          <input type="number" id="metalGrams" step="0.1" min="0" placeholder="0.0" oninput="calculate()">
+        </div>
+      </div>
+      <div class="inline-note" id="gramHint"></div>
+      <div class="field-row" style="margin-top:8px">
+        <div class="field">
+          <div class="field-label">Occasion (optional)</div>
+          <select id="quoteOccasion" onchange="toggleOccasionOther('quoteOccasionOther',this.value)">
+              <option value="">— Select occasion</option>
+              <option value="Engagement">Engagement</option>
+              <option value="Wedding band">Wedding band</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Push present">Push present</option>
+              <option value="Self purchase">Self purchase</option>
+              <option value="Other">Other</option>
+          </select>
+          <input type="text" id="quoteOccasionOther" placeholder="Describe occasion..." style="display:none;margin-top:6px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px 10px;border-radius:3px;outline:none">
+        </div>
+      </div>
+    </div>
+
+    <!-- INCLUDE CHAIN -->
+    <div class="section" id="chainSection" style="display:none">
+      <div class="section-label">⛓️ Chain</div>
+      <div class="toggle-group">
+        <button class="toggle-btn active" onclick="toggleChain(false, this)">No chain</button>
+        <button class="toggle-btn" onclick="toggleChain(true, this)">Add chain</button>
+      </div>
+      <div id="chainPicker" style="display:none">
+        <div class="field">
+          <div class="field-label">Chain style</div>
+          <input type="hidden" id="chainSelect" value="">
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0 8px">
+            <div id="chainSelectedLabel" style="font-size:14px;color:var(--text-mid);font-style:italic">None selected</div>
+            <button id="chainTree-quote-toggle" onclick="document.getElementById('chainTree-quote').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Browse</button>
+          </div>
+          <div id="chainTree-quote" style="border:1px solid var(--border);border-radius:3px;overflow:hidden;display:none"></div>
+        </div>
+        <div class="field-row" style="margin-top:8px">
+          <div class="field">
+            <div class="field-label">Wholesale cost</div>
+            <div class="result-value" id="chainWholesale" style="font-size:15px; padding: 4px 0;">—</div>
+          </div>
+          <div class="field">
+            <div class="field-label">Into materials (×1.35)</div>
+            <div class="result-value" id="chainRetail" style="font-size:15px; padding: 4px 0; color: var(--gold)">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STONES -->
+    <div class="section">
+      <div class="section-label">💎 Stones</div>
+      <div id="stoneList"></div>
+      <button class="add-stone-btn" onclick="addStone('main')">Add stone / enter cost manually</button>
+      <button class="add-stone-btn" onclick="toggleInventoryPicker()" id="invPickerBtn" style="border-color:var(--teal-dim);color:var(--teal-dim)">🗂️ Pick from inventory</button>
+
+      <!-- INVENTORY PICKER -->
+      <div id="inventoryPicker" style="display:none;border:1px solid var(--border);border-radius:3px;margin-top:6px;overflow:hidden">
+        <div style="padding:8px 10px;background:var(--surface2);font-size:13px;color:var(--teal-dim);letter-spacing:0.1em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">
+          <span>Your available stones</span>
+          <span onclick="toggleInventoryPicker()" style="cursor:pointer;color:var(--text-dim)">✕</span>
+        </div>
+        <div id="inventoryPickerList" style="max-height:220px;overflow-y:auto"></div>
+      </div>
+
+      <button class="rapnet-btn" onclick="openRapnet()">
+        🔍 Search Rapnet for diamond
+      </button>
+    </div>
+
+    <!-- SETTING & LABOR -->
+    <div class="section">
+      <div class="section-label">🔧 Setting &amp; Labor</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Complexity</div>
+          <select id="settingTier" onchange="calculate()">
+            <option value="basic">Basic — single stone, simple setting</option>
+            <option value="mid" selected>Mid-range — multi-stone or some fabrication</option>
+            <option value="complex">Highly specialized — pavé, intricate, heavy fab</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Est. labor cost ($)</div>
+          <input type="number" id="laborCost" value="700" min="0" oninput="calculate()">
+        </div>
+        <div class="field">
+          <div class="field-label">Markup</div>
+          <input type="text" value="×1.4" disabled style="color: var(--text-dim)">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Design fee (optional)</div>
+          <input type="number" id="designFee" value="0" min="0" oninput="calculate()">
+        </div>
+        <div class="field">
+          <div class="field-label">Overhead</div>
+          <input type="text" value="13%" disabled style="color: var(--text-dim)">
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">Notes</div>
+        <textarea id="quoteNotes" rows="2" placeholder="Design notes, client requests..."></textarea>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="result-panel">
+      <div class="result-panel-header">🧮 Quote breakdown</div>
+      <div class="result-row">
+        <div>
+          <div class="result-label">Metal cost</div>
+          <div class="result-sub" id="metalSub">—</div>
+        </div>
+        <div class="result-value" id="metalCostDisplay">—</div>
+      </div>
+      <div class="result-row">
+        <div>
+          <div class="result-label">Stone(s)</div>
+          <div class="result-sub" id="stoneSub">—</div>
+        </div>
+        <div class="result-value" id="stoneCostDisplay">—</div>
+      </div>
+      <div class="result-row" id="chainRow" style="display:none">
+        <div>
+          <div class="result-label">Chain</div>
+        </div>
+        <div class="result-value" id="chainCostDisplay">—</div>
+      </div>
+      <div class="result-row">
+        <div>
+          <div class="result-label">Setting &amp; labor</div>
+          <div class="result-sub" id="laborSub">—</div>
+        </div>
+        <div class="result-value" id="laborCostDisplay">—</div>
+      </div>
+      <div class="result-row" id="designFeeRow" style="display:none">
+        <div>
+          <div class="result-label">Design fee</div>
+        </div>
+        <div class="result-value" id="designFeeDisplay">—</div>
+      </div>
+      <div class="result-row">
+        <div>
+          <div class="result-label">Overhead (13%)</div>
+          <div class="result-sub">applied to metal + labor + design</div>
+        </div>
+        <div class="result-value" id="overheadDisplay">—</div>
+      </div>
+      <div class="result-row total">
+        <div class="result-label">Approx. retail</div>
+        <div class="result-value" id="totalDisplay">—</div>
+      </div>
+      <div class="result-row" style="background:var(--surface2)">
+        <div>
+          <div class="result-label">Discount</div>
+          <div class="result-sub">optional — enter % or $ amount</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" id="discountValue" min="0" placeholder="0" oninput="calculate()"
+            style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:3px;outline:none">
+          <select id="discountType" onchange="calculate()"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none;appearance:none">
+            <option value="pct">%</option>
+            <option value="flat">$</option>
+          </select>
+        </div>
+      </div>
+      <div class="result-row" id="discountedRow" style="display:none">
+        <div class="result-label">After discount</div>
+        <div class="result-value" id="discountedDisplay" style="color:var(--teal-dim)">—</div>
+      </div>
+      <div class="result-row" id="profitRow" style="display:none;background:var(--surface2)">
+        <div>
+          <div class="result-label">Est. profit</div>
+          <div class="result-sub" id="profitSub">retail minus your costs</div>
+        </div>
+        <div style="text-align:right">
+          <div class="result-value" id="profitDisplay" style="font-size:14px">—</div>
+          <div id="profitAfterDisplay" style="font-size:14px;color:var(--teal-dim);margin-top:2px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-primary" onclick="saveQuote('client')">Save — Client</button>
+      <button class="btn-primary" onclick="saveQuote('collection')" style="background:var(--teal-dim)">Save — Collection</button>
+    </div>
+    <div style="padding: 0 16px 8px">
+      <button class="btn-secondary" onclick="clearQuote()" style="width:100%">Clear</button>
+    </div>
+
+  </div><!-- end quote screen -->
+
+  <!-- =================== SAVED SCREEN =================== -->
+  <div class="screen" id="screen-saved">
+    <div class="section">
+      <div class="section-label">📁 Saved quotes &amp; projects</div>
+      <div style="overflow-x:auto;scrollbar-width:none;margin-bottom:8px">
+        <div class="toggle-group" style="min-width:max-content">
+          <button class="toggle-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="toggle-btn" onclick="setFilter('quote',this)">Quotes</button>
+          <button class="toggle-btn" onclick="setFilter('project',this)">Client projects</button>
+          <button class="toggle-btn" onclick="setFilter('collection',this)">Collection</button>
+          <button class="toggle-btn" onclick="toggleArchivePanel(this)">Archived ▾</button>
+        </div>
+      </div>
+
+      <!-- ARCHIVE SUB-FILTERS -->
+      <div id="archivePanel" style="display:none;margin-bottom:12px">
+        <div style="overflow-x:auto;scrollbar-width:none">
+          <div class="toggle-group" style="min-width:max-content;border-top:2px solid var(--teal-dim)">
+            <button class="toggle-btn" onclick="setFilter('archived-quote',this)">Quotes</button>
+            <button class="toggle-btn" onclick="setFilter('archived-project',this)">Client projects</button>
+            <button class="toggle-btn" onclick="setFilter('archived-collection',this)">Collection</button>
+            <button class="toggle-btn" onclick="setFilter('completed',this)">✓ Completed</button>
+            <button class="toggle-btn" onclick="setFilter('abandoned',this)">✕ Abandoned</button>
+          </div>
+        </div>
+      </div>
+      <button class="add-stone-btn" onclick="toggleNewProject()" id="newProjectToggleBtn" style="margin-bottom:12px">+ Add project directly</button>
+
+      <!-- DIRECT PROJECT FORM -->
+      <div id="newProjectForm" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px">
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Client name</div>
+            <input type="text" id="npClient" placeholder="e.g. Sarah M.">
+          </div>
+          <div class="field">
+            <div class="field-label">Piece type</div>
+            <select id="npPieceType">
+              <option value="ring">Ring</option>
+              <option value="pendant">Pendant</option>
+              <option value="earrings">Earrings</option>
+              <option value="necklace">Necklace</option>
+              <option value="bracelet">Bracelet</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Occasion</div>
+            <select id="npOccasion" onchange="toggleOccasionOther('npOccasionOther',this.value)">
+              <option value="">— Select occasion</option>
+              <option value="Engagement">Engagement</option>
+              <option value="Wedding band">Wedding band</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Birthday">Birthday</option>
+              <option value="Push present">Push present</option>
+              <option value="Self purchase">Self purchase</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="text" id="npOccasionOther" placeholder="Describe occasion..." style="display:none;margin-top:6px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px 10px;border-radius:3px;outline:none">
+          </div>
+          <div class="field">
+            <div class="field-label">Purity</div>
+            <select id="npPurity">
+              <option value="18k">18k Yellow</option>
+              <option value="18kw">18k White</option>
+              <option value="14k">14k Yellow</option>
+              <option value="14kw">14k White</option>
+              <option value="plat">Platinum</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-dim);margin:10px 0 8px">Actual costs</div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Stone cost ($)</div>
+            <input type="number" id="npStoneCost" min="0" placeholder="0" oninput="calcNewProject()">
+          </div>
+          <div class="field">
+            <div class="field-label">Metal cost ($)</div>
+            <input type="number" id="npMetalCost" min="0" placeholder="0" oninput="calcNewProject()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Labor cost ($)</div>
+            <input type="number" id="npLaborCost" min="0" placeholder="0" oninput="calcNewProject()">
+          </div>
+          <div class="field">
+            <div class="field-label">Design fee ($)</div>
+            <input type="number" id="npDesignFee" min="0" placeholder="0" oninput="calcNewProject()">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Chain (optional)</div>
+            <input type="hidden" id="npChainSelect" value="">
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
+              <div id="npChainSelectedLabel" style="font-size:14px;color:var(--text-mid);font-style:italic">None selected</div>
+              <button id="chainTree-np-toggle" onclick="document.getElementById('chainTree-np').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Browse</button>
+            </div>
+            <div id="chainTree-np" style="border:1px solid var(--border);border-radius:3px;overflow:hidden;display:none"></div>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:10px">
+          <div class="field-label">Notes</div>
+          <textarea id="npNotes" rows="2" placeholder="Stone details, design notes..."></textarea>
+        </div>
+
+        <!-- MINI RESULT -->
+        <div id="npResult" style="background:var(--gold-faint);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:10px;display:none">
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+            <span style="color:var(--text-dim)">Stone markup</span>
+            <span id="npStoneDisplay">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+            <span style="color:var(--text-dim)">Metal + labor + overhead</span>
+            <span id="npRestDisplay">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;border-top:1px solid var(--border);padding-top:6px;margin-top:4px">
+            <span style="color:var(--gold-dim)">Retail total</span>
+            <span style="color:var(--gold)" id="npTotalDisplay">—</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <button class="btn-primary" onclick="saveDirectProject('client')">Save — Client</button>
+          <button class="btn-primary" onclick="saveDirectProject('collection')" style="background:var(--teal-dim)">Save — Collection</button>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn-secondary" onclick="toggleNewProject()" style="width:100%">Cancel</button>
+        </div>
+      </div>
+
+      <!-- P&L SUMMARY -->
+      <div id="plSummary" style="margin-bottom:16px"></div>
+
+      <div id="savedList"></div>
+    </div>
+  </div>
+
+  <!-- =================== STONES SCREEN =================== -->
+  <div class="screen" id="screen-stones">
+
+    <!-- SEARCH BAR -->
+    <div class="section">
+      <div class="section-label">🔍 Search stones</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Cut / shape</div>
+          <select id="stoneFilterCut" onchange="renderStoneInventory()">
+            <option value="">All cuts</option>
+            <option>Old Mine Cut</option>
+            <option>Old European Cut</option>
+            <option>Round Brilliant</option>
+            <option>Oval</option>
+            <option>Emerald Cut</option>
+            <option>Cushion</option>
+            <option>Pear</option>
+            <option>Marquise</option>
+            <option>Asscher</option>
+            <option>Princess</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="field-label">Dealer</div>
+          <select id="stoneFilterDealer" onchange="renderStoneInventory()">
+            <option value="">All dealers</option>
+            <option>American Gem Corp</option>
+            <option>Virat</option>
+            <option>Galapo</option>
+            <option>Julius Klein</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Min ct</div>
+          <input type="number" id="stoneFilterMinCt" step="0.01" min="0" placeholder="0" oninput="renderStoneInventory()">
+        </div>
+        <div class="field">
+          <div class="field-label">Max ct</div>
+          <input type="number" id="stoneFilterMaxCt" step="0.01" min="0" placeholder="any" oninput="renderStoneInventory()">
+        </div>
+      </div>
+    </div>
+
+    <!-- CATEGORY TABS -->
+    <div style="overflow-x:auto;scrollbar-width:none;padding:0 16px 0">
+      <div class="toggle-group" style="min-width:max-content;margin:12px 0">
+        <button class="toggle-btn active" onclick="setStoneFilter('all',this)">All</button>
+        <button class="toggle-btn" onclick="setStoneFilter('owned-available',this)">Owned</button>
+        <button class="toggle-btn" onclick="setStoneFilter('owned-reserved',this)">Reserved</button>
+        <button class="toggle-btn" onclick="setStoneFilter('memo',this)">On Memo</button>
+        <button class="toggle-btn" onclick="setStoneFilter('viewed',this)">Viewed</button>
+      </div>
+    </div>
+
+    <div class="section" style="border-top:none">
+      <button class="add-stone-btn" onclick="openAddStoneForm()" id="addStoneBtnLabel" style="margin-bottom:12px">+ Add stone</button>
+
+      <!-- ADD STONE FORM -->
+      <div id="addStoneForm" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal-dim)">Stone details</div>
+          <label style="display:flex;align-items:center;gap:6px;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:7px 12px;border-radius:3px;cursor:pointer">
+            📷 Scan GIA parcel
+            <input type="file" id="giaPhotoInput" accept="image/*" style="display:none" onchange="scanGIAPhoto(this)">
+          </label>
+        </div>
+
+        <!-- OCR STATUS -->
+        <div id="giaOcrStatus" style="display:none;padding:10px;background:var(--surface2);border-radius:3px;margin-bottom:10px;font-size:14px;color:var(--teal-dim);text-align:center">
+          Reading parcel...
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Category</div>
+            <select id="si-category" onchange="toggleMemoFields()">
+              <option value="owned-available">Owned — available</option>
+              <option value="owned-reserved">Owned — reserved</option>
+              <option value="memo">On memo</option>
+              <option value="viewed">Viewed / recorded</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="field-label">Cut / shape</div>
+            <select id="si-cut">
+              <option>Old Mine Cut</option>
+              <option>Old European Cut</option>
+              <option>Round Brilliant</option>
+              <option>Oval</option>
+              <option>Emerald Cut</option>
+              <option>Cushion</option>
+              <option>Pear</option>
+              <option>Marquise</option>
+              <option>Asscher</option>
+              <option>Princess</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <input type="checkbox" id="si-antique" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+          <label for="si-antique" style="font-size:13px;color:var(--text);cursor:pointer;letter-spacing:0.05em">Genuine antique stone</label>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Carat weight</div>
+            <input type="number" id="si-carat" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div class="field">
+            <div class="field-label">Color</div>
+            <input type="text" id="si-color" placeholder="e.g. K">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Clarity</div>
+            <input type="text" id="si-clarity" placeholder="e.g. VS2">
+          </div>
+          <div class="field">
+            <div class="field-label">GIA number</div>
+            <input type="text" id="si-gia" placeholder="optional">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Dealer</div>
+            <select id="si-dealer" onchange="toggleOtherDealer()">
+              <option>American Gem Corp</option>
+              <option>Virat</option>
+              <option>Galapo</option>
+              <option>Julius Klein</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="field" id="si-other-dealer-field" style="display:none">
+            <div class="field-label">Dealer name</div>
+            <input type="text" id="si-other-dealer" placeholder="Enter dealer">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Your cost ($)</div>
+            <input type="number" id="si-cost" min="0" placeholder="0">
+          </div>
+          <div class="field" id="si-memo-return-field" style="display:none">
+            <div class="field-label">Return by</div>
+            <input type="text" id="si-return-by" placeholder="e.g. Apr 15">
+          </div>
+        </div>
+        <div class="field">
+          <div class="field-label">Notes</div>
+          <textarea id="si-notes" rows="2" placeholder="Any details..."></textarea>
+        </div>
+        <div class="field-row" style="margin-top:4px">
+          <button class="btn-primary" onclick="saveInventoryStone()">Save Stone</button>
+          <button class="btn-secondary" onclick="closeAddStoneForm()">Cancel</button>
+        </div>
+      </div>
+
+      <div id="inventoryList"></div>
+    </div>
+  </div>
+
+  <!-- =================== CHAINS SCREEN =================== -->
+  <div class="screen" id="screen-chains">
+    <div class="section">
+      <div class="section-label">⛓️ Chains — Downeast</div>
+      <div id="chainTree"></div>
+    </div>
+  </div>
+
+  <!-- =================== LOOSE SALE SCREEN =================== -->
+  <div class="screen" id="screen-loose">
+    <div class="section">
+      <div class="section-label">💎 Loose stone sale</div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Stone cost ($)</div>
+          <input type="number" id="looseCost" min="0" placeholder="0" oninput="calcLoose()">
+        </div>
+      </div>
+      <div class="field">
+        <div class="field-label">Description (optional)</div>
+        <input type="text" id="looseDesc" placeholder="e.g. 2.1ct OMC, K/VS2">
+      </div>
+    </div>
+    <div class="result-panel" style="margin: 12px 16px">
+      <div class="result-panel-header">Loose sale pricing</div>
+      <div class="result-row">
+        <div class="result-label">Cost</div>
+        <div class="result-value" id="looseCostDisplay">—</div>
+      </div>
+      <div class="result-row">
+        <div class="result-label">Multiplier</div>
+        <div class="result-value" id="looseMultDisplay">—</div>
+      </div>
+      <div class="result-row total">
+        <div class="result-label">Retail price</div>
+        <div class="result-value" id="looseTotalDisplay">—</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end main -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =================== DATA ===================
+
+
+
+const OCCASION_EMOJIS = {
+  'Engagement': '💍',
+  'Wedding band': '⚭',
+  'Anniversary': '👩‍❤️‍💋‍👨',
+  'Birthday': '🎂',
+  'Push present': '🤰🏻',
+  'Self purchase': '💝',
+  'Other': '💝',
+};
+
+const PIECE_EMOJIS = {
+  'ring': '💍',
+  'pendant': '✨',
+  'earrings': '💫',
+  'necklace': '⛓️',
+  'bracelet': '📿',
+  'other': '🔮'
+};
+
+const GOLD_PER_GRAM = {
+  '18k': 0.75,
+  '18kw': 0.75,
+  '14k': 0.5833,
+  '14kw': 0.5833,
+  'plat': null // handled separately
+};
+
+const PLAT_SPOT_APPROX = 32; // $/g fallback if no API
+
+const WEIGHT_CATEGORIES = {
+  ring: [
+    { label: 'Dainty solitaire band', min: 2, max: 4 },
+    { label: 'Standard engagement ring', min: 5, max: 9 },
+    { label: 'Chunky fashion ring', min: 10, max: 13 },
+    { label: "Heavy signet / men's band", min: 14, max: 22 },
+  ],
+  pendant: [
+    { label: 'Dainty pendant', min: 1, max: 3 },
+    { label: 'Standard pendant', min: 4, max: 7 },
+    { label: 'Statement pendant', min: 8, max: 12 },
+  ],
+  earrings: [
+    { label: 'Studs / small huggies', min: 1, max: 2 },
+    { label: 'Standard hoops / drops', min: 3, max: 6 },
+    { label: 'Statement earrings', min: 7, max: 12 },
+  ]
+};
+
+const SETTING_DEFAULTS = {
+  basic: 300,
+  mid: 700,
+  complex: 1500
+};
+
+// All chains
+const CHAINS = [
+  // 18k
+  { karat:'18k', name:'Bead 1.5mm', grams:4.9, wholesale:785, length:'16"' },
+  { karat:'18k', name:'Bead 2.2mm', grams:10.8, wholesale:1731, length:'16"' },
+  { karat:'18k', name:'Venetian Box 1.2mm', grams:4.2, wholesale:727, length:'16"' },
+  { karat:'18k', name:'Round Box 2.0mm', grams:10.5, wholesale:1804, length:'16"' },
+  { karat:'18k', name:'Open Long Cable 1.4mm', grams:2.6, wholesale:419, length:'16"' },
+  { karat:'18k', name:'Open Long Cable 2.3mm', grams:6.4, wholesale:1029, length:'16"' },
+  { karat:'18k', name:'Round Cable 1.3mm', grams:3.0, wholesale:483, length:'16"' },
+  { karat:'18k', name:'Round Cable 1.6mm', grams:5.0, wholesale:801, length:'16"' },
+  { karat:'18k', name:'Round Cable 1.8mm', grams:5.7, wholesale:913, length:'16"' },
+  { karat:'18k', name:'Round Cable 2.2mm', grams:8.6, wholesale:1378, length:'16"' },
+  { karat:'18k', name:'Round Cable 4.1mm', grams:23.6, wholesale:3771, length:'16"' },
+  { karat:'18k', name:'Hollow Puff Anchor 4.7mm', grams:12.8, wholesale:2096, length:'20"' },
+  { karat:'18k', name:'Curb 1.5mm', grams:4.4, wholesale:705, length:'16"' },
+  { karat:'18k', name:'Curb 2.2mm', grams:7.2, wholesale:1154, length:'16"' },
+  { karat:'18k', name:'Cablewire 1.1mm (croc clasp)', grams:5.0, wholesale:899, length:'16"' },
+  { karat:'18k', name:'Cablewire 1.5mm (croc clasp)', grams:7.6, wholesale:1340, length:'16"' },
+  { karat:'18k', name:'1+1 Twist Figaro 1.0mm', grams:2.4, wholesale:395, length:'16"' },
+  { karat:'18k', name:'Figaro 2.4mm', grams:7.9, wholesale:1302, length:'20"' },
+  { karat:'18k', name:'Textured Foxtail 2.5mm', grams:16.3, wholesale:2759, length:'16"' },
+  { karat:'18k', name:'Textured Cable 3.5mm', grams:17.3, wholesale:2903, length:'16"' },
+  { karat:'18k', name:'Handmade Textured Foxtail 2.3mm', grams:13.5, wholesale:2312, length:'16"' },
+  { karat:'18k', name:'Figure Eight 4.6mm', grams:27.5, wholesale:4587, length:'16"' },
+  { karat:'18k', name:'Twist Link 2.8mm', grams:7.1, wholesale:1195, length:'16"' },
+  { karat:'18k', name:'Handmade Textured Twin Cable 4.1mm', grams:29.0, wholesale:4881, length:'16"' },
+  { karat:'18k', name:'Round Omega 1.5mm', grams:10.8, wholesale:1715, length:'16"' },
+  { karat:'18k', name:'Round Omega 2.0mm', grams:16.2, wholesale:2702, length:'16"' },
+  { karat:'18k', name:'Paperclip 2.1×6.2mm', grams:3.7, wholesale:646, length:'16"' },
+  { karat:'18k', name:'Paperclip 3.1×8mm', grams:8.5, wholesale:1468, length:'16"' },
+  { karat:'18k', name:'Rolo 2.1mm', grams:5.9, wholesale:948, length:'16"' },
+  { karat:'18k', name:'Rolo 2.5mm', grams:11.3, wholesale:1918, length:'16"' },
+  { karat:'18k', name:'Laser Rope 1.3mm', grams:3.4, wholesale:546, length:'16"' },
+  { karat:'18k', name:'Laser Rope 2.1mm', grams:7.5, wholesale:1206, length:'16"' },
+  { karat:'18k', name:'Boa Snake 1.2mm', grams:4.7, wholesale:772, length:'16"' },
+  { karat:'18k', name:'Boa Snake 1.9mm', grams:10.2, wholesale:1650, length:'16"' },
+  { karat:'18k', name:'Round Wheat 1.5mm', grams:5.7, wholesale:913, length:'16"' },
+  { karat:'18k', name:'Round Wheat 3.5mm', grams:20.3, wholesale:3254, length:'16"' },
+  // 14k
+  { karat:'14k', name:'Anchor 1.8mm', grams:3.8, wholesale:480, length:'16"' },
+  { karat:'14k', name:'Anchor 3.0mm', grams:10.2, wholesale:1290, length:'18"' },
+  { karat:'14k', name:'Bead 1.5mm', grams:4.2, wholesale:531, length:'16"' },
+  { karat:'14k', name:'Bead 2.2mm', grams:9.1, wholesale:1146, length:'16"' },
+  { karat:'14k', name:'Round Box 1.2mm', grams:3.6, wholesale:516, length:'16"' },
+  { karat:'14k', name:'Round Box 2.0mm', grams:8.9, wholesale:1268, length:'16"' },
+  { karat:'14k', name:'Round Cable 1.3mm', grams:2.5, wholesale:316, length:'16"' },
+  { karat:'14k', name:'Round Cable 1.8mm', grams:4.8, wholesale:604, length:'16"' },
+  { karat:'14k', name:'Round Cable 2.2mm', grams:7.3, wholesale:919, length:'16"' },
+  { karat:'14k', name:'Round Cable 4.1mm', grams:19.3, wholesale:2422, length:'16"' },
+  { karat:'14k', name:'Cablewire 1.1mm (croc clasp)', grams:4.5, wholesale:659, length:'16"' },
+  { karat:'14k', name:'Cablewire 1.5mm (croc clasp)', grams:6.9, wholesale:969, length:'16"' },
+  { karat:'14k', name:'Panda 2.9mm', grams:9.0, wholesale:1215, length:'16"' },
+  { karat:'14k', name:'Hollow 1+1 Link 7.8mm', grams:23.2, wholesale:3004, length:'18"' },
+  { karat:'14k', name:'Pinsetta 1.0mm', grams:2.2, wholesale:278, length:'16"' },
+  { karat:'14k', name:'Pinsetta 1.7mm', grams:4.7, wholesale:594, length:'16"' },
+  { karat:'14k', name:'Curb 1.5mm', grams:3.6, wholesale:453, length:'16"' },
+  { karat:'14k', name:'Oval Curb 2.7mm', grams:9.6, wholesale:1214, length:'16"' },
+  { karat:'14k', name:'Foxtailmesh 2.5mm (lobster clasp)', grams:11.6, wholesale:1595, length:'16"' },
+  { karat:'14k', name:'Natural Franco 1.5mm', grams:5.7, wholesale:721, length:'16"' },
+  { karat:'14k', name:'Natural Round Wheat 1.5mm', grams:4.8, wholesale:607, length:'16"' },
+  { karat:'14k', name:'Natural Round Wheat 2.0mm', grams:7.5, wholesale:948, length:'16"' },
+  { karat:'14k', name:'Natural Round Wheat 3.4mm', grams:17.3, wholesale:2180, length:'16"' },
+  { karat:'14k', name:'Round Omega 1.5mm', grams:8.1, wholesale:1073, length:'16"' },
+  { karat:'14k', name:'Round Omega 2.0mm', grams:16.9, wholesale:2239, length:'16"' },
+  { karat:'14k', name:'Long Open Cable 4.3mm', grams:17.4, wholesale:2192, length:'16"' },
+  { karat:'14k', name:'Open Long Cable 2.3mm', grams:5.4, wholesale:683, length:'16"' },
+  { karat:'14k', name:'Paperclip 2.1×6.2mm', grams:3.1, wholesale:443, length:'16"' },
+  { karat:'14k', name:'Paperclip 3.5×11.6mm', grams:9.8, wholesale:1279, length:'16"' },
+  { karat:'14k', name:'Rolo 1.5mm', grams:2.3, wholesale:290, length:'16"' },
+  { karat:'14k', name:'Rolo 2.1mm', grams:4.8, wholesale:604, length:'16"' },
+  { karat:'14k', name:'Rolo 3.0mm', grams:12.0, wholesale:1488, length:'16"' },
+  { karat:'14k', name:'Laser Rope 1.7mm', grams:3.9, wholesale:491, length:'16"' },
+  { karat:'14k', name:'Solid Rope 2.3mm', grams:8.3, wholesale:1037, length:'16"' },
+  { karat:'14k', name:'Boa Snake 1.4mm', grams:4.7, wholesale:658, length:'16"' },
+  { karat:'14k', name:'Boa Snake 1.9mm', grams:8.2, wholesale:1094, length:'16"' },
+];
+
+// =================== STATE ===================
+let goldSpotOz = 0;
+let stones = [];
+let stoneIdCounter = 0;
+let includeChain = false;
+
+window._savedQuotes = [];
+window._inventory = [];
+
+function getSavedQuotes() { return window._savedQuotes || []; }
+function getInventory() { return window._inventory || []; }
+
+function persistQuotes() {
+  if (window._fb) window._fb.saveQuotes(getSavedQuotes());
+}
+function persistInventory() {
+  if (window._fb) window._fb.saveInventory(getInventory());
+}
+
+// =================== GOLD ===================
+async function fetchGold() {
+  document.getElementById('goldSub').textContent = 'fetching...';
+  try {
+    
+    const r = await fetch('https://api.gold-api.com/price/XAU');
+    const d = await r.json();
+    goldSpotOz = d.price;
+    document.getElementById('goldDisplay').value = goldSpotOz.toFixed(2);
+    document.getElementById('goldSub').textContent = 'per troy oz · live via gold-api.com';
+    document.getElementById('goldDot').style.background = 'var(--teal)';
+    calculate();
+  } catch(e) {
+    goldSpotOz = 4509.40;
+    document.getElementById('goldDisplay').value = '4509.40';
+    document.getElementById('goldSub').textContent = 'auto-fetch failed · edit manually';
+    document.getElementById('goldDot').style.background = 'var(--text-dim)';
+    calculate();
+  }
+}
+
+function goldPerGram(purity) {
+  const ozPerGram = 1 / 31.1035;
+  if (purity === 'plat') return PLAT_SPOT_APPROX;
+  return goldSpotOz * ozPerGram * GOLD_PER_GRAM[purity];
+}
+
+// =================== PIECE TYPE ===================
+function updateWeightOptions() {
+  const type = document.getElementById('pieceType').value;
+  const sel = document.getElementById('weightCategory');
+  const chainSec = document.getElementById('chainSection');
+  sel.innerHTML = '<option value="">Select weight</option>';
+
+  if (type && WEIGHT_CATEGORIES[type]) {
+    WEIGHT_CATEGORIES[type].forEach((cat, i) => {
+      const mid = ((cat.min + cat.max) / 2).toFixed(1);
+      const opt = document.createElement('option');
+      opt.value = mid;
+      opt.textContent = cat.label;
+      opt.dataset.min = cat.min;
+      opt.dataset.max = cat.max;
+      sel.appendChild(opt);
+    });
+    chainSec.style.display = (type === 'pendant') ? 'block' : 'none';
+  }
+  calculate();
+}
+
+document.getElementById('weightCategory').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (opt && opt.dataset.min) {
+    const mid = ((parseFloat(opt.dataset.min) + parseFloat(opt.dataset.max)) / 2).toFixed(1);
+    document.getElementById('metalGrams').value = mid;
+    document.getElementById('gramHint').textContent = `Range: ${opt.dataset.min}–${opt.dataset.max}g · using midpoint ${mid}g`;
+  } else {
+    document.getElementById('gramHint').textContent = '';
+  }
+  calculate();
+});
+
+document.getElementById('settingTier').addEventListener('change', function() {
+  document.getElementById('laborCost').value = SETTING_DEFAULTS[this.value];
+  calculate();
+});
+
+// =================== CHAIN ===================
+function toggleChain(show, btn) {
+  includeChain = show;
+  document.querySelectorAll('.toggle-group .toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('chainPicker').style.display = show ? 'block' : 'none';
+  document.getElementById('chainRow').style.display = show ? 'flex' : 'none';
+  calculate();
+}
+
+function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSelect) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Collapse button
+  const collapseBtn = document.createElement('div');
+  collapseBtn.style.cssText = 'padding:7px 10px;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);cursor:pointer;text-align:center;background:var(--surface2)';
+  collapseBtn.textContent = '▴ Collapse';
+  collapseBtn.onclick = (e) => {
+    e.stopPropagation();
+    container.style.display = 'none';
+    const toggleBtn = document.getElementById(containerId + '-toggle');
+    if (toggleBtn) toggleBtn.style.display = 'inline-block';
+  };
+  container.appendChild(collapseBtn);
+
+  // Clear option
+  const clearRow = document.createElement('div');
+  clearRow.style.cssText = 'padding:8px 10px;font-size:13px;color:var(--text-dim);border-bottom:1px solid var(--border);cursor:pointer;font-style:italic';
+  clearRow.textContent = '✕ No chain';
+  clearRow.onclick = () => {
+    document.getElementById(hiddenInputId).value = '';
+    document.getElementById(selectedLabelId).textContent = 'None selected';
+    document.getElementById(selectedLabelId).style.color = 'var(--text-mid)';
+    onSelect('');
+  };
+  container.appendChild(clearRow);
+
+  ['18k','14k'].forEach(karat => {
+    const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
+    const chainsInMetal = CHAINS.map((c,i) => ({...c, idx:i})).filter(c => c.karat === karat);
+    const byType = {};
+    chainsInMetal.forEach(c => {
+      const t = getChainType(c.name);
+      if (!byType[t]) byType[t] = [];
+      byType[t].push(c);
+    });
+
+    // Metal row
+    const metalRow = document.createElement('div');
+    metalRow.style.cssText = 'padding:10px 10px;font-size:13px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;background:var(--surface2)';
+    metalRow.innerHTML = `<span>${metalLabel}</span><span>▾</span>`;
+    const metalBody = document.createElement('div');
+    metalBody.style.display = 'none';
+    let metalOpen = false;
+    metalRow.onclick = () => {
+      metalOpen = !metalOpen;
+      metalBody.style.display = metalOpen ? 'block' : 'none';
+      metalRow.querySelector('span:last-child').textContent = metalOpen ? '▴' : '▾';
+    };
+
+    Object.keys(byType).sort().forEach(type => {
+      const chains = byType[type];
+      const typeRow = document.createElement('div');
+      typeRow.style.cssText = 'padding:8px 10px 8px 18px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;background:var(--surface)';
+      typeRow.innerHTML = `<span>${type}</span><span style="color:var(--text-dim)">${chains.length} ▾</span>`;
+      const typeBody = document.createElement('div');
+      typeBody.style.display = 'none';
+      let typeOpen = false;
+      typeRow.onclick = (e) => {
+        e.stopPropagation();
+        typeOpen = !typeOpen;
+        typeBody.style.display = typeOpen ? 'block' : 'none';
+        typeRow.querySelector('span:last-child').textContent = `${chains.length} ${typeOpen ? '▴' : '▾'}`;
+      };
+
+      chains.forEach(c => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:8px 10px 8px 28px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s';
+        item.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font-size:14px;color:var(--text)">${c.name}</span>
+            <span style="font-size:14px;color:var(--text);font-weight:500">$${c.wholesale.toLocaleString()}</span>
+          </div>
+          <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${c.length} · ${c.grams}g · retail $${Math.round(c.wholesale*1.75).toLocaleString()}</div>`;
+        item.onmouseover = () => item.style.background = 'var(--surface2)';
+        item.onmouseout = () => item.style.background = '';
+        item.onclick = (e) => {
+          e.stopPropagation();
+          document.getElementById(hiddenInputId).value = c.idx;
+          document.getElementById(selectedLabelId).textContent = `${karat} ${c.name} · ${c.length}`;
+          document.getElementById(selectedLabelId).style.color = 'var(--gold)';
+          onSelect(c.idx);
+        };
+        typeBody.appendChild(item);
+      });
+
+      metalBody.appendChild(typeRow);
+      metalBody.appendChild(typeBody);
+    });
+
+    container.appendChild(metalRow);
+    container.appendChild(metalBody);
+  });
+}
+
+function getChainType(name) {
+  // Extract base type, strip mm sizes and parenthetical notes
+  return name.replace(/\s+\d+\.?\d*mm.*/, '').replace(/\s+\(.*\)/, '').replace(/\s+\d+\.?\d*×.*/, '').trim();
+}
+
+function buildChainOptgroups(sel, labelFn) {
+  sel.innerHTML = '<option value="">Select chain</option>';
+  ['18k','14k'].forEach(karat => {
+    const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
+    const chainsInMetal = CHAINS.map((c,i) => ({...c, idx:i})).filter(c => c.karat === karat);
+    // Group by type
+    const byType = {};
+    chainsInMetal.forEach(c => {
+      const t = getChainType(c.name);
+      if (!byType[t]) byType[t] = [];
+      byType[t].push(c);
+    });
+    Object.keys(byType).sort().forEach(type => {
+      const grp = document.createElement('optgroup');
+      grp.label = `${metalLabel} — ${type}`;
+      byType[type].forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.idx;
+        opt.textContent = labelFn(c);
+        grp.appendChild(opt);
+      });
+      sel.appendChild(grp);
+    });
+  });
+}
+
+function populateChainSelect() {
+  buildChainTreePicker('chainTree-quote', 'chainSelect', 'chainSelectedLabel', (idx) => {
+    if (idx === '') {
+      document.getElementById('chainWholesale').textContent = '—';
+      document.getElementById('chainRetail').textContent = '—';
+    } else {
+      const c = CHAINS[parseInt(idx)];
+      document.getElementById('chainWholesale').textContent = '$' + c.wholesale.toLocaleString();
+      document.getElementById('chainRetail').textContent = '$' + Math.round(c.wholesale * 1.35).toLocaleString();
+    }
+    calculate();
+  });
+}
+
+function renderChainList() {
+  const container = document.getElementById('chainTree');
+  if (!container) return;
+  container.innerHTML = '';
+
+  ['18k', '14k'].forEach(karat => {
+    const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
+    const chainsInMetal = CHAINS.filter(c => c.karat === karat);
+
+    // Group by type
+    const byType = {};
+    chainsInMetal.forEach(c => {
+      const t = getChainType(c.name);
+      if (!byType[t]) byType[t] = [];
+      byType[t].push(c);
+    });
+
+    // Metal header
+    const metalHeader = document.createElement('div');
+    metalHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid var(--teal-dim);cursor:pointer;margin-bottom:4px';
+    metalHeader.innerHTML = `
+      <span style="font-size:14px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase">${metalLabel}</span>
+      <span style="font-size:13px;color:var(--text-dim)">${Object.keys(byType).length} types ▾</span>`;
+
+    const metalBody = document.createElement('div');
+    metalBody.style.display = 'none';
+    let metalOpen = false;
+
+    metalHeader.onclick = () => {
+      metalOpen = !metalOpen;
+      metalBody.style.display = metalOpen ? 'block' : 'none';
+      metalHeader.querySelector('span:last-child').textContent =
+        `${Object.keys(byType).length} types ${metalOpen ? '▴' : '▾'}`;
+    };
+
+    Object.keys(byType).sort().forEach(type => {
+      const chains = byType[type];
+
+      // Type row
+      const typeRow = document.createElement('div');
+      typeRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0 10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+      typeRow.innerHTML = `
+        <span style="font-size:14px;color:var(--text)">${type}</span>
+        <span style="font-size:13px;color:var(--text-dim)">${chains.length} style${chains.length > 1 ? 's' : ''} ▾</span>`;
+
+      const typeBody = document.createElement('div');
+      typeBody.style.display = 'none';
+      let typeOpen = false;
+
+      typeRow.onclick = (e) => {
+        e.stopPropagation();
+        typeOpen = !typeOpen;
+        typeBody.style.display = typeOpen ? 'block' : 'none';
+        typeRow.querySelector('span:last-child').textContent =
+          `${chains.length} style${chains.length > 1 ? 's' : ''} ${typeOpen ? '▴' : '▾'}`;
+      };
+
+      chains.forEach(c => {
+        const item = document.createElement('div');
+        item.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;padding:8px 0 8px 24px;border-bottom:1px solid var(--border)';
+        item.innerHTML = `
+          <div>
+            <div style="font-size:14px;color:var(--text)">${c.name}</div>
+            <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${c.length} · ${c.grams}g</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px;color:var(--text);font-weight:500">$${c.wholesale.toLocaleString()}</div>
+            <div style="font-size:13px;color:var(--text-dim)">retail $${Math.round(c.wholesale*1.75).toLocaleString()}</div>
+          </div>`;
+        typeBody.appendChild(item);
+      });
+
+      metalBody.appendChild(typeRow);
+      metalBody.appendChild(typeBody);
+    });
+
+    container.appendChild(metalHeader);
+    container.appendChild(metalBody);
+  });
+}
+
+// =================== STONES ===================
+function addStone(type) {
+  const id = stoneIdCounter++;
+  stones.push({ id, cost: 0, desc: '', isSmall: false });
+  renderStones();
+  calculate();
+}
+
+function removeStone(id) {
+  stones = stones.filter(s => s.id !== id);
+  renderStones();
+  calculate();
+}
+
+function renderStones() {
+  const list = document.getElementById('stoneList');
+  list.innerHTML = '';
+  stones.forEach((s, idx) => {
+    const card = document.createElement('div');
+    card.className = 'stone-card';
+    card.innerHTML = `
+      <div class="stone-card-header">
+        <span class="stone-type-tag">Stone ${idx + 1}</span>
+        <button class="remove-btn" onclick="removeStone(${s.id})">×</button>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Description</div>
+          <input type="text" value="${s.desc}" placeholder="e.g. 2.1ct OMC K/VS2" 
+            oninput="updateStone(${s.id},'desc',this.value)">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <div class="field-label">Cost ($)</div>
+          <input type="number" value="${s.cost || ''}" min="0" placeholder="0"
+            oninput="updateStone(${s.id},'cost',parseFloat(this.value)||0)">
+        </div>
+        <div class="field">
+          <div class="field-label">Small / melee?</div>
+          <select onchange="updateStone(${s.id},'isSmall',this.value==='true')">
+            <option value="false" ${!s.isSmall?'selected':''}>No — tiered markup</option>
+            <option value="true" ${s.isSmall?'selected':''}>Yes — ×1.35</option>
+          </select>
+        </div>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function updateStone(id, key, val) {
+  const s = stones.find(s => s.id === id);
+  if (s) { s[key] = val; calculate(); }
+}
+
+function stoneMarkupProject(cost) {
+  if (cost <= 5000) return 2.1;
+  if (cost <= 10000) return 1.8;
+  if (cost <= 15000) return 1.6;
+  if (cost <= 25000) return 1.55;
+  return 1.5;
+}
+
+function calcStoneRetail() {
+  let smallCost = 0, mainCost = 0;
+  stones.forEach(s => {
+    if (s.isSmall || s.cost < 1000 && stones.length > 1) smallCost += s.cost;
+    else mainCost += s.cost;
+  });
+  // re-check: if side stone cost < 1000 and there's more than one stone
+  // actually use the isSmall flag + the rule
+  smallCost = 0; mainCost = 0;
+  stones.forEach(s => {
+    if (s.isSmall) smallCost += s.cost;
+    else mainCost += s.cost;
+  });
+  const smallRetail = smallCost * 1.35;
+  const mainRetail = mainCost * stoneMarkupProject(mainCost);
+  return { smallCost, mainCost, smallRetail, mainRetail, total: smallRetail + mainRetail };
+}
+
+// =================== RAPNET ===================
+function openRapnet() {
+  window.open('https://trade.rapnet.com/#/trade/buying', '_blank');
+  showToast('Opening Rapnet — enter parameters there');
+}
+
+// =================== CALCULATE ===================
+function calculate() {
+  const purity = document.getElementById('metalPurity').value;
+  const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
+  const labor = parseFloat(document.getElementById('laborCost').value) || 0;
+
+  // Metal cost
+  const gpg = goldPerGram(purity);
+  const rawMetalCost = grams * gpg;
+  const metalWithCasting = rawMetalCost * 1.25 * 1.05; // +25% casting +5% sprue loss
+  document.getElementById('metalCostDisplay').textContent = grams ? '$' + Math.round(metalWithCasting).toLocaleString() : '—';
+  document.getElementById('metalSub').textContent = grams ? `${grams}g · $${gpg.toFixed(2)}/g · +25% casting +5% metal loss` : '—';
+
+  // Stones
+  const stoneCalc = calcStoneRetail();
+  const stoneRetailTotal = stoneCalc.total;
+  document.getElementById('stoneCostDisplay').textContent = stones.length ? '$' + Math.round(stoneRetailTotal).toLocaleString() : '—';
+  if (stones.length) {
+    let sub = [];
+    if (stoneCalc.mainCost) sub.push(`main ×${stoneMarkupProject(stoneCalc.mainCost)}`);
+    if (stoneCalc.smallCost) sub.push(`melee ×1.35`);
+    document.getElementById('stoneSub').textContent = sub.join(' · ');
+  } else {
+    document.getElementById('stoneSub').textContent = '—';
+  }
+
+  // Chain — wholesale cost goes into materials pool, marked up via ×1.35 through overhead
+  let chainWholesaleCost = 0;
+  if (includeChain) {
+    const chainIdx = document.getElementById('chainSelect').value;
+    if (chainIdx !== '') {
+      const c = CHAINS[parseInt(chainIdx)];
+      chainWholesaleCost = c.wholesale;
+      document.getElementById('chainCostDisplay').textContent = '$' + Math.round(c.wholesale * 1.35).toLocaleString();
+      document.getElementById('chainRow').style.display = 'flex';
+    }
+  }
+
+  // Labor
+  const laborRetail = Math.round(labor * 1.4);
+  document.getElementById('laborCostDisplay').textContent = labor ? '$' + laborRetail.toLocaleString() : '—';
+  document.getElementById('laborSub').textContent = labor ? `est. $${labor.toLocaleString()} × 1.4` : '—';
+
+  // Design fee
+  const designFee = parseFloat(document.getElementById('designFee').value) || 0;
+  document.getElementById('designFeeRow').style.display = designFee ? 'flex' : 'none';
+  document.getElementById('designFeeDisplay').textContent = designFee ? '$' + designFee.toLocaleString() : '—';
+
+  // Overhead — applied to metal + chain(wholesale) + labor + design fee (NOT stones)
+  const restBeforeOverhead = Math.round(metalWithCasting) + chainWholesaleCost + laborRetail + designFee;
+  const overhead = Math.round(restBeforeOverhead * 0.13);
+  document.getElementById('overheadDisplay').textContent = restBeforeOverhead ? '$' + overhead.toLocaleString() : '—';
+
+  // Total — stone + rest*(1.13) rounded to nearest $50
+  const hasAny = grams || stones.length || labor;
+  if (hasAny) {
+    const rawTotal = Math.round(stoneRetailTotal) + restBeforeOverhead * 1.13;
+    const total = Math.round(rawTotal / 50) * 50;
+    document.getElementById('totalDisplay').textContent = '$' + total.toLocaleString();
+
+    // Discount
+    const discountVal = parseFloat(document.getElementById('discountValue').value) || 0;
+    const discountType = document.getElementById('discountType').value;
+    const discountAmt = discountType === 'pct' ? Math.round(total * discountVal / 100) : discountVal;
+    const discountedTotal = total - discountAmt;
+
+    if (discountVal > 0) {
+      document.getElementById('discountedRow').style.display = 'flex';
+      document.getElementById('discountedDisplay').textContent = '$' + discountedTotal.toLocaleString();
+    } else {
+      document.getElementById('discountedRow').style.display = 'none';
+    }
+
+    // Client price override
+    const clientPriceInput = 0;
+
+    // Actual cost basis
+    const actualCost = stones.reduce((s, st) => s + (st.cost || 0), 0)
+      + (grams * goldPerGram(purity) * 1.25 * 1.05)
+      + chainWholesaleCost
+      + labor
+      + designFee;
+
+    const profitBefore = total - Math.round(actualCost);
+    const profitAfterDiscount = discountedTotal - Math.round(actualCost);
+    const profitClientPrice = clientPriceInput - Math.round(actualCost);
+
+    document.getElementById('profitRow').style.display = 'flex';
+    document.getElementById('profitDisplay').textContent = '$' + profitBefore.toLocaleString();
+    document.getElementById('profitDisplay').style.color = profitBefore >= 0 ? 'var(--green-bright)' : 'var(--red)';
+
+    const subLines = [];
+    if (discountVal > 0) subLines.push(`after disc: $${profitAfterDiscount.toLocaleString()}`);
+    if (clientPriceInput > 0) subLines.push(`at client price: $${profitClientPrice.toLocaleString()}`);
+    document.getElementById('profitAfterDisplay').textContent = subLines.join(' · ');
+    document.getElementById('profitAfterDisplay').style.color = (clientPriceInput > 0 ? profitClientPrice : profitAfterDiscount) >= 0 ? 'var(--teal-dim)' : 'var(--red)';
+    document.getElementById('profitSub').textContent = 'at full retail';
+  } else {
+    document.getElementById('totalDisplay').textContent = '—';
+    document.getElementById('discountedRow').style.display = 'none';
+    document.getElementById('profitRow').style.display = 'none';
+  }
+}
+
+// =================== SAVE QUOTE ===================
+function toggleOccasionOther(fieldId, val) {
+  const el = document.getElementById(fieldId);
+  if (el) el.style.display = val === 'Other' ? 'block' : 'none';
+}
+
+function saveQuote(quoteType = 'client') {
+  const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
+  const _occasionSel = document.getElementById('quoteOccasion')?.value || '';
+  const _occasionOther = document.getElementById('quoteOccasionOther')?.value?.trim() || '';
+  const occasion = _occasionSel === 'Other' ? (_occasionOther || 'Other') : _occasionSel;
+  const purity = document.getElementById('metalPurity').value;
+  const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
+  const labor = parseFloat(document.getElementById('laborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('designFee').value) || 0;
+  const notes = document.getElementById('quoteNotes').value;
+  const stoneCalc = calcStoneRetail();
+  const gpg = goldPerGram(purity);
+  const metalWithCasting = grams * gpg * 1.25 * 1.05;
+  const laborRetail = labor * 1.4;
+
+  let chainWholesaleCost = 0;
+  let chainName = '';
+  if (includeChain) {
+    const chainIdx = document.getElementById('chainSelect').value;
+    if (chainIdx !== '') {
+      const c = CHAINS[parseInt(chainIdx)];
+      chainWholesaleCost = c.wholesale;
+      chainName = c.name;
+    }
+  }
+
+  const restBeforeOverhead = Math.round(metalWithCasting) + chainWholesaleCost + Math.round(laborRetail) + designFee;
+  const rawTotal = Math.round(stoneCalc.total) + restBeforeOverhead * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+
+  const quote = {
+    id: Date.now(),
+    client,
+    quoteType,
+    occasion,
+    status: quoteType === 'collection' ? 'collection-quote' : 'quote',
+    purity,
+    grams,
+    laborEst: labor,
+    stones: [...stones],
+    chainName,
+    chainCost: chainWholesaleCost,
+    designFee,
+    discountValue: parseFloat(document.getElementById('discountValue').value) || 0,
+    discountType: document.getElementById('discountType').value,
+    clientPrice: 0,
+    total,
+    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    actualLabor: null,
+    actualStones: null,
+  };
+
+  const updated = [quote, ...getSavedQuotes()];
+  window._savedQuotes = updated;
+  persistQuotes();
+
+  // Flag any inventory stones used as in-use
+  const inv = getInventory();
+  let invChanged = false;
+  stones.forEach(s => {
+    if (s.inventoryId) {
+      const invStone = inv.find(i => i.id === s.inventoryId);
+      if (invStone) { invStone.status = 'in-use'; invStone.usedInProjectId = quote.id; invChanged = true; }
+    }
+  });
+  if (invChanged) { window._inventory = inv; persistInventory(); }
+
+  showToast(quoteType === 'collection' ? 'Collection quote saved' : 'Quote saved');
+  renderSaved();
+}
+
+function clearQuote() {
+  document.getElementById('clientName').value = '';
+  document.getElementById('metalGrams').value = '';
+  document.getElementById('projectOccasion').value = '';
+  document.getElementById('laborCost').value = '700';
+  document.getElementById('designFee').value = '0';
+  document.getElementById('chainSelect').value = '';
+  document.getElementById('chainSelectedLabel').textContent = 'None selected';
+  document.getElementById('chainSelectedLabel').style.color = 'var(--text-mid)';
+  document.getElementById('quoteOccasion').value = '';
+  document.getElementById('quoteOccasionOther').value = '';
+  document.getElementById('quoteOccasionOther').style.display = 'none';
+  document.getElementById('discountValue').value = '';
+  document.getElementById('discountType').value = 'pct';
+  document.getElementById('quoteNotes').value = '';
+  document.getElementById('gramHint').textContent = '';
+  stones = [];
+  renderStones();
+  calculate();
+}
+
+// =================== SAVED ===================
+function toggleCard(header) {
+  const body = header.parentElement.querySelector('.card-body');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  const arrow = header.querySelector('.tap-arrow');
+  if (arrow) arrow.textContent = isOpen ? 'tap to expand ▾' : 'tap to collapse ▴';
+}
+
+function editQuoteCard(id, e) {
+  e.stopPropagation();
+
+  // Remove any existing edit forms
+  document.querySelectorAll('.inline-edit-form').forEach(f => f.remove());
+
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+
+  const card = e.target.closest('.quote-item');
+  if (!card) return;
+
+  // Expand card body if present
+  const body = card.querySelector('.card-body');
+  if (body) body.style.display = 'block';
+
+  const form = document.createElement('div');
+  form.className = 'inline-edit-form';
+  form.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px';
+  form.innerHTML = `
+    <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Edit entry</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div class="field-label">Client name</div>
+        <input type="text" id="eq-client-${id}" value="${q.client || ''}"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+      <div>
+        <div class="field-label">Piece type</div>
+        <select id="eq-type-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
+          <option value="">—</option>
+          <option value="ring" ${q.pieceType==='ring'?'selected':''}>Ring</option>
+          <option value="pendant" ${q.pieceType==='pendant'?'selected':''}>Pendant</option>
+          <option value="earrings" ${q.pieceType==='earrings'?'selected':''}>Earrings</option>
+          <option value="necklace" ${q.pieceType==='necklace'?'selected':''}>Necklace</option>
+          <option value="bracelet" ${q.pieceType==='bracelet'?'selected':''}>Bracelet</option>
+          <option value="other" ${q.pieceType==='other'?'selected':''}>Other</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div class="field-label">Purity</div>
+        <select id="eq-purity-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
+          <option value="18k" ${q.purity==='18k'?'selected':''}>18k Yellow</option>
+          <option value="18kw" ${q.purity==='18kw'?'selected':''}>18k White</option>
+          <option value="14k" ${q.purity==='14k'?'selected':''}>14k Yellow</option>
+          <option value="14kw" ${q.purity==='14kw'?'selected':''}>14k White</option>
+          <option value="plat" ${q.purity==='plat'?'selected':''}>Platinum</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Type</div>
+        <select id="eq-quotetype-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
+          <option value="client" ${q.quoteType!=='collection'?'selected':''}>Client</option>
+          <option value="collection" ${q.quoteType==='collection'?'selected':''}>Collection</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:8px">
+      <div class="field-label">Occasion</div>
+      <select id="eq-occasion-${id}" onchange="toggleOccasionOther('eq-occasion-other-${id}',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
+        <option value="">— Select occasion</option>
+        <option value="Engagement" ${q.occasion==='Engagement'?'selected':''}>Engagement</option>
+        <option value="Wedding band" ${q.occasion==='Wedding band'?'selected':''}>Wedding band</option>
+        <option value="Anniversary" ${q.occasion==='Anniversary'?'selected':''}>Anniversary</option>
+        <option value="Birthday" ${q.occasion==='Birthday'?'selected':''}>Birthday</option>
+        <option value="Push present" ${q.occasion==='Push present'?'selected':''}>Push present</option>
+        <option value="Self purchase" ${q.occasion==='Self purchase'?'selected':''}>Self purchase</option>
+        <option value="Other" ${q.occasion==='Other'||(!['Engagement','Wedding band','Anniversary','Birthday','Push present','Self purchase',''].includes(q.occasion||''))?'selected':''}>Other</option>
+      </select>
+      <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','Push present','Self purchase',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','Push present','Self purchase',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
+    </div>
+    <div style="margin-bottom:8px">
+      <div class="field-label">Notes</div>
+      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;resize:none">${q.notes || ''}</textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-primary" style="padding:9px;font-size:12px" onclick="saveQuoteEdit(${id})">Save</button>
+      <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-form').remove()">Cancel</button>
+    </div>`;
+
+  card.appendChild(form);
+  form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function saveQuoteEdit(id) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+
+  q.client = document.getElementById('eq-client-' + id).value.trim() || q.client;
+  q.pieceType = document.getElementById('eq-type-' + id).value;
+  const occasionSel = document.getElementById('eq-occasion-' + id).value;
+  const occasionOther = document.getElementById('eq-occasion-other-' + id)?.value?.trim();
+  q.occasion = occasionSel === 'Other' ? (occasionOther || 'Other') : occasionSel;
+  q.purity = document.getElementById('eq-purity-' + id).value;
+  q.notes = document.getElementById('eq-notes-' + id).value.trim();
+
+  const newType = document.getElementById('eq-quotetype-' + id).value;
+  if (newType !== q.quoteType) {
+    q.quoteType = newType;
+    // Update status to match new type if still in quote/project state
+    if (q.status === 'quote' && newType === 'collection') q.status = 'collection-quote';
+    else if (q.status === 'collection-quote' && newType === 'client') q.status = 'quote';
+    else if (q.status === 'project' && newType === 'collection') q.status = 'collection';
+    else if (q.status === 'collection' && newType === 'client') q.status = 'project';
+  }
+
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+  showToast('Entry updated');
+}
+
+function markProjectStatus(id, newStatus, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (q) {
+    q.status = newStatus;
+    if (newStatus === 'completed') q.completedDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    window._savedQuotes = quotes;
+    persistQuotes();
+    renderSaved();
+    showToast(newStatus === 'completed' ? 'Marked as completed' : newStatus === 'abandoned' ? 'Marked as abandoned' : 'Reopened');
+  }
+}
+
+function buildQuoteCard(q) {
+  const archived = ['archived-quote','archived-project','archived-collection'];
+  const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(q.total * q.discountValue / 100) : q.discountValue) : 0;
+  const discountedPrice = q.total - discAmt;
+  const clientPrice = q.clientPrice || discountedPrice;
+  const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : 0;
+  const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : 0;
+  const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
+  const cost = stoneCost + metalCost + laborCost + (q.designFee || 0) + (q.chainCost || 0);
+  const profitBefore = q.total - cost;
+  const profitAtClientPrice = clientPrice - cost;
+  const statusClass = (q.status === 'project' || q.status === 'collection') ? 'status-project'
+    : archived.includes(q.status) ? 'status-archived'
+    : q.status === 'completed' ? 'status-project'
+    : q.status === 'abandoned' ? 'status-archived'
+    : 'status-quote';
+  const statusLabel = archived.includes(q.status) ? 'archived'
+    : q.status === 'collection-quote' ? 'collection quote'
+    : q.status === 'collection' ? 'collection'
+    : q.status === 'completed' ? '✓ completed'
+    : q.status === 'abandoned' ? '✕ abandoned'
+    : q.status;
+  const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
+  const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + (occasionEmoji ? occasionEmoji + ' ' : '') + q.occasion + '</span>' : '';
+  const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
+  const discLabel = discAmt ? '<div style="font-size:13px;color:var(--teal-dim)">after disc: $' + discountedPrice.toLocaleString() + '</div>' : '';
+  const clientPriceLabel = q.clientPrice ? '<div style="font-size:13px;color:var(--gold-dim)">client: $' + q.clientPrice.toLocaleString() + '</div>' : '';
+
+  // HEADER — always visible, tap to expand
+  let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer">'
+    + '<div>'
+    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
+    + '<div class="quote-meta" style="margin-top:3px"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag
+    + occasionTag + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
+    + '</div>'
+    + '<div style="text-align:right">'
+    + '<div class="quote-amount">$' + q.total.toLocaleString() + '</div>'
+    + discLabel + clientPriceLabel
+    + '<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px;align-items:center">'
+    + '<button onclick="editQuoteCard(' + q.id + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:2px;cursor:pointer;text-transform:uppercase">Edit</button>'
+    + '<div style="font-size:12px;color:var(--text-dim);letter-spacing:0.05em" class="tap-arrow">▾</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+
+  // BODY — hidden by default
+  html += '<div class="card-body" style="display:none;margin-top:10px">';
+
+  // Discount + pricing breakdown
+  html += '<div style="padding:10px;background:var(--surface2);border-radius:3px;font-size:13px;margin-bottom:8px">';
+  html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">';
+  html += '<span style="color:var(--text-dim);flex:1">Discount</span>';
+  html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:3px;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
+  html += '<select id="dtype-' + q.id + '" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:4px 6px;border-radius:3px;outline:none;appearance:none" onchange="applyDiscount(' + q.id + ', this.previousElementSibling.value, this.value)">';
+  html += '<option value="pct" ' + ((q.discountType||'pct')==='pct' ? 'selected' : '') + '>%</option>';
+  html += '<option value="flat" ' + (q.discountType==='flat' ? 'selected' : '') + '>$</option>';
+  html += '</select></div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Retail</span><span>$' + q.total.toLocaleString() + '</span></div>';
+  if (discAmt) html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">After discount</span><span style="color:var(--teal-dim)">$' + discountedPrice.toLocaleString() + '</span></div>';
+  if (q.clientPrice) html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Client price</span><span style="color:var(--gold-dim);font-weight:500">$' + q.clientPrice.toLocaleString() + '</span></div>';
+  if (cost > 0) {
+    html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span style="color:var(--text-dim)">Est. profit</span><div style="text-align:right">';
+    html += '<span style="color:' + (profitBefore >= 0 ? 'var(--green-bright)' : 'var(--red)') + '">$' + profitBefore.toLocaleString() + ' at retail</span>';
+    if (q.clientPrice) html += '<div style="color:' + (profitAtClientPrice >= 0 ? 'var(--teal-dim)' : 'var(--red)') + '">$' + profitAtClientPrice.toLocaleString() + ' at client price</div>';
+    else if (discAmt) html += '<div style="color:' + ((discountedPrice - cost) >= 0 ? 'var(--teal-dim)' : 'var(--red)') + '">$' + (discountedPrice - cost).toLocaleString() + ' after disc</div>';
+    html += '</div></div>';
+  }
+  html += '</div>';
+
+  if (q.actualTotal) {
+    html += '<div style="margin-bottom:8px;padding:8px;background:var(--surface2);border-radius:3px;font-size:13px">';
+    if (q.castingCompany) html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Casting</span><span>' + q.castingCompany + '</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Quoted</span><span>$' + q.total.toLocaleString() + '</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Actual retail</span><span>$' + q.actualTotal.toLocaleString() + '</span></div>';
+    html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:4px;margin-top:4px"><span style="color:var(--text-dim)">Difference</span><span style="color:' + (q.actualTotal >= q.total ? 'var(--green-bright)' : 'var(--red)') + '">' + (q.actualTotal >= q.total ? '+' : '') + '$' + (q.actualTotal - q.total).toLocaleString() + '</span></div>';
+    html += '</div>';
+  }
+
+  if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
+
+  html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  if (q.status === 'quote' || q.status === 'collection-quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ ' + (q.status === 'collection-quote' ? 'Move to collection' : 'Convert to project') + '</button>';
+  if (q.status === 'project' || q.status === 'collection') {
+    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
+    html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',\'completed\',event)">✓ Completed</button>';
+    html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'abandoned\',event)">✕ Abandoned</button>';
+  }
+  if (q.status === 'completed') {
+    html += '<span style="font-size:13px;color:var(--green-bright);padding:4px 0">✓ Completed</span>';
+    html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
+  }
+  if (q.status === 'abandoned') {
+    html += '<span style="font-size:13px;color:var(--text-dim);padding:4px 0">✕ Abandoned</span>';
+    html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
+  }
+  if (!archived.includes(q.status) && q.status !== 'completed' && q.status !== 'abandoned') {
+    html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
+  } else if (archived.includes(q.status)) {
+    html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="unarchiveItem(' + q.id + ',event)">Unarchive</button>';
+  }
+  html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
+  html += '</div>';
+
+  html += '</div>'; // end card-body
+  return html;
+}
+
+function renderPL() {
+  const el = document.getElementById('plSummary');
+  if (!el) return;
+
+  const all = getSavedQuotes();
+  // Only include projects/collection with a client price filled in
+  const completed = all.filter(q =>
+    (q.status === 'project' || q.status === 'collection' || q.status === 'completed') && q.clientPrice > 0
+  );
+
+  if (!completed.length) { el.innerHTML = ''; return; }
+
+  let totalRevenue = 0, totalCost = 0, totalProfit = 0;
+  const rows = completed.map(q => {
+    const revenue = q.clientPrice;
+    const stoneCost = q.actualStoneCost ?? (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
+    const metalCost = q.actualMetalCost ?? 0;
+    const laborCost = q.actualLabor ?? (q.laborEst || 0);
+    const chainCost = q.chainCost || 0;
+    const designFee = q.designFee || 0;
+    const cost = stoneCost + metalCost + laborCost + chainCost + designFee;
+    const profit = revenue - cost;
+    totalRevenue += revenue;
+    totalCost += cost;
+    totalProfit += profit;
+    return { q, revenue, cost, profit };
+  });
+
+  const isExpanded = el.dataset.expanded === '1';
+
+  let html = `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--teal-dim);border-radius:4px;overflow:hidden">
+    <div onclick="togglePL()" style="cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">P&amp;L Summary</div>
+      <div style="text-align:right">
+        <div style="font-size:16px;color:${totalProfit>=0?'var(--green-bright)':'var(--red)'}">$${totalProfit.toLocaleString()} profit</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">$${totalRevenue.toLocaleString()} revenue · $${totalCost.toLocaleString()} costs · ${completed.length} project${completed.length!==1?'s':''} ▾</div>
+      </div>
+    </div>`;
+
+  if (isExpanded) {
+    html += `<div style="border-top:1px solid var(--border);padding:0 14px 12px">`;
+    rows.forEach(({q, revenue, cost, profit}) => {
+      const hasFinal = q.actualMetalCost != null || q.actualLabor != null;
+      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;color:var(--text)">${q.client}</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.pieceType||''}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal?' · <span style="color:#c9a84c">est. costs</span>':''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;color:${profit>=0?'var(--green-bright)':'var(--red)'}">$${profit.toLocaleString()}</div>
+          <div style="font-size:12px;color:var(--text-dim)">$${revenue.toLocaleString()} − $${cost.toLocaleString()}</div>
+        </div>
+      </div>`;
+    });
+    html += `<div style="display:flex;justify-content:space-between;padding-top:10px;font-size:14px;font-weight:400">
+      <span style="color:var(--text-dim)">Total</span>
+      <span style="color:${totalProfit>=0?'var(--green-bright)':'var(--red)'}">$${totalProfit.toLocaleString()}</span>
+    </div>`;
+    html += `</div>`;
+  }
+  html += `</div>`;
+  el.innerHTML = html;
+}
+
+function togglePL() {
+  const el = document.getElementById('plSummary');
+  el.dataset.expanded = el.dataset.expanded === '1' ? '0' : '1';
+  renderPL();
+}
+
+function renderSaved() {
+  renderPL();
+  const list = document.getElementById('savedList');
+  const allQuotes = getSavedQuotes();
+  const archived = ['archived-quote', 'archived-project', 'archived-collection'];
+  const nonActive = [...archived, 'collection-quote', 'completed', 'abandoned'];
+
+  let filtered;
+  if (savedFilter === 'all') {
+    filtered = allQuotes.filter(q => !nonActive.includes(q.status));
+  } else if (savedFilter === 'collection') {
+    filtered = allQuotes.filter(q => q.status === 'collection' || q.status === 'collection-quote');
+  } else if (savedFilter === 'archived-all') {
+    filtered = allQuotes.filter(q => archived.includes(q.status));
+  } else if (savedFilter === 'completed') {
+    filtered = allQuotes.filter(q => q.status === 'completed');
+  } else if (savedFilter === 'abandoned') {
+    filtered = allQuotes.filter(q => q.status === 'abandoned');
+  } else {
+    filtered = allQuotes.filter(q => q.status === savedFilter);
+  }
+
+  const emptyMsgs = {
+    'all': 'No saved quotes yet.<br>Build one in the Quote tab.',
+    'quote': 'No quotes yet.',
+    'project': 'No client projects yet.',
+    'collection': 'No collection pieces yet.',
+    'archived-all': 'No archived items.',
+    'archived-quote': 'No archived quotes.',
+    'archived-project': 'No archived projects.',
+    'archived-collection': 'No archived collection items.',
+    'completed': 'No completed projects yet.',
+    'abandoned': 'No abandoned projects yet.',
+  };
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state">' + (emptyMsgs[savedFilter] || 'Nothing here.') + '</div>';
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach(function(q) {
+    const div = document.createElement('div');
+    div.className = 'quote-item';
+    div.innerHTML = buildQuoteCard(q);
+    list.appendChild(div);
+  });
+}
+
+
+let savedFilter = 'all';
+
+function toggleArchivePanel(btn) {
+  const panel = document.getElementById('archivePanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'Archived ▾' : 'Archived ▴';
+  if (!isOpen) {
+    // deactivate main tabs, activate archive tab button
+    document.querySelectorAll('#screen-saved .toggle-group:first-of-type .toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setFilter('archived-all', null);
+  } else {
+    btn.classList.remove('active');
+    setFilter('all', document.querySelector('#screen-saved .toggle-group .toggle-btn'));
+  }
+}
+
+function setFilter(filter, btn) {
+  savedFilter = filter;
+  if (btn) {
+    // Only deactivate within the same toggle group
+    const group = btn.closest('.toggle-group');
+    if (group) group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  renderSaved();
+}
+
+function archiveItem(id, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (q) {
+    if (q.status === 'quote' || q.status === 'collection-quote') q.status = 'archived-quote';
+    else if (q.status === 'collection') q.status = 'archived-collection';
+    else q.status = 'archived-project';
+    window._savedQuotes = quotes;
+    persistQuotes();
+    renderSaved();
+    showToast('Archived');
+  }
+}
+
+function unarchiveItem(id, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (q) {
+    if (q.status === 'archived-quote') q.status = q.quoteType === 'collection' ? 'collection-quote' : 'quote';
+    else if (q.status === 'archived-collection') q.status = 'collection';
+    else q.status = 'project';
+    window._savedQuotes = quotes;
+    persistQuotes();
+    renderSaved();
+    showToast('Restored');
+  }
+}
+
+function deleteItem(id, e) {
+  e.stopPropagation();
+  if (!confirm('Delete this entry permanently?')) return;
+  const updated = getSavedQuotes().filter(q => q.id !== id);
+  window._savedQuotes = updated;
+  persistQuotes();
+  renderSaved();
+  showToast('Deleted');
+}
+
+function convertToProject(id, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (q) {
+    q.status = q.quoteType === 'collection' ? 'collection' : 'project';
+    window._savedQuotes = quotes;
+    persistQuotes();
+    renderSaved();
+    showToast(q.status === 'collection' ? 'Moved to collection' : 'Moved to projects');
+  }
+}
+
+function updateActuals(id, e) {
+  e.stopPropagation();
+  const existing = document.getElementById('actuals-form-' + id);
+  if (existing) { existing.remove(); return; }
+
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+
+  const card = e.target.closest('.quote-item');
+
+  const form = document.createElement('div');
+  form.id = 'actuals-form-' + id;
+  form.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px';
+  form.innerHTML = `
+    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Actual costs</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div>
+        <div class="field-label">Casting company</div>
+        <select id="af-caster-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
+          <option value="">— Select</option>
+          <option value="Carrera" ${q.castingCompany==='Carrera'?'selected':''}>Carrera</option>
+          <option value="Omega" ${q.castingCompany==='Omega'?'selected':''}>Omega</option>
+          <option value="Pafco" ${q.castingCompany==='Pafco'?'selected':''}>Pafco</option>
+          <option value="JM" ${q.castingCompany==='JM'?'selected':''}>JM</option>
+        </select>
+      </div>
+      <div>
+        <div class="field-label">Final casting cost ($)</div>
+        <input type="number" id="af-metal-${id}" value="${q.actualMetalCost || ''}" min="0" placeholder="0"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+      <div>
+        <div class="field-label">Stone cost ($)</div>
+        <input type="number" id="af-stone-${id}" value="${q.actualStoneCost || ''}" min="0" placeholder="0"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+      <div>
+        <div class="field-label">Final labor cost ($)</div>
+        <input type="number" id="af-labor-${id}" value="${q.actualLabor || ''}" min="0" placeholder="0"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+      <div>
+        <div class="field-label">Design fee ($)</div>
+        <input type="number" id="af-design-${id}" value="${q.designFee || ''}" min="0" placeholder="0"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+    </div>
+    <div style="margin-bottom:8px">
+      <div class="field-label">Chain</div>
+      <input type="hidden" id="af-chain-${id}" value="${q.chainCost ? CHAINS.findIndex(c => c.wholesale === q.chainCost) : ''}">
+      <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
+        <div id="af-chain-label-${id}" style="font-size:14px;color:var(--gold);font-style:italic">${q.chainName || 'None selected'}</div>
+        <button id="af-chain-tree-${id}-toggle" onclick="document.getElementById('af-chain-tree-${id}').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Browse</button>
+      </div>
+      <div id="af-chain-tree-${id}" style="border:1px solid var(--border);border-radius:3px;overflow:hidden;display:none;max-height:200px;overflow-y:auto"></div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div class="field-label">Client price ($) — what you're actually charging</div>
+      <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:3px;outline:none">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="saveActuals(${id})" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Save</button>
+      <button onclick="document.getElementById('actuals-form-${id}').remove()" style="flex:1;background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Cancel</button>
+    </div>`;
+
+  card.appendChild(form);
+
+  // Build chain tree for actuals form
+  buildChainTreePicker(`af-chain-tree-${id}`, `af-chain-${id}`, `af-chain-label-${id}`, () => {});
+}
+
+function saveActuals(id) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+
+  const stoneCost = parseFloat(document.getElementById('af-stone-' + id).value) || 0;
+  const metalCost = parseFloat(document.getElementById('af-metal-' + id).value) || 0;
+  const laborCost = parseFloat(document.getElementById('af-labor-' + id).value) || 0;
+  const designFee = parseFloat(document.getElementById('af-design-' + id).value) || 0;
+  const castingCompany = document.getElementById('af-caster-' + id)?.value || '';
+  const chainIdx = document.getElementById('af-chain-' + id).value;
+  const chainCost = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].wholesale : 0;
+  const clientPrice = parseFloat(document.getElementById('af-client-' + id).value) || 0;
+
+  q.actualStoneCost = stoneCost;
+  q.actualMetalCost = metalCost;
+  q.actualLabor = laborCost;
+  q.designFee = designFee;
+  q.castingCompany = castingCompany;
+  q.chainCost = chainCost;
+  q.chainName = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].name : '';
+  q.clientPrice = clientPrice;
+
+  // Recalculate actual retail
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
+  const laborRetail = laborCost * 1.4;
+  const rest = metalCost + laborRetail + designFee + chainCost;
+  q.actualTotal = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
+
+  window._savedQuotes = quotes;
+  persistQuotes();
+  const form = document.getElementById('actuals-form-' + id);
+  if (form) form.remove();
+  renderSaved();
+  showToast('Actuals saved');
+}
+
+function applyDiscount(id, val, type) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+  q.discountValue = parseFloat(val) || 0;
+  q.discountType = type || 'pct';
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+}
+
+// =================== DIRECT PROJECT ===================
+function toggleNewProject() {
+  const form = document.getElementById('newProjectForm');
+  const btn = document.getElementById('newProjectToggleBtn');
+  const showing = form.style.display !== 'none';
+  form.style.display = showing ? 'none' : 'block';
+  btn.textContent = showing ? '+ Add project directly' : '− Cancel';
+
+  // Populate chain tree on first open
+  const npChain = document.getElementById('npChainSelect');
+  if (!showing && (!npChain._treeBuilt)) {
+    buildChainTreePicker('chainTree-np', 'npChainSelect', 'npChainSelectedLabel', () => calcNewProject());
+    npChain._treeBuilt = true;
+  }
+}
+
+function calcNewProject() {
+  const stoneCost = parseFloat(document.getElementById('npStoneCost').value) || 0;
+  const metalCost = parseFloat(document.getElementById('npMetalCost').value) || 0;
+  const laborCost = parseFloat(document.getElementById('npLaborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('npDesignFee').value) || 0;
+  const chainIdx = document.getElementById('npChainSelect').value;
+  const chainWholesale = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].wholesale : 0;
+
+  if (!stoneCost && !metalCost && !laborCost && !chainWholesale) {
+    document.getElementById('npResult').style.display = 'none';
+    return;
+  }
+
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
+  const laborRetail = laborCost * 1.4;
+  const rest = metalCost + laborRetail + designFee + chainWholesale;
+  const rawTotal = stoneRetail + rest * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+
+  document.getElementById('npStoneDisplay').textContent = '$' + Math.round(stoneRetail).toLocaleString();
+  document.getElementById('npRestDisplay').textContent = '$' + Math.round(rest * 1.13).toLocaleString();
+  document.getElementById('npTotalDisplay').textContent = '$' + total.toLocaleString();
+  document.getElementById('npResult').style.display = 'block';
+}
+
+function saveDirectProject(projectType = 'client') {
+  const client = document.getElementById('npClient').value.trim() || 'Unnamed client';
+  const pieceType = document.getElementById('npPieceType').value;
+  const _npOccSel = document.getElementById('npOccasion').value;
+  const _npOccOther = document.getElementById('npOccasionOther')?.value?.trim() || '';
+  const occasion = _npOccSel === 'Other' ? (_npOccOther || 'Other') : _npOccSel;
+  const purity = document.getElementById('npPurity').value;
+  const stoneCost = parseFloat(document.getElementById('npStoneCost').value) || 0;
+  const metalCost = parseFloat(document.getElementById('npMetalCost').value) || 0;
+  const laborCost = parseFloat(document.getElementById('npLaborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('npDesignFee').value) || 0;
+  const chainIdx = document.getElementById('npChainSelect').value;
+  const chainWholesale = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].wholesale : 0;
+  const chainName = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].name : '';
+  const notes = document.getElementById('npNotes').value;
+
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
+  const laborRetail = laborCost * 1.4;
+  const rest = metalCost + laborRetail + designFee + chainWholesale;
+  const rawTotal = stoneRetail + rest * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+
+  const project = {
+    id: Date.now(),
+    client,
+    pieceType,
+    purity,
+    occasion,
+    quoteType: projectType,
+    grams: 0,
+    laborEst: laborCost,
+    stones: [],
+    chainName,
+    chainCost: chainWholesale,
+    designFee,
+    total,
+    notes,
+    status: projectType === 'collection' ? 'collection' : 'project',
+    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    actualLabor: laborCost,
+    actualStoneCost: stoneCost,
+    actualMetalCost: metalCost,
+    actualTotal: total,
+    directEntry: true,
+  };
+
+  const updated = [project, ...getSavedQuotes()];
+  window._savedQuotes = updated;
+  persistQuotes();
+  renderSaved();
+  toggleNewProject();
+
+  // Clear form
+  ['npClient','npStoneCost','npMetalCost','npLaborCost','npDesignFee','npNotes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('npOccasion').value = '';
+  document.getElementById('npOccasionOther').value = '';
+  document.getElementById('npOccasionOther').style.display = 'none';
+  document.getElementById('npChainSelect').value = '';
+  document.getElementById('npChainSelectedLabel').textContent = 'None selected';
+  document.getElementById('npChainSelectedLabel').style.color = 'var(--text-mid)';
+  document.getElementById('npResult').style.display = 'none';
+  showToast('Project saved');
+}
+function toggleInventoryPicker() {
+  const picker = document.getElementById('inventoryPicker');
+  const isVisible = picker.style.display !== 'none';
+  if (isVisible) {
+    picker.style.display = 'none';
+    document.getElementById('invPickerBtn').textContent = '🗂️ Pick from inventory';
+  } else {
+    picker.style.display = 'block';
+    document.getElementById('invPickerBtn').textContent = '✕ Close inventory';
+    renderInventoryPicker();
+  }
+}
+
+function renderInventoryPicker() {
+  const list = document.getElementById('inventoryPickerList');
+  const available = getInventory().filter(s =>
+    (s.category === 'owned-available' || s.category === 'memo') && s.status === 'available'
+  );
+
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-dim);text-align:center">No available stones in inventory.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  available.forEach(s => {
+    const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s';
+    row.innerHTML = `
+      <div>
+        <div style="font-size:14px;color:var(--text)">${desc || 'Stone'}</div>
+        <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${s.dealer} · ${s.category === 'memo' ? 'on memo' : 'owned'}</div>
+      </div>
+      <div style="text-align:right">
+        ${s.cost ? '<div style="font-size:14px;color:var(--gold)">$' + s.cost.toLocaleString() + '</div>' : ''}
+        <div style="font-size:13px;color:var(--teal-dim);margin-top:2px">Add →</div>
+      </div>`;
+    row.onmouseover = () => row.style.background = 'var(--surface2)';
+    row.onmouseout = () => row.style.background = '';
+    row.onclick = () => addStoneFromInventory(s);
+    list.appendChild(row);
+  });
+}
+
+function addStoneFromInventory(s) {
+  const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
+  const id = stoneIdCounter++;
+  stones.push({ id, cost: s.cost || 0, desc, isSmall: false, inventoryId: s.id });
+  renderStones();
+  calculate();
+  toggleInventoryPicker();
+  showToast('Stone added from inventory');
+}
+
+// =================== STONE INVENTORY ===================
+let stoneInventoryFilter = 'all';
+
+function setStoneFilter(filter, btn) {
+  stoneInventoryFilter = filter;
+  document.querySelectorAll('#screen-stones .toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStoneInventory();
+}
+
+async function scanGIAPhoto(input) {
+  if (!input.files || !input.files[0]) return;
+
+  const statusEl = document.getElementById('giaOcrStatus');
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Reading parcel...';
+  statusEl.style.color = 'var(--teal-dim)';
+
+  try {
+    // Convert image to base64
+    const file = input.files[0];
+    const base64 = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = () => res(reader.result.split(',')[1]);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+    const mediaType = file.type || 'image/jpeg';
+
+    const response = await fetch('/api/scan-gia', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageData: base64, mediaType })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errMsg = data?.error?.message || JSON.stringify(data);
+      throw new Error('API error: ' + errMsg);
+    }
+
+    const text = data.content?.[0]?.text || '';
+
+    // Parse JSON from response
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('Could not parse response');
+
+    const parsed = JSON.parse(jsonMatch[0]);
+
+    // Fill in the form fields
+    if (parsed.gia) document.getElementById('si-gia').value = parsed.gia;
+    if (parsed.carat) document.getElementById('si-carat').value = parsed.carat;
+    if (parsed.color) document.getElementById('si-color').value = parsed.color;
+    if (parsed.clarity) document.getElementById('si-clarity').value = parsed.clarity;
+    if (parsed.cut) {
+      // Try to match to a select option
+      const cutSel = document.getElementById('si-cut');
+      const opts = Array.from(cutSel.options).map(o => o.value);
+      const match = opts.find(o => o.toLowerCase().includes(parsed.cut.toLowerCase()) || parsed.cut.toLowerCase().includes(o.toLowerCase()));
+      if (match) cutSel.value = match;
+    }
+
+    const filled = [parsed.gia, parsed.carat, parsed.color, parsed.clarity, parsed.cut].filter(Boolean);
+    statusEl.textContent = `✓ Found: ${filled.join(' · ')} — review and adjust if needed`;
+    statusEl.style.color = 'var(--green-bright)';
+
+  } catch(e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    statusEl.style.color = 'var(--red)';
+    console.error('GIA scan error:', e);
+  }
+
+  // Reset file input
+  input.value = '';
+}
+
+function openAddStoneForm() {
+  document.getElementById('addStoneForm').style.display = 'block';
+  document.getElementById('addStoneBtnLabel').textContent = '− Cancel add';
+}
+
+function closeAddStoneForm() {
+  document.getElementById('addStoneForm').style.display = 'none';
+  document.getElementById('addStoneBtnLabel').textContent = '+ Add stone';
+  delete document.getElementById('addStoneForm').dataset.editingId;
+  document.getElementById('giaOcrStatus').style.display = 'none';
+  document.getElementById('giaPhotoInput').value = '';
+  document.getElementById('si-antique').checked = false;
+  ['si-carat','si-color','si-clarity','si-gia','si-cost','si-notes','si-return-by','si-other-dealer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function toggleMemoFields() {
+  const cat = document.getElementById('si-category').value;
+  document.getElementById('si-memo-return-field').style.display = cat === 'memo' ? 'flex' : 'none';
+}
+
+function toggleOtherDealer() {
+  const val = document.getElementById('si-dealer').value;
+  document.getElementById('si-other-dealer-field').style.display = val === 'other' ? 'flex' : 'none';
+}
+
+function editInventoryStone(id) {
+  const inv = getInventory();
+  const s = inv.find(s => s.id === id);
+  if (!s) return;
+
+  // Open the form
+  document.getElementById('addStoneForm').style.display = 'block';
+  document.getElementById('addStoneBtnLabel').textContent = '− Cancel';
+
+  // Pre-fill all fields
+  document.getElementById('si-category').value = s.category || 'owned-available';
+  document.getElementById('si-cut').value = s.cut || 'Old Mine Cut';
+  document.getElementById('si-carat').value = s.carat || '';
+  document.getElementById('si-color').value = s.color || '';
+  document.getElementById('si-clarity').value = s.clarity || '';
+  document.getElementById('si-gia').value = s.gia || '';
+  document.getElementById('si-cost').value = s.cost || '';
+  document.getElementById('si-notes').value = s.notes || '';
+  document.getElementById('si-return-by').value = s.returnBy || '';
+  document.getElementById('si-antique').checked = !!s.antique;
+
+  // Handle dealer
+  const knownDealers = ['American Gem Corp', 'Virat', 'Galapo', 'Julius Klein'];
+  if (knownDealers.includes(s.dealer)) {
+    document.getElementById('si-dealer').value = s.dealer;
+    document.getElementById('si-other-dealer-field').style.display = 'none';
+  } else {
+    document.getElementById('si-dealer').value = 'other';
+    document.getElementById('si-other-dealer').value = s.dealer || '';
+    document.getElementById('si-other-dealer-field').style.display = 'flex';
+  }
+
+  toggleMemoFields();
+
+  // Mark form as editing this stone
+  document.getElementById('addStoneForm').dataset.editingId = id;
+
+  // Scroll to form
+  document.getElementById('addStoneForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function saveInventoryStone() {
+  const category = document.getElementById('si-category').value;
+  const cut = document.getElementById('si-cut').value;
+  const carat = parseFloat(document.getElementById('si-carat').value) || 0;
+  const color = document.getElementById('si-color').value.trim();
+  const clarity = document.getElementById('si-clarity').value.trim();
+  const gia = document.getElementById('si-gia').value.trim();
+  const dealerSel = document.getElementById('si-dealer').value;
+  const dealer = dealerSel === 'other' ? (document.getElementById('si-other-dealer').value.trim() || 'Other') : dealerSel;
+  const cost = parseFloat(document.getElementById('si-cost').value) || 0;
+  const notes = document.getElementById('si-notes').value.trim();
+  const returnBy = document.getElementById('si-return-by').value.trim();
+  const antique = document.getElementById('si-antique').checked;
+
+  if (!carat && !gia) { showToast('Enter at least a carat weight or GIA number'); return; }
+
+  const editingId = document.getElementById('addStoneForm').dataset.editingId;
+
+  if (editingId) {
+    // Edit existing stone
+    const inv = getInventory();
+    const idx = inv.findIndex(s => s.id === parseInt(editingId));
+    if (idx !== -1) {
+      inv[idx] = { ...inv[idx], category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique };
+      window._inventory = inv;
+      persistInventory();
+    }
+    delete document.getElementById('addStoneForm').dataset.editingId;
+    closeAddStoneForm();
+    renderStoneInventory();
+    showToast('Stone updated');
+  } else {
+    // New stone
+    const stone = {
+      id: Date.now(),
+      category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
+      status: 'available',
+      dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+      usedInProjectId: null,
+    };
+    const updated = [...getInventory(), stone];
+    window._inventory = updated;
+    persistInventory();
+    closeAddStoneForm();
+    renderStoneInventory();
+    showToast('Stone saved');
+  }
+}
+
+function toggleInquiryForm(stoneId) {
+  const form = document.getElementById('inq-form-' + stoneId);
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveInquiry(stoneId) {
+  const platform = document.getElementById('inq-platform-' + stoneId).value;
+  const name = document.getElementById('inq-name-' + stoneId).value.trim();
+  const dateRaw = document.getElementById('inq-date-' + stoneId).value;
+  const price = parseFloat(document.getElementById('inq-price-' + stoneId).value) || 0;
+  const note = document.getElementById('inq-note-' + stoneId).value.trim();
+
+  if (!name) { showToast('Enter a name or username'); return; }
+
+  // Format date nicely
+  let date = 'no date';
+  if (dateRaw) {
+    const d = new Date(dateRaw + 'T12:00:00');
+    date = d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  const inv = getInventory();
+  const s = inv.find(s => s.id === stoneId);
+  if (!s) return;
+
+  if (!s.inquiries) s.inquiries = [];
+  s.inquiries.unshift({ platform, name, date, price, note, status: 'open', createdAt: Date.now() });
+
+  window._inventory = inv;
+  persistInventory();
+  renderStoneInventory();
+  showToast('Inquiry logged');
+}
+
+function closeInquiry(stoneId, idx) {
+  const inv = getInventory();
+  const s = inv.find(s => s.id === stoneId);
+  if (s && s.inquiries && s.inquiries[idx]) {
+    s.inquiries[idx].status = 'closed';
+    window._inventory = inv;
+    persistInventory();
+    renderStoneInventory();
+    showToast('Inquiry closed');
+  }
+}
+
+function markStoneOutWithJeweler(id) {
+  const inv = getInventory();
+  const s = inv.find(s => s.id === id);
+  if (s) {
+    s.status = 'out-with-jeweler';
+    window._inventory = inv;
+    persistInventory();
+    renderStoneInventory();
+    showToast('Flagged as out with another jeweler');
+  }
+}
+
+function markStoneAvailable(id) {
+  const inv = getInventory();
+  const s = inv.find(s => s.id === id);
+  if (s) {
+    s.status = 'available';
+    window._inventory = inv;
+    persistInventory();
+    renderStoneInventory();
+    showToast('Marked as available');
+  }
+}
+
+function markStoneSoldByDealer(id) {
+  const inv = getInventory();
+  const s = inv.find(s => s.id === id);
+  if (s) {
+    s.status = 'sold-by-dealer';
+    window._inventory = inv;
+    persistInventory();
+    renderStoneInventory();
+    showToast('Marked as sold by dealer');
+  }
+}
+
+function deleteInventoryStone(id) {
+  if (!confirm('Delete this stone?')) return;
+  window._inventory = getInventory().filter(s => s.id !== id);
+  persistInventory();
+  renderStoneInventory();
+  showToast('Stone deleted');
+}
+
+function renderStoneInventory() {
+  const list = document.getElementById('inventoryList');
+  if (!list) return;
+
+  const cut = document.getElementById('stoneFilterCut')?.value || '';
+  const dealer = document.getElementById('stoneFilterDealer')?.value || '';
+  const minCt = parseFloat(document.getElementById('stoneFilterMinCt')?.value) || 0;
+  const maxCt = parseFloat(document.getElementById('stoneFilterMaxCt')?.value) || Infinity;
+
+  let stones = getInventory().filter(s => {
+    if (stoneInventoryFilter !== 'all' && s.category !== stoneInventoryFilter) return false;
+    if (cut && s.cut !== cut) return false;
+    if (dealer && s.dealer !== dealer) return false;
+    if (s.carat && s.carat < minCt) return false;
+    if (s.carat && s.carat > maxCt) return false;
+    return true;
+  });
+
+  if (!stones.length) {
+    list.innerHTML = '<div class="empty-state">No stones found.</div>';
+    return;
+  }
+
+  const catLabels = {
+    'owned-available': 'Owned — available',
+    'owned-reserved': 'Owned — reserved',
+    'memo': 'On memo',
+    'viewed': 'Viewed / recorded'
+  };
+
+  const statusColors = {
+    'available': 'var(--green-bright)',
+    'in-use': 'var(--teal-dim)',
+    'sold-by-dealer': 'var(--red)',
+    'out-with-jeweler': '#c9a84c',
+    'unavailable': 'var(--text-dim)'
+  };
+
+  const statusLabels = {
+    'available': 'available',
+    'in-use': 'in use',
+    'sold-by-dealer': 'sold by dealer',
+    'out-with-jeweler': 'out w/ jeweler',
+    'unavailable': 'unavailable'
+  };
+
+  list.innerHTML = '';
+  stones.forEach(s => {
+    const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+    const giaLink = s.gia
+      ? `<a href="https://www.gia.edu/report-check?reportno=${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
+      : '';
+
+    const pendingInquiries = (s.inquiries || []).filter(i => i.status === 'open');
+    const hasPending = pendingInquiries.length > 0;
+
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid ' + (hasPending ? '#c9a84c' : statusColors[s.status || 'available']) + ';border-radius:4px;padding:12px;margin-bottom:8px';
+
+    let html = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div>
+          <div style="font-size:13px;font-weight:500;color:var(--text)">${desc || 'Stone'}</div>
+          <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${s.dealer} · ${s.dateAdded}</div>
+        </div>
+        <div style="text-align:right">
+          ${s.cost ? '<div style="font-size:14px;color:var(--gold)">$' + s.cost.toLocaleString() + '</div>' : ''}
+          <div style="font-size:12px;color:' + statusColors[s.status || 'available'] + ';letter-spacing:0.08em;text-transform:uppercase;margin-top:2px">${statusLabels[s.status || 'available']}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
+        <span style="font-size:12px;background:#e8d9b8;color:#5a4a2a;padding:2px 6px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">${catLabels[s.category] || s.category}</span>
+        ${s.antique ? '<span style="font-size:12px;background:var(--gold-faint);color:#fafaf7;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">Antique</span>' : ''}
+        ${hasPending ? '<span style="font-size:12px;background:#c9a84c;color:#3a2800;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">⏳ Pending · ' + pendingInquiries.length + '</span>' : ''}
+        ${giaLink}
+        ${s.returnBy ? '<span style="font-size:13px;color:var(--text-dim)">return by ' + s.returnBy + '</span>' : ''}
+      </div>
+      ${s.notes ? '<div style="margin-top:6px;font-size:13px;color:var(--text-dim);font-style:italic">' + s.notes + '</div>' : ''}`;
+
+    // Show existing inquiries
+    if ((s.inquiries || []).length > 0) {
+      html += '<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px">';
+      html += '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">Inquiries</div>';
+      (s.inquiries || []).forEach((inq, idx) => {
+        const isOpen = inq.status === 'open';
+        html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border);opacity:${isOpen ? '1' : '0.5'}">
+          <div>
+            <div style="font-size:13px;color:var(--text)">${inq.platform} · ${inq.name}</div>
+            <div style="font-size:13px;color:var(--text-dim);margin-top:1px">${inq.date}${inq.price ? ' · quoted $' + inq.price.toLocaleString() : ''}${inq.note ? ' · ' + inq.note : ''}</div>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center">
+            ${isOpen ? `<button class="convert-btn" style="padding:3px 6px;font-size:12px;border-color:var(--text-dim);color:var(--text-dim)" onclick="closeInquiry(${s.id},${idx})">Close</button>` : '<span style="font-size:12px;color:var(--text-dim)">closed</span>'}
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    html += `<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">`;
+    html += `<button class="convert-btn" style="border-color:#c9a84c;color:#c9a84c" onclick="toggleInquiryForm(${s.id})">+ Inquiry</button>`;
+    if (s.status !== 'sold-by-dealer') {
+      html += `<button class="convert-btn" onclick="markStoneSoldByDealer(${s.id})" style="border-color:var(--red);color:var(--red)">Sold by dealer</button>`;
+    }
+    if (s.status === 'out-with-jeweler') {
+      html += `<button class="convert-btn" style="border-color:#c9a84c;color:#c9a84c" onclick="markStoneAvailable(${s.id})">← Back in circulation</button>`;
+    } else if (s.status !== 'sold-by-dealer') {
+      html += `<button class="convert-btn" style="border-color:#c9a84c;color:#c9a84c" onclick="markStoneOutWithJeweler(${s.id})">Out w/ jeweler</button>`;
+    }
+    html += `<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="editInventoryStone(${s.id})">Edit</button>`;
+    html += `<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="deleteInventoryStone(${s.id})">Delete</button>`;
+    html += '</div>';
+
+    // Inquiry form (hidden by default)
+    html += `<div id="inq-form-${s.id}" style="display:none;margin-top:10px;background:var(--surface2);border-radius:3px;padding:10px">
+      <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Log inquiry</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div class="field-label">Platform</div>
+          <select id="inq-platform-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none;appearance:none">
+            <option>Instagram</option>
+            <option>TikTok</option>
+            <option>Email</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Name / username</div>
+          <input type="text" id="inq-name-${s.id}" placeholder="@username" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div class="field-label">Date</div>
+          <input type="date" id="inq-date-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
+        </div>
+        <div>
+          <div class="field-label">Price quoted ($)</div>
+          <input type="number" id="inq-price-${s.id}" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
+        </div>
+      </div>
+      <div style="margin-bottom:6px">
+        <div class="field-label">Note</div>
+        <input type="text" id="inq-note-${s.id}" placeholder="e.g. very interested, following up next week..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn-primary" style="padding:8px;font-size:12px" onclick="saveInquiry(${s.id})">Save</button>
+        <button class="btn-secondary" style="padding:8px;font-size:12px" onclick="toggleInquiryForm(${s.id})">Cancel</button>
+      </div>
+    </div>`;
+
+    html += '</div>';
+    div.innerHTML = html;
+    list.appendChild(div);
+  });
+}
+
+// Keep old addInventoryStone as alias for compatibility
+function addInventoryStone() { openAddStoneForm(); }
+function renderInventory() { renderStoneInventory(); }
+
+// =================== LOOSE SALE ===================
+function calcLoose() {
+  const cost = parseFloat(document.getElementById('looseCost').value) || 0;
+  if (!cost) {
+    document.getElementById('looseCostDisplay').textContent = '—';
+    document.getElementById('looseMultDisplay').textContent = '—';
+    document.getElementById('looseTotalDisplay').textContent = '—';
+    return;
+  }
+  let mult;
+  if (cost <= 2000) mult = 2.2;
+  else if (cost <= 5000) mult = 1.85;
+  else if (cost <= 10000) mult = 1.65;
+  else if (cost <= 20000) mult = 1.45;
+  else mult = 1.35;
+
+  document.getElementById('looseCostDisplay').textContent = '$' + cost.toLocaleString();
+  document.getElementById('looseMultDisplay').textContent = '×' + mult;
+  document.getElementById('looseTotalDisplay').textContent = '$' + Math.round(cost * mult).toLocaleString();
+}
+
+// =================== NAV ===================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const screen = document.getElementById('screen-' + name);
+  if (screen) screen.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + name + "'")) {
+      b.classList.add('active');
+    }
+  });
+  document.getElementById('goldBar').style.display = name === 'quote' ? 'flex' : 'none';
+}
+
+// =================== TOAST ===================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =================== INIT ===================
+window._savedQuotes = [];
+window._inventory = [];
+populateChainSelect();
+renderChainList();
+renderSaved();
+renderInventory();
+fetchGold();
+</script>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
+    authDomain: "ef-workshop-ff6cf.firebaseapp.com",
+    databaseURL: "https://ef-workshop-ff6cf-default-rtdb.firebaseio.com",
+    projectId: "ef-workshop-ff6cf",
+    storageBucket: "ef-workshop-ff6cf.firebasestorage.app",
+    messagingSenderId: "624210833780",
+    appId: "1:624210833780:web:31492a409e36607d30fc21"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window._fb = {
+    saveQuotes: (data) => set(ref(db, 'quotes'), data),
+    saveInventory: (data) => set(ref(db, 'inventory'), data),
+  };
+
+  onValue(ref(db, 'quotes'), snap => {
+    const val = snap.val();
+    window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderSaved === 'function') renderSaved();
+  });
+
+  onValue(ref(db, 'inventory'), snap => {
+    const val = snap.val();
+    window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderInventory === 'function') renderInventory();
+  });
+</script>
+</body>
+</html>
