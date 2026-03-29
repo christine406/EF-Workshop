@@ -957,6 +957,23 @@
       <button class="btn-primary" onclick="saveQuote('client')">Save — Client</button>
       <button class="btn-primary" onclick="saveQuote('collection')" style="background:var(--teal-dim)">Save — Collection</button>
     </div>
+    <div style="padding:0 16px 8px">
+      <button onclick="saveAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px;cursor:pointer;border-radius:3px">+ Save as piece in multi-piece set</button>
+    </div>
+    <!-- PIECE STAGING AREA -->
+    <div id="pieceStagingWrap" style="display:none;margin:0 16px 12px;background:var(--surface);border:1px solid var(--gold);border-radius:4px;padding:12px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Set in progress</div>
+      <div id="pieceList" style="margin-bottom:10px"></div>
+      <div class="field" style="margin-bottom:8px">
+        <div class="field-label">Client name for set</div>
+        <input type="text" id="setClientName" placeholder="e.g. Sarah M." style="width:100%">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="saveMultiPieceSet('client')" class="btn-primary" style="flex:1;padding:10px;font-size:11px">Save set — Client</button>
+        <button onclick="saveMultiPieceSet('collection')" class="btn-primary" style="flex:1;padding:10px;font-size:11px;background:var(--teal-dim)">Save set — Collection</button>
+        <button onclick="clearPieceStaging()" class="btn-secondary" style="padding:10px;font-size:11px">Discard</button>
+      </div>
+    </div>
     <div style="padding: 0 16px 8px">
       <button class="btn-secondary" onclick="clearQuote()" style="width:100%">Clear</button>
     </div>
@@ -1174,6 +1191,9 @@
         <div class="field-row">
           <button class="btn-primary" onclick="saveDirectProject('client')">Save — Client</button>
           <button class="btn-primary" onclick="saveDirectProject('collection')" style="background:var(--teal-dim)">Save — Collection</button>
+        </div>
+        <button onclick="saveDirectAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:9px;cursor:pointer;border-radius:3px;margin-top:8px">+ Save as piece in multi-piece set</button>
+        <div style="display:none">
         </div>
         <div style="margin-top:8px">
           <button class="btn-secondary" onclick="toggleNewProject()" style="width:100%">Cancel</button>
@@ -2293,6 +2313,118 @@ async function _scanGIAAndFill(input, fields) {
   input.value = '';
 }
 
+// =================== MULTI-PIECE SETS ===================
+let _stagedPieces = []; // pieces staged before saving as a set
+
+function saveAsPiece() {
+  const purity = document.getElementById('metalPurity').value;
+  const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
+  const labor = parseFloat(document.getElementById('laborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('designFee').value) || 0;
+  const pieceType = document.getElementById('pieceType').value;
+  const fingerSize = document.getElementById('fingerSize')?.value?.trim() || '';
+  const notes = document.getElementById('quoteNotes').value;
+  const stoneCalc = calcStoneRetail();
+  const metalWithCasting = getMetalCost(grams, purity);
+  const laborRetail = labor * 1.4;
+  let chainWholesaleCost = 0, chainName = '';
+  if (includeChain) {
+    const chainIdx = document.getElementById('chainSelect').value;
+    if (chainIdx !== '') { const c = CHAINS[parseInt(chainIdx)]; chainWholesaleCost = c.wholesale; chainName = c.name; }
+  }
+  const metalMarkup = Math.round(metalWithCasting);
+  const chainMarkup = Math.round(chainWholesaleCost * 1.35);
+  const rawTotal = Math.round(stoneCalc.total) + (metalMarkup + chainMarkup + Math.round(laborRetail) + designFee) * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+
+  if (!total && !stoneCalc.total) { showToast('Add some costs first'); return; }
+
+  const piece = {
+    id: Date.now(),
+    pieceType: pieceType || 'piece',
+    purity, grams, laborEst: labor, designFee,
+    stones: [...stones],
+    meleeCost: parseFloat(document.getElementById('meleeCost')?.value) || 0,
+    chainName, chainCost: chainWholesaleCost,
+    fingerSize, notes, total,
+    stoneTotal: Math.round(stoneCalc.total),
+    metalTotal: metalMarkup,
+    laborTotal: Math.round(laborRetail),
+  };
+
+  _stagedPieces.push(piece);
+  renderPieceStaging();
+  clearQuote();
+  showToast('Piece added — build next piece or save set');
+}
+
+function renderPieceStaging() {
+  const wrap = document.getElementById('pieceStagingWrap');
+  const list = document.getElementById('pieceList');
+  if (!_stagedPieces.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
+  list.innerHTML = _stagedPieces.map((p, i) => {
+    const typeLabel = p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">'
+      + '<div><span style="font-size:13px;color:var(--text)">' + typeLabel + (p.fingerSize ? ' · size ' + p.fingerSize : '') + '</span>'
+      + '<span style="font-size:11px;color:var(--text-dim);margin-left:8px">' + p.purity + (p.grams ? ' · ' + p.grams + 'g' : '') + '</span></div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:14px;color:var(--gold)">$' + p.total.toLocaleString() + '</span>'
+      + '<button onclick="removeStagedPiece(' + i + ')" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 2px">×</button>'
+      + '</div></div>';
+  }).join('')
+  + '<div style="display:flex;justify-content:space-between;padding-top:8px;font-size:13px">'
+  + '<span style="color:var(--text-dim)">Set total</span>'
+  + '<span style="color:var(--gold);font-size:16px">$' + setTotal.toLocaleString() + '</span></div>';
+}
+
+function removeStagedPiece(idx) {
+  _stagedPieces.splice(idx, 1);
+  renderPieceStaging();
+}
+
+function clearPieceStaging() {
+  _stagedPieces = [];
+  renderPieceStaging();
+  showToast('Set discarded');
+}
+
+function saveMultiPieceSet(quoteType) {
+  if (!_stagedPieces.length) { showToast('No pieces staged'); return; }
+  const client = document.getElementById('setClientName').value.trim() || 'Unnamed client';
+  const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
+  const occasion = '';
+
+  const set = {
+    id: Date.now(),
+    client,
+    quoteType,
+    occasion,
+    status: quoteType === 'collection' ? 'collection-quote' : 'quote',
+    isMultiPiece: true,
+    pieces: _stagedPieces.map(p => ({ ...p })),
+    total: setTotal,
+    clientPrice: 0,
+    purity: _stagedPieces[0]?.purity || '',
+    grams: _stagedPieces.reduce((s, p) => s + (p.grams || 0), 0),
+    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    notes: '',
+    directEntry: false,
+    fingerSize: '',
+    clientBudget: 0,
+  };
+
+  const updated = [set, ...getSavedQuotes()];
+  window._savedQuotes = updated;
+  persistQuotes();
+  _stagedPieces = [];
+  renderPieceStaging();
+  document.getElementById('setClientName').value = '';
+  renderSaved();
+  showToast('Set saved');
+}
+
 function saveQuote(quoteType = 'client') {
   const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
   const occasion = '';
@@ -2668,7 +2800,82 @@ function markProjectStatus(id, newStatus, e) {
   }
 }
 
+function buildMultiPieceCard(q) {
+  const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
+  const statusLabel = q.status === 'project' ? 'PROJECT' : q.status === 'completed' ? 'COMPLETED' : q.status === 'abandoned' ? 'ABANDONED' : 'QUOTE';
+  const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : '';
+  const displayAmount = q.clientPrice > 0 ? q.clientPrice : q.total;
+  const displayAmountColor = q.clientPrice > 0 ? 'color:var(--teal-dim)' : 'color:var(--gold)';
+
+  let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
+    + '<div>'
+    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
+    + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
+    + '</div>'
+    + '<div style="text-align:right">'
+    + '<div class="quote-amount" style="' + displayAmountColor + '">$' + displayAmount.toLocaleString() + '</div>'
+    + (q.clientPrice > 0 ? '<div style="font-size:11px;color:var(--text-dim)">initial quote: $' + q.total.toLocaleString() + '</div>' : '')
+    + '<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px">'
+    + '<button onclick="editQuoteCard(' + q.id + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:2px;cursor:pointer;text-transform:uppercase">Edit</button>'
+    + '<div style="font-size:12px;color:var(--text-dim)" class="tap-arrow">▾</div>'
+    + '</div></div></div>';
+
+  html += '<div class="card-body" style="display:none;margin-top:10px">';
+
+  // Pieces breakdown
+  html += '<div style="background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:8px">';
+  (q.pieces || []).forEach((p, i) => {
+    const typeLabel = p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1);
+    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--border)">'
+      + '<div><div style="font-size:13px;color:var(--text)">' + typeLabel + (p.fingerSize ? ' · size ' + p.fingerSize : '') + '</div>'
+      + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (p.purity||'') + (p.grams ? ' · ' + p.grams + 'g' : '')
+      + (p.stoneTotal ? ' · stones $' + p.stoneTotal.toLocaleString() : '')
+      + (p.metalTotal ? ' · metal $' + p.metalTotal.toLocaleString() : '')
+      + (p.laborTotal ? ' · labor $' + p.laborTotal.toLocaleString() : '') + '</div>'
+      + (p.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px">' + p.notes + '</div>' : '')
+      + '</div>'
+      + '<div style="font-size:14px;color:var(--gold);white-space:nowrap;margin-left:12px">$' + p.total.toLocaleString() + '</div></div>';
+  });
+  html += '<div style="display:flex;justify-content:space-between;padding-top:8px;font-size:13px">'
+    + '<span style="color:var(--text-dim)">Set total</span>'
+    + '<span style="color:var(--gold);font-size:16px">$' + q.total.toLocaleString() + '</span></div>';
+  html += '</div>';
+
+  // Discount + client price
+  html += '<div style="padding:10px;background:var(--surface2);border-radius:3px;font-size:13px;margin-bottom:8px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    + '<span style="color:var(--text-dim)">Discount</span>'
+    + '<div style="display:flex;gap:6px;align-items:center">'
+    + '<div style="font-size:12px;color:var(--text-dim)">Set discount via Edit</div></div></div>';
+
+  const discAmt = q.discountType === 'pct' ? Math.round(q.total * (q.discountValue||0) / 100) : (q.discountValue||0);
+  const discounted = q.total - discAmt;
+  if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;color:var(--text-dim)"><span>After discount</span><span style="color:var(--teal-dim)">$' + discounted.toLocaleString() + '</span></div>';
+  if (q.clientPrice > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">Client price</span><span style="color:var(--teal-dim);font-size:16px">$' + q.clientPrice.toLocaleString() + '</span></div>';
+  html += '</div>';
+
+  // Action buttons
+  const isActive = q.status === 'project' || q.status === 'quote' || q.status === 'collection-quote' || q.status === 'collection';
+  if (isActive) {
+    if (q.status === 'quote' || q.status === 'collection-quote') {
+      html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+    }
+    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
+    html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
+    html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
+  } else {
+    html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;project&quot;,event)">Reopen</button>';
+  }
+  html += '<button class="convert-btn" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
+  html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
+  html += '</div>';
+  return html;
+}
+
 function buildQuoteCard(q) {
+  // Multi-piece set — render differently
+  if (q.isMultiPiece) return buildMultiPieceCard(q);
+
   const archived = ['archived-quote','archived-project','archived-collection'];
   const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(q.total * q.discountValue / 100) : q.discountValue) : 0;
   const discountedPrice = q.total - discAmt;
@@ -2795,11 +3002,21 @@ function renderPL() {
   let totalRevenue = 0, totalCost = 0, totalProfit = 0;
   const rows = completed.map(q => {
     const revenue = q.clientPrice;
-    const stoneCost = q.actualStoneCost ?? (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
-    const metalCost = q.actualMetalCost ?? 0;
-    const laborCost = q.actualLabor ?? (q.laborEst || 0);
-    const chainCost = q.chainCost || 0;
-    const designFee = q.designFee || 0;
+    let stoneCost, metalCost, laborCost, chainCost, designFee;
+    if (q.isMultiPiece) {
+      // Sum costs across all pieces
+      stoneCost = q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0), 0);
+      metalCost = q.actualMetalCost ?? 0;
+      laborCost = q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0);
+      chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
+      designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
+    } else {
+      stoneCost = q.actualStoneCost ?? (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
+      metalCost = q.actualMetalCost ?? 0;
+      laborCost = q.actualLabor ?? (q.laborEst || 0);
+      chainCost = q.chainCost || 0;
+      designFee = q.designFee || 0;
+    }
     const cost = stoneCost + metalCost + laborCost + chainCost + designFee;
     const profit = revenue - cost;
     totalRevenue += revenue;
@@ -2831,7 +3048,7 @@ function renderPL() {
       html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)">
         <div>
           <div style="font-size:13px;color:var(--text)">${q.client}</div>
-          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.looseSale ? '💎 loose sale' : (q.pieceType||'')}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal && !q.looseSale?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
+          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.looseSale ? '💎 loose sale' : q.isMultiPiece ? '✦ ' + (q.pieces?.length||0) + '-piece set' : (q.pieceType||'')}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal && !q.looseSale?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:13px;color:${profit>=0?'var(--green-bright)':'var(--red)'}">$${profit.toLocaleString()}</div>
@@ -3174,6 +3391,59 @@ function calcNewProject() {
   document.getElementById('npRestDisplay').textContent = '$' + Math.round(rest * 1.13).toLocaleString();
   document.getElementById('npTotalDisplay').textContent = '$' + total.toLocaleString();
   document.getElementById('npResult').style.display = 'block';
+}
+
+function saveDirectAsPiece() {
+  const client = document.getElementById('npClient').value.trim();
+  const pieceType = document.getElementById('npPieceType').value;
+  const purity = document.getElementById('npPurity').value;
+  const stoneCost = parseFloat(document.getElementById('npStoneCost').value) || 0;
+  const meleeCost = parseFloat(document.getElementById('npMeleeCost').value) || 0;
+  const metalCost = parseFloat(document.getElementById('npMetalCost').value) || 0;
+  const laborCost = parseFloat(document.getElementById('npLaborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('npDesignFee').value) || 0;
+  const chainIdx = document.getElementById('npChainSelect').value;
+  const chainWholesale = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].wholesale : 0;
+  const chainName = chainIdx !== '' ? CHAINS[parseInt(chainIdx)].name : '';
+  const notes = document.getElementById('npNotes').value;
+  const fingerSize = '';
+
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const laborRetail = laborCost * 1.4;
+  const metalMarkup = Math.round(metalCost * 1.35);
+  const chainMarkup = Math.round(chainWholesale * 1.35);
+  const rest = metalMarkup + chainMarkup + Math.round(laborRetail) + designFee;
+  const rawTotal = stoneRetail + rest * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+
+  if (!total) { showToast('Add some costs first'); return; }
+
+  const piece = {
+    id: Date.now(),
+    pieceType: pieceType || 'piece',
+    purity, laborEst: laborCost, designFee,
+    stones: [], meleeCost,
+    chainName, chainCost: chainWholesale,
+    fingerSize, notes, total,
+    stoneTotal: Math.round(stoneRetail),
+    metalTotal: metalMarkup,
+    laborTotal: Math.round(laborRetail),
+    actualStoneCost: stoneCost,
+    actualMetalCost: metalCost,
+  };
+
+  _stagedPieces.push(piece);
+  if (client && !document.getElementById('setClientName').value) {
+    document.getElementById('setClientName').value = client;
+  }
+
+  // Scroll to quote tab to show the staging area
+  showScreen('quote', document.querySelector('.nav-btn'));
+  renderPieceStaging();
+
+  // Clear the direct form
+  toggleNewProject();
+  showToast('Piece staged — build next piece or save set');
 }
 
 function saveDirectProject(projectType = 'client') {
