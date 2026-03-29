@@ -2378,8 +2378,8 @@ function editQuoteCard(id, e) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
 
-  const card = e.target.closest('.quote-item');
-  if (!card) return;
+  const card = e.target.closest('.quote-item') || document.querySelector('.quote-item[data-id="' + id + '"]') || Array.from(document.querySelectorAll('.quote-item')).find(c => c.innerHTML.includes('editQuoteCard(' + id + ','));
+  if (!card) { console.warn('editQuoteCard: card not found for id', id); return; }
 
   // Expand card body if present
   const body = card.querySelector('.card-body');
@@ -2797,6 +2797,7 @@ function renderSaved() {
   filtered.forEach(function(q) {
     const div = document.createElement('div');
     div.className = 'quote-item';
+    div.dataset.id = q.id;
     div.innerHTML = buildQuoteCard(q);
     list.appendChild(div);
   });
