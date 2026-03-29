@@ -14,16 +14,20 @@ app.get('/icon.png', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'icon.png'));
 });
 
+app.get('/icon-192.png', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'icon-192.png'));
+});
+
 app.get('/manifest.json', (req, res) => {
   res.json({
     name: 'EF Workshop',
     short_name: 'EF Workshop',
     start_url: '/',
     display: 'standalone',
-    background_color: '#fafaf7',
+    background_color: '#ccc07a',
     theme_color: '#ccc07a',
     icons: [
-      { src: '/icon.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
       { src: '/icon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
     ]
   });
