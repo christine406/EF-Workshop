@@ -696,9 +696,9 @@
           <select id="projectOccasion">
             <option value="">None</option>
             <option value="engagement">Engagement ring</option>
-            <option value="new-baby">New baby</option>
+            <option value="New baby">New baby</option>
             <option value="commemorative">Commemorative piece</option>
-            <option value="just-because">Just because</option>
+            <option value="Just because">Just because</option>
             <option value="gift">Gift</option>
             <option value="other">Other</option>
           </select>
@@ -1002,8 +1002,10 @@
               <option value="Wedding band">Wedding band</option>
               <option value="Anniversary">Anniversary</option>
               <option value="Birthday">Birthday</option>
-              <option value="Push present">Push present</option>
+              <option value="New baby">New baby</option>
               <option value="Self purchase">Self purchase</option>
+              <option value="Just because">Just because</option>
+              <option value="Gift">Gift</option>
               <option value="Other">Other</option>
             </select>
             <input type="text" id="npOccasionOther" placeholder="Describe occasion..." style="display:none;margin-top:6px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px 10px;border-radius:3px;outline:none">
@@ -1385,8 +1387,10 @@ const OCCASION_EMOJIS = {
   'Wedding band': '⚭',
   'Anniversary': '👩‍❤️‍💋‍👨',
   'Birthday': '🎂',
-  'Push present': '🤰🏻',
+  'New baby': '🤰🏻',
   'Self purchase': '💝',
+  'Just because': '✨',
+  'Gift': '🎁',
   'Other': '💝',
 };
 
@@ -2433,11 +2437,13 @@ function editQuoteCard(id, e) {
         <option value="Wedding band" ${q.occasion==='Wedding band'?'selected':''}>Wedding band</option>
         <option value="Anniversary" ${q.occasion==='Anniversary'?'selected':''}>Anniversary</option>
         <option value="Birthday" ${q.occasion==='Birthday'?'selected':''}>Birthday</option>
-        <option value="Push present" ${q.occasion==='Push present'?'selected':''}>Push present</option>
+        <option value="New baby" ${q.occasion==='New baby'?'selected':''}>New baby</option>
         <option value="Self purchase" ${q.occasion==='Self purchase'?'selected':''}>Self purchase</option>
-        <option value="Other" ${q.occasion==='Other'||(!['Engagement','Wedding band','Anniversary','Birthday','Push present','Self purchase',''].includes(q.occasion||''))?'selected':''}>Other</option>
+        <option value="Just because" ${q.occasion==='Just because'?'selected':''}>Just because</option>
+        <option value="Gift" ${q.occasion==='Gift'?'selected':''}>Gift</option>
+        <option value="Other" ${q.occasion==='Other'||(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'selected':''}>Other</option>
       </select>
-      <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','Push present','Self purchase',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','Push present','Self purchase',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
+      <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
     </div>
     <div style="margin-bottom:8px">
       <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:2px;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record</button>
