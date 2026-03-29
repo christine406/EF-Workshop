@@ -2388,6 +2388,17 @@ function editQuoteCard(id, e) {
   const form = document.createElement('div');
   form.className = 'inline-edit-form';
   form.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px';
+  // Pre-compute stone details from stoneDetail or linked inventory stone
+  const _linkedInv = getInventory().find(i => i.usedInProjectId === id);
+  const _sd = q.stoneDetail || (_linkedInv ? _linkedInv : {});
+  const _epGia = _sd.gia || '';
+  const _epCarat = _sd.carat || '';
+  const _epColor = _sd.color || '';
+  const _epClarity = _sd.clarity || '';
+  const _epCut = _sd.cut || '';
+  const _epDealer = _sd.dealer || '';
+  const _epAntique = _sd.antique || false;
+  const _linkedLabel = _linkedInv ? '<div style="font-size:11px;color:var(--teal-dim);margin-bottom:6px">↗ Linked from inventory</div>' : '';
   form.innerHTML = `
     <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Edit entry</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -2456,28 +2467,29 @@ function editQuoteCard(id, e) {
           </label>
         </div>
         <div id="ep-ocr-status-${id}" style="display:none;padding:8px;background:var(--bg);border-radius:3px;margin-bottom:8px;font-size:12px;color:var(--teal-dim);text-align:center">Reading...</div>
+        ${_linkedLabel}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${q.stoneDetail?.gia||''}" placeholder="optional" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
-          <div><div class="field-label">Carat</div><input type="number" id="ep-carat-${id}" value="${q.stoneDetail?.carat||''}" step="0.01" placeholder="0.00" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
-          <div><div class="field-label">Color</div><input type="text" id="ep-color-${id}" value="${q.stoneDetail?.color||''}" placeholder="e.g. K" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
-          <div><div class="field-label">Clarity</div><input type="text" id="ep-clarity-${id}" value="${q.stoneDetail?.clarity||''}" placeholder="e.g. VS2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
+          <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
+          <div><div class="field-label">Carat</div><input type="number" id="ep-carat-${id}" value="${_epCarat}" step="0.01" placeholder="0.00" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
+          <div><div class="field-label">Color</div><input type="text" id="ep-color-${id}" value="${_epColor}" placeholder="e.g. K" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
+          <div><div class="field-label">Clarity</div><input type="text" id="ep-clarity-${id}" value="${_epClarity}" placeholder="e.g. VS2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div><div class="field-label">Cut / shape</div>
             <select id="ep-cut-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
               <option value="">— select</option>
-              ${['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(c=>`<option value="${c}" ${q.stoneDetail?.cut===c?'selected':''}>${c}</option>`).join('')}
+              ${['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(c=>`<option value="${c}" ${_epCut===c?'selected':''}>${c}</option>`).join('')}
             </select>
           </div>
           <div><div class="field-label">Dealer</div>
             <select id="ep-dealer-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
               <option value="">— select</option>
-              ${['American Gem Corp','Virat','Galapo','Julius Klein','Other'].map(d=>`<option value="${d}" ${q.stoneDetail?.dealer===d?'selected':''}>${d}</option>`).join('')}
+              ${['American Gem Corp','Virat','Galapo','Julius Klein','Other'].map(d=>`<option value="${d}" ${_epDealer===d?'selected':''}>${d}</option>`).join('')}
             </select>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
-          <input type="checkbox" id="ep-antique-${id}" ${q.stoneDetail?.antique?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
+          <input type="checkbox" id="ep-antique-${id}" ${_epAntique?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
           <label for="ep-antique-${id}" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
         </div>
       </div>
@@ -3408,7 +3420,16 @@ function saveInventoryStone() {
     const inv = getInventory();
     const idx = inv.findIndex(s => s.id === parseInt(editingId));
     if (idx !== -1) {
-      inv[idx] = { ...inv[idx], category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique };
+      // Derive status from category unless stone is in-use
+      const currentStatus = inv[idx].status;
+      let newStatus = currentStatus;
+      if (currentStatus !== 'in-use' && currentStatus !== 'out-with-jeweler' && currentStatus !== 'sold-by-dealer') {
+        if (category === 'owned-reserved') newStatus = 'unavailable';
+        else if (category === 'owned-available') newStatus = 'available';
+        else if (category === 'memo') newStatus = 'available';
+        else if (category === 'viewed') newStatus = 'available';
+      }
+      inv[idx] = { ...inv[idx], category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique, status: newStatus };
       window._inventory = inv;
       persistInventory();
     }
@@ -3581,7 +3602,9 @@ function renderStoneInventory() {
     const hasPending = pendingInquiries.length > 0;
 
     const div = document.createElement('div');
-    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid ' + (hasPending ? '#ccc07a' : statusColors[s.status || 'available']) + ';border-radius:4px;padding:12px;margin-bottom:8px';
+    const isUnavailable = s.status === 'in-use' || s.status === 'unavailable' || s.status === 'sold-by-dealer';
+    const cardBg = isUnavailable ? '#f9eaea' : 'var(--surface)';
+    div.style.cssText = 'background:' + cardBg + ';border:1px solid var(--border);border-left:3px solid ' + (hasPending ? '#ccc07a' : statusColors[s.status || 'available']) + ';border-radius:4px;padding:12px;margin-bottom:8px';
 
     let html = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
