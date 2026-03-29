@@ -3,7 +3,7 @@ const path = require('path');
 const https = require('https');
 
 const app = express();
-const PORT = 8080; // Hardcoded for Railway
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
