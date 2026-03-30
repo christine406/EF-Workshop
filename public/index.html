@@ -3057,6 +3057,15 @@ function markProjectStatus(id, newStatus, e) {
   }
 }
 
+function editPieceActuals(setId, pieceIdx, e) {
+  // Open the edit form then scroll to actuals section
+  editPieceInSet(setId, pieceIdx, e);
+  setTimeout(() => {
+    const el = document.getElementById('pe-actual-stone-' + setId + '-' + pieceIdx);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 150);
+}
+
 function editPieceInSet(setId, pieceIdx, e) {
   e.stopPropagation();
   const editDivId = 'piece-edit-' + setId + '-' + pieceIdx;
@@ -3201,6 +3210,7 @@ function buildMultiPieceCard(q) {
       + '<div style="display:flex;align-items:center;gap:8px">'
       + '<div style="font-size:14px;color:var(--gold);white-space:nowrap">$' + (p.total||0).toLocaleString() + '</div>'
       + '<button onclick="editPieceInSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Edit</button>'
+      + '<button onclick="editPieceActuals(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Actuals</button>'
       + '</div></div>'
       + '<div id="' + editId + '" style="display:none;margin-top:8px"></div>'
       + '</div>';
