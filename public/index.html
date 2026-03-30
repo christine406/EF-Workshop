@@ -953,22 +953,32 @@
       </div>
     </div>
 
-    <div class="action-row">
+    <div class="action-row" id="mainSaveButtons">
       <button class="btn-primary" onclick="saveQuote('client')">Save — Client</button>
       <button class="btn-primary" onclick="saveQuote('collection')" style="background:var(--teal-dim)">Save — Collection</button>
     </div>
-    <div style="padding:0 16px 8px">
-      <button onclick="saveAsPiece()" style="width:100%;background:none;border:1px dashed var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px;cursor:pointer;border-radius:3px">+ Add this piece to a multi-piece set</button>
-    </div>
-    <!-- PIECE STAGING AREA -->
-    <div id="pieceStagingWrap" style="display:none;margin:0 16px 12px;background:var(--surface);border:1px solid var(--gold);border-radius:4px;padding:12px">
-      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px">Set in progress</div>
-      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">Build each piece in the quote builder and tap "+ Save as piece" to add it here. When all pieces are added, name the set and save.</div>
-      <div id="pieceList" style="margin-bottom:10px"></div>
-      <div class="field" style="margin-bottom:8px">
-        <div class="field-label">Client / project name</div>
-        <input type="text" id="setClientName" placeholder="e.g. Sarah M." style="width:100%">
+    <!-- ADD ANOTHER PIECE OPTION — shown after saving first piece of a set -->
+    <div id="addAnotherPieceWrap" style="display:none;margin:0 16px 12px;background:var(--surface2);border:1px solid var(--gold);border-radius:4px;padding:12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <input type="checkbox" id="addAnotherPieceCheck" style="width:18px;height:18px;accent-color:var(--gold);cursor:pointer" onchange="toggleAddAnotherPiece(this.checked)">
+        <label for="addAnotherPieceCheck" style="font-size:14px;color:var(--gold);cursor:pointer;font-family:var(--font-mono)">Add another piece to this set</label>
       </div>
+      <div id="addAnotherPieceDetails" style="display:none">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Build the next piece above, then save it to the set.</div>
+        <div style="display:flex;gap:8px">
+          <button onclick="saveQuoteAsPiece('client')" class="btn-primary" style="flex:1;padding:9px;font-size:11px">Add piece — Client set</button>
+          <button onclick="saveQuoteAsPiece('collection')" class="btn-primary" style="flex:1;padding:9px;font-size:11px;background:var(--teal-dim)">Add piece — Collection</button>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button onclick="saveMultiPieceSet('client')" class="btn-primary" style="flex:1;padding:9px;font-size:11px;background:var(--green)">Done — Save full set</button>
+          <button onclick="clearPieceStaging()" class="btn-secondary" style="padding:9px;font-size:11px">Discard set</button>
+        </div>
+      </div>
+    </div>
+    <!-- MULTI-PIECE SET IN PROGRESS -->
+    <div id="pieceStagingWrap" style="display:none;margin:0 16px 12px;background:var(--surface);border:1px solid var(--gold);border-radius:4px;padding:12px">
+      <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Set in progress</div>
+      <div id="pieceList" style="margin-bottom:10px"></div>
       <div style="display:flex;gap:8px">
         <button onclick="saveMultiPieceSet('client')" class="btn-primary" style="flex:1;padding:10px;font-size:11px">Save set — Client</button>
         <button onclick="saveMultiPieceSet('collection')" class="btn-primary" style="flex:1;padding:10px;font-size:11px;background:var(--teal-dim)">Save set — Collection</button>
@@ -2317,6 +2327,83 @@ async function _scanGIAAndFill(input, fields) {
 // =================== MULTI-PIECE SETS ===================
 let _stagedPieces = []; // pieces staged before saving as a set
 
+function toggleAddAnotherPiece(checked) {
+  document.getElementById('addAnotherPieceDetails').style.display = checked ? 'block' : 'none';
+  if (checked) {
+    // Stage the last saved quote as first piece of the set
+    const quotes = getSavedQuotes();
+    const last = quotes.find(q => q.id === window._lastSavedQuoteId);
+    if (last && !last.isMultiPiece && !_stagedPieces.find(p => p.id === last.id)) {
+      // Convert the saved quote into a piece and stage it
+      const piece = {
+        id: last.id,
+        pieceType: last.pieceType || 'piece',
+        purity: last.purity, grams: last.grams,
+        laborEst: last.laborEst, designFee: last.designFee || 0,
+        stones: last.stones || [], meleeCost: last.meleeCost || 0,
+        chainName: last.chainName || '', chainCost: last.chainCost || 0,
+        fingerSize: last.fingerSize || '', notes: last.notes || '',
+        total: last.total,
+        stoneTotal: last.stones ? Math.round(last.stones.reduce((s, st) => s + st.cost * (stoneMarkupProject(st.cost)||2.1), 0)) : 0,
+        metalTotal: 0, laborTotal: Math.round((last.laborEst||0) * 1.4),
+        _savedQuoteId: last.id, // mark as already saved — we'll delete it when set is saved
+      };
+      _stagedPieces = [piece];
+      renderPieceStaging();
+    }
+    // Clear the form for next piece, keep client name
+    const clientName = document.getElementById('clientName').value;
+    clearQuote();
+    document.getElementById('clientName').value = clientName;
+  } else {
+    // Unchecked — discard staging
+    clearPieceStaging();
+  }
+}
+
+function saveQuoteAsPiece(quoteType) {
+  // Save current quote builder state as a piece
+  const purity = document.getElementById('metalPurity').value;
+  const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
+  const labor = parseFloat(document.getElementById('laborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('designFee').value) || 0;
+  const pieceType = document.getElementById('pieceType').value;
+  const fingerSize = document.getElementById('fingerSize')?.value?.trim() || '';
+  const notes = document.getElementById('quoteNotes').value;
+  const stoneCalc = calcStoneRetail();
+  const metalWithCasting = getMetalCost(grams, purity);
+  const laborRetail = labor * 1.4;
+  let chainWholesaleCost = 0, chainName = '';
+  if (includeChain) {
+    const chainIdx = document.getElementById('chainSelect').value;
+    if (chainIdx !== '') { const c = CHAINS[parseInt(chainIdx)]; chainWholesaleCost = c.wholesale; chainName = c.name; }
+  }
+  const metalMarkup = Math.round(metalWithCasting);
+  const chainMarkup = Math.round(chainWholesaleCost * 1.35);
+  const rawTotal = Math.round(stoneCalc.total) + (metalMarkup + chainMarkup + Math.round(laborRetail) + designFee) * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+  if (!total && !stoneCalc.total) { showToast('Add costs for this piece first'); return; }
+
+  const piece = {
+    id: Date.now(),
+    pieceType: pieceType || 'piece',
+    purity, grams, laborEst: labor, designFee,
+    stones: [...stones], meleeCost: parseFloat(document.getElementById('meleeCost')?.value) || 0,
+    chainName, chainCost: chainWholesaleCost,
+    fingerSize, notes, total,
+    stoneTotal: Math.round(stoneCalc.total),
+    metalTotal: metalMarkup,
+    laborTotal: Math.round(laborRetail),
+  };
+
+  _stagedPieces.push(piece);
+  const clientName = document.getElementById('clientName').value;
+  clearQuote();
+  document.getElementById('clientName').value = clientName;
+  renderPieceStaging();
+  showToast('Piece added to set — build next piece or save set');
+}
+
 function saveAsPiece() {
   const purity = document.getElementById('metalPurity').value;
   const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
@@ -2395,12 +2482,17 @@ function removeStagedPiece(idx) {
 function clearPieceStaging() {
   _stagedPieces = [];
   renderPieceStaging();
+  if (document.getElementById('addAnotherPieceWrap')) {
+    document.getElementById('addAnotherPieceWrap').style.display = 'none';
+    document.getElementById('addAnotherPieceCheck').checked = false;
+    document.getElementById('addAnotherPieceDetails').style.display = 'none';
+  }
   showToast('Set discarded');
 }
 
 function saveMultiPieceSet(quoteType) {
   if (!_stagedPieces.length) { showToast('No pieces staged'); return; }
-  const client = document.getElementById('setClientName').value.trim() || 'Unnamed client';
+  const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
   const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
   const occasion = '';
 
@@ -2423,12 +2515,17 @@ function saveMultiPieceSet(quoteType) {
     clientBudget: 0,
   };
 
-  const updated = [set, ...getSavedQuotes()];
-  window._savedQuotes = updated;
+  // Remove any original standalone quotes that were staged into this set
+  let remaining = getSavedQuotes().filter(q => !_stagedPieces.some(p => p._savedQuoteId === q.id));
+  remaining = [set, ...remaining];
+  window._savedQuotes = remaining;
   persistQuotes();
   _stagedPieces = [];
   renderPieceStaging();
-  document.getElementById('setClientName').value = '';
+  document.getElementById('addAnotherPieceWrap').style.display = 'none';
+  document.getElementById('addAnotherPieceCheck').checked = false;
+  document.getElementById('addAnotherPieceDetails').style.display = 'none';
+  clearQuote();
   renderSaved();
   showToast('Set saved');
 }
@@ -2530,6 +2627,14 @@ function saveQuote(quoteType = 'client') {
 
   showToast(quoteType === 'collection' ? 'Collection quote saved' : 'Quote saved');
   renderSaved();
+
+  // Show "add another piece" checkbox option
+  document.getElementById('addAnotherPieceWrap').style.display = 'block';
+  document.getElementById('addAnotherPieceCheck').checked = false;
+  document.getElementById('addAnotherPieceDetails').style.display = 'none';
+
+  // Store the last saved quote id for potential set building
+  window._lastSavedQuoteId = quote.id;
 }
 
 function clearQuote() {
@@ -2545,6 +2650,7 @@ function clearQuote() {
   if (document.getElementById('fingerSize')) document.getElementById('fingerSize').value = '';
   if (document.getElementById('clientBudget')) document.getElementById('clientBudget').value = '';
   if (document.getElementById('budgetRow')) document.getElementById('budgetRow').style.display = 'none';
+  if (document.getElementById('addAnotherPieceWrap')) document.getElementById('addAnotherPieceWrap').style.display = 'none';
   stones.forEach(s => { s.addToInventory = false; });
   if (document.getElementById('metalOverrideToggle')) { document.getElementById('metalOverrideToggle').checked = false; document.getElementById('metalOverrideField').style.display = 'none'; document.getElementById('metalOverride').value = ''; }
   if (document.getElementById('metalEstBox')) document.getElementById('metalEstBox').style.display = 'none';
