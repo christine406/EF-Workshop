@@ -4007,38 +4007,77 @@ function toggleInventoryPicker() {
   }
 }
 
-function renderInventoryPicker() {
-  const list = document.getElementById('inventoryPickerList');
-  const available = getInventory().filter(s =>
-    (!s.status || s.status === 'available')
-  );
+function renderGroupedPicker(list, stones, onSelect) {
+  if (!list) return;
+  const catLabels = {
+    'owned-available': 'Owned — available',
+    'owned-reserved': 'Owned — reserved',
+    'memo': 'On memo',
+    'viewed': 'Viewed / recorded'
+  };
+  const catOrder = ['owned-available', 'owned-reserved', 'memo', 'viewed'];
 
-  if (!available.length) {
-    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-dim);text-align:center">No available stones in inventory.</div>';
-    return;
-  }
+  if (!window._pickerExpanded) window._pickerExpanded = {};
+
+  const grouped = {};
+  catOrder.forEach(c => { grouped[c] = []; });
+  stones.forEach(s => {
+    const cat = s.category || 'owned-available';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(s);
+  });
 
   list.innerHTML = '';
-  available.forEach(s => {
-    const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
-    const row = document.createElement('div');
-    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s';
-    row.innerHTML = `
-      <div>
-        <div style="font-size:14px;color:var(--text)">${desc || 'Stone'}</div>
-        <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${s.dealer} · ${s.category === 'memo' ? 'on memo' : 'owned'}</div>
-      </div>
-      <div style="text-align:right">
-        ${s.cost ? '<div style="font-size:14px;color:var(--gold)">$' + s.cost.toLocaleString() + '</div>' : ''}
-        <div style="font-size:13px;color:var(--teal-dim);margin-top:2px">Add →</div>
-      </div>`;
-    row.onmouseover = () => row.style.background = 'var(--surface2)';
-    row.onmouseout = () => row.style.background = '';
-    row.onclick = () => addStoneFromInventory(s);
-    list.appendChild(row);
+  let hasAny = false;
+
+  catOrder.forEach(cat => {
+    const group = grouped[cat];
+    if (!group || !group.length) return;
+    hasAny = true;
+
+    const expanded = window._pickerExpanded[cat] !== undefined ? window._pickerExpanded[cat] : false;
+
+    // Section header
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;background:var(--surface2);border-bottom:1px solid var(--border)';
+    header.innerHTML = '<div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">'
+      + (catLabels[cat]||cat) + ' (' + group.length + ')</div>'
+      + '<div style="font-size:13px;color:var(--text-dim)">' + (expanded ? '▴' : '▾') + '</div>';
+    header.onclick = () => {
+      window._pickerExpanded[cat] = !window._pickerExpanded[cat];
+      // Re-render the picker in place
+      const parentList = list;
+      renderGroupedPicker(parentList, stones, onSelect);
+    };
+    list.appendChild(header);
+
+    if (!expanded) return;
+
+    group.forEach(s => {
+      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+      const catLabel = s.category === 'memo' ? 'on memo' : s.category === 'viewed' ? 'viewed / not yet purchased' : s.category === 'owned-reserved' ? 'owned — reserved' : 'owned';
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+      row.onmouseenter = () => row.style.background = 'var(--surface2)';
+      row.onmouseleave = () => row.style.background = '';
+      row.innerHTML = '<div><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + catLabel + (s.cost ? ' · $' + s.cost.toLocaleString() : '') + '</div></div>'
+        + '<button style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer">Use</button>';
+      row.querySelector('button').onclick = (e) => { e.stopPropagation(); onSelect(s); };
+      list.appendChild(row);
+    });
   });
+
+  if (!hasAny) {
+    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-dim);text-align:center">No available stones in inventory.</div>';
+  }
 }
 
+function renderInventoryPicker() {
+  const list = document.getElementById('inventoryPickerList');
+  const available = getInventory().filter(s => !s.status || s.status === 'available' || s.status === 'unavailable');
+  renderGroupedPicker(list, available, (s) => addStoneFromInventory(s));
+}
 function addStoneFromInventory(s) {
   const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
   const id = stoneIdCounter++;
@@ -4386,6 +4425,7 @@ function renderStoneInventory() {
     'memo': 'On memo',
     'viewed': 'Viewed / recorded'
   };
+  const catOrder = ['owned-available', 'owned-reserved', 'memo', 'viewed'];
 
   const statusColors = {
     'available': 'var(--green-bright)',
@@ -4394,7 +4434,6 @@ function renderStoneInventory() {
     'out-with-jeweler': '#ccc07a',
     'unavailable': 'var(--text-dim)'
   };
-
   const statusLabels = {
     'available': 'available',
     'in-use': 'in use',
@@ -4403,9 +4442,43 @@ function renderStoneInventory() {
     'unavailable': 'unavailable'
   };
 
-  list.innerHTML = '';
+  if (!window._stoneSecExpanded) window._stoneSecExpanded = {};
+
+  // Group stones by category
+  const grouped = {};
+  catOrder.forEach(c => { grouped[c] = []; });
   stones.forEach(s => {
-    const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+    const cat = s.category || 'owned-available';
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(s);
+  });
+
+  list.innerHTML = '';
+
+  catOrder.forEach(cat => {
+    const group = grouped[cat];
+    if (!group || !group.length) return;
+
+    const isExpanded = window._stoneSecExpanded[cat] !== false; // default expanded = false on first load
+    if (window._stoneSecExpanded[cat] === undefined) window._stoneSecExpanded[cat] = false;
+    const expanded = window._stoneSecExpanded[cat];
+
+    // Section header
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0;cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:' + (expanded ? '8px' : '0');
+    header.innerHTML = '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">'
+      + (catLabels[cat] || cat) + ' <span style="color:var(--text-dim);font-size:10px">(' + group.length + ')</span></div>'
+      + '<div style="font-size:14px;color:var(--text-dim)">' + (expanded ? '▴' : '▾') + '</div>';
+    header.onclick = () => {
+      window._stoneSecExpanded[cat] = !window._stoneSecExpanded[cat];
+      renderStoneInventory();
+    };
+    list.appendChild(header);
+
+    if (!expanded) return;
+
+    // Stone cards in this group
+    group.forEach(s => {    const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
     const giaLink = s.gia
       ? `<a href="https://www.gia.edu/report-check?reportno=${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
       : '';
@@ -4518,10 +4591,11 @@ function renderStoneInventory() {
     html += '</div>';
     div.innerHTML = html;
     list.appendChild(div);
-  });
+
+    }); // end group.forEach
+  }); // end catOrder.forEach
 }
 
-// Keep old addInventoryStone as alias for compatibility
 function addInventoryStone() { openAddStoneForm(); }
 function renderInventory() { renderStoneInventory(); }
 
@@ -4533,22 +4607,11 @@ function toggleLoosePicker() {
   const isOpen = list.style.display !== 'none';
   if (isOpen) { list.style.display = 'none'; return; }
   const available = getInventory().filter(s => !s.status || s.status === 'available' || s.status === 'unavailable');
-  list.innerHTML = '';
-  if (!available.length) {
-    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-dim);text-align:center">No stones in inventory.</div>';
-  } else {
-    available.forEach(s => {
-      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
-      const catLabel = s.category === 'memo' ? 'on memo' : s.category === 'viewed' ? 'viewed' : s.category === 'owned-reserved' ? 'reserved' : 'owned';
-      const row = document.createElement('div');
-      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
-      row.onmouseenter = () => row.style.background = 'var(--surface2)';
-      row.onmouseleave = () => row.style.background = '';
-      row.innerHTML = '<div><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + catLabel + ' · $' + (s.cost||0).toLocaleString() + '</div></div><button style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer">Use</button>';
-      row.querySelector('button').onclick = () => selectLooseStone(s);
-      list.appendChild(row);
-    });
-  }
+  window._pickerExpanded = {}; // reset section state on open
+  renderGroupedPicker(list, available, (s) => {
+    selectLooseStone(s);
+    list.style.display = 'none';
+  });
   list.style.display = 'block';
 }
 
