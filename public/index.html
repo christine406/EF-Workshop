@@ -3094,6 +3094,13 @@ function editPieceInSet(setId, pieceIdx, e) {
     + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="pe-metal-' + setId + '-' + pieceIdx + '" value="' + (p.metalCost||p.actualMetalCost||0) + '" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
     + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="pe-labor-' + setId + '-' + pieceIdx + '" value="' + (p.laborEst||0) + '" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div></div>'
     + '<div class="field"><div class="field-label">Notes</div><input type="text" id="pe-notes-' + setId + '-' + pieceIdx + '" value="' + (p.notes||'') + '" placeholder="Stone details, design notes..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);margin:12px 0 8px">Actual costs (when complete)</div>'
+    + '<div class="field-row">'
+    + '<div class="field"><div class="field-label">Actual stone cost ($)</div><input type="number" id="pe-actual-stone-' + setId + '-' + pieceIdx + '" value="' + (p.actualStoneCost||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Actual casting/metal ($)</div><input type="number" id="pe-actual-metal-' + setId + '-' + pieceIdx + '" value="' + (p.actualMetalCost||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div></div>'
+    + '<div class="field-row">'
+    + '<div class="field"><div class="field-label">Actual labor ($)</div><input type="number" id="pe-actual-labor-' + setId + '-' + pieceIdx + '" value="' + (p.actualLabor||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Client price for piece ($)</div><input type="number" id="pe-client-price-' + setId + '-' + pieceIdx + '" value="' + (p.clientPrice||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px">'
     + '<button onclick="savePieceEdit(' + setId + ',' + pieceIdx + ')" class="btn-primary" style="flex:1;padding:8px;font-size:11px">Save</button>'
     + '<button onclick="this.closest(\'[id^=piece-edit]\').style.display=\'none\'" class="btn-secondary" style="padding:8px;font-size:11px">Cancel</button>'
@@ -3120,6 +3127,20 @@ function savePieceEdit(setId, pieceIdx) {
   p.metalCost = parseFloat(g('pe-metal-' + setId + '-' + pieceIdx)?.value) || 0;
   p.laborEst = parseFloat(g('pe-labor-' + setId + '-' + pieceIdx)?.value) || 0;
   p.notes = g('pe-notes-' + setId + '-' + pieceIdx)?.value || '';
+
+  // Save actuals if filled in
+  const actualStone = parseFloat(g('pe-actual-stone-' + setId + '-' + pieceIdx)?.value);
+  const actualMetal = parseFloat(g('pe-actual-metal-' + setId + '-' + pieceIdx)?.value);
+  const actualLabor = parseFloat(g('pe-actual-labor-' + setId + '-' + pieceIdx)?.value);
+  const pieceClientPrice = parseFloat(g('pe-client-price-' + setId + '-' + pieceIdx)?.value);
+  if (!isNaN(actualStone)) p.actualStoneCost = actualStone;
+  if (!isNaN(actualMetal)) p.actualMetalCost = actualMetal;
+  if (!isNaN(actualLabor)) p.actualLabor = actualLabor;
+  if (!isNaN(pieceClientPrice)) p.clientPrice = pieceClientPrice;
+
+  // Update set-level client price as sum of piece client prices
+  const totalClientPrice = q.pieces.reduce((s, pc) => s + (pc.clientPrice||0), 0);
+  if (totalClientPrice > 0) q.clientPrice = totalClientPrice;
 
   // Recalculate piece total
   const stoneRetail = p.stoneCost * stoneMarkupProject(p.stoneCost) + p.meleeCost * 1.75;
@@ -3208,7 +3229,7 @@ function buildMultiPieceCard(q) {
     if (q.status === 'quote' || q.status === 'collection-quote') {
       html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
     }
-    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
+    // Actuals are updated per-piece via the Edit button on each piece row
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
   } else {
@@ -3353,9 +3374,15 @@ function renderPL() {
     let stoneCost, metalCost, laborCost, chainCost, designFee;
     if (q.isMultiPiece) {
       // Sum costs across all pieces
-      stoneCost = q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0), 0);
-      metalCost = q.actualMetalCost ?? 0;
-      laborCost = q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0);
+      stoneCost = (q.pieces||[]).some(p => p.actualStoneCost != null)
+        ? (q.pieces||[]).reduce((s,p) => s + (p.actualStoneCost ?? p.stoneCost ?? 0), 0)
+        : (q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0), 0));
+      metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null)
+        ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0)
+        : (q.actualMetalCost ?? 0);
+      laborCost = (q.pieces||[]).some(p => p.actualLabor != null)
+        ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0)
+        : (q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0));
       chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
       designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
     } else {
