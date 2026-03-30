@@ -2630,6 +2630,7 @@ function saveQuote(quoteType = 'client') {
 
   // Show "add another piece" checkbox option
   document.getElementById('addAnotherPieceWrap').style.display = 'block';
+  setTimeout(() => document.getElementById('addAnotherPieceWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
   document.getElementById('addAnotherPieceCheck').checked = false;
   document.getElementById('addAnotherPieceDetails').style.display = 'none';
 
