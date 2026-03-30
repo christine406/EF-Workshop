@@ -3143,7 +3143,7 @@ function savePieceEdit(setId, pieceIdx) {
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
   const statusLabel = q.status === 'project' ? 'PROJECT' : q.status === 'completed' ? 'COMPLETED' : q.status === 'abandoned' ? 'ABANDONED' : 'QUOTE';
-  const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : '';
+  const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : (q.isMultiPiece && q.pieces?.[0]?.pieceType ? (PIECE_EMOJIS[q.pieces[0].pieceType] || '') : '');
   const displayAmount = q.clientPrice > 0 ? q.clientPrice : q.total;
   const displayAmountColor = q.clientPrice > 0 ? 'color:var(--teal-dim)' : 'color:var(--gold)';
 
@@ -3165,7 +3165,8 @@ function buildMultiPieceCard(q) {
   // Pieces breakdown
   html += '<div style="background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:8px">';
   (q.pieces || []).forEach((p, i) => {
-    const typeLabel = p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1);
+    const pieceEmoji = PIECE_EMOJIS[p.pieceType] || '';
+    const typeLabel = (pieceEmoji ? pieceEmoji + ' ' : '') + (p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1));
     const editId = 'piece-edit-' + q.id + '-' + i;
     html += '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
