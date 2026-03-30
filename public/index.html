@@ -3166,6 +3166,16 @@ function savePieceEdit(setId, pieceIdx) {
   // Recalculate set total
   q.total = q.pieces.reduce((s, pc) => s + (pc.total||0), 0);
 
+  // Clean undefined values — Firebase rejects them
+  q.pieces = q.pieces.map(pc => {
+    const clean = {};
+    Object.keys(pc).forEach(k => { if (pc[k] !== undefined) clean[k] = pc[k]; });
+    if (!clean.pieceType) clean.pieceType = 'piece';
+    if (!clean.purity) clean.purity = '18k';
+    if (clean.total == null) clean.total = 0;
+    return clean;
+  });
+
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
