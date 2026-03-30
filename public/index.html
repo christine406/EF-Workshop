@@ -4239,7 +4239,7 @@ function saveInventoryStone() {
     const stone = {
       id: Date.now(),
       category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
-      status: 'available',
+      status: category === 'owned-reserved' ? 'unavailable' : 'available',
       dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
       usedInProjectId: null,
     };
