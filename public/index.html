@@ -3147,9 +3147,11 @@ function savePieceEdit(setId, pieceIdx) {
   if (!isNaN(actualLabor)) p.actualLabor = actualLabor;
   if (!isNaN(pieceClientPrice)) p.clientPrice = pieceClientPrice;
 
-  // Update set-level client price as sum of piece client prices
-  const totalClientPrice = q.pieces.reduce((s, pc) => s + (pc.clientPrice||0), 0);
-  if (totalClientPrice > 0) q.clientPrice = totalClientPrice;
+  // Update set-level client price only if ALL pieces have a client price set
+  const piecesWithClientPrice = q.pieces.filter(pc => pc.clientPrice > 0);
+  if (piecesWithClientPrice.length === q.pieces.length) {
+    q.clientPrice = q.pieces.reduce((s, pc) => s + (pc.clientPrice||0), 0);
+  }
 
   // Recalculate piece total
   const stoneRetail = p.stoneCost * stoneMarkupProject(p.stoneCost) + p.meleeCost * 1.75;
@@ -3206,6 +3208,7 @@ function buildMultiPieceCard(q) {
       + (p.metalTotal ? ' · metal $' + p.metalTotal.toLocaleString() : '')
       + (p.laborTotal ? ' · labor $' + p.laborTotal.toLocaleString() : '') + '</div>'
       + (p.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px">' + p.notes + '</div>' : '')
+      + (p.clientPrice > 0 ? '<div style="font-size:11px;margin-top:2px"><span style="color:var(--text-dim)">Client price:</span> <span style="color:var(--teal-dim)">$' + p.clientPrice.toLocaleString() + '</span></div>' : '')
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
       + '<div style="font-size:14px;color:var(--gold);white-space:nowrap">$' + (p.total||0).toLocaleString() + '</div>'
