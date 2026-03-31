@@ -670,7 +670,7 @@
         <div class="field-label">Client name</div>
         <input type="text" id="clientName" placeholder="e.g. Sarah M.">
       </div>
-      <div class="field-row" style="margin-top:8px">
+      <div class="field-row" id="fingerSizeRow" style="margin-top:8px;display:none">
         <div class="field">
           <div class="field-label">Finger size</div>
           <input type="text" id="fingerSize" placeholder="e.g. 6.5" style="width:100%">
@@ -688,7 +688,7 @@
       <div class="field-row">
         <div class="field">
           <div class="field-label">Type</div>
-          <select id="pieceType" onchange="updateWeightOptions()">
+          <select id="pieceType" onchange="updateWeightOptions();updateFingerSizeVisibility()">
             <option value="">Select type</option>
             <optgroup label="Rings">
               <option value="ring">Ring</option>
@@ -732,31 +732,41 @@
           </select>
         </div>
       </div>
-      <div class="field-row">
-        <div class="field">
-          <div class="field-label">Est. grams</div>
-          <input type="number" id="metalGrams" step="0.1" min="0" placeholder="0.0" oninput="updateMetalEstimate();calculate()">
+      <!-- METAL MODE TOGGLE -->
+      <div style="display:flex;gap:0;margin-bottom:10px;border:1px solid var(--border);border-radius:3px;overflow:hidden">
+        <button id="metalModeEstBtn" onclick="setMetalMode('estimate')" style="flex:1;padding:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border:none;cursor:pointer;background:var(--gold);color:var(--bg)">Estimate from grams</button>
+        <button id="metalModeDirectBtn" onclick="setMetalMode('direct')" style="flex:1;padding:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border:none;cursor:pointer;background:var(--surface2);color:var(--text-dim)">Enter cost directly</button>
+      </div>
+
+      <!-- ESTIMATE MODE -->
+      <div id="metalEstimateMode">
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Est. grams</div>
+            <input type="number" id="metalGrams" step="0.1" min="0" placeholder="0.0" oninput="updateMetalEstimate();calculate()">
+          </div>
+        </div>
+        <div class="inline-note" id="gramHint"></div>
+        <div id="metalEstBox" style="display:none;background:#e8d9b8;border:1px solid #ccc07a;border-radius:3px;padding:10px;margin-top:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#7a5a20">Metal estimate</div>
+              <div style="font-size:11px;color:#9a7a40;margin-top:2px">spot × purity × grams × 1.25 casting × 1.05 sprue × 1.35</div>
+            </div>
+            <div style="font-size:18px;color:#7f0034;font-weight:400" id="metalEstDisplay">—</div>
+          </div>
         </div>
       </div>
-      <div class="inline-note" id="gramHint"></div>
 
-      <!-- METAL COST ESTIMATE -->
-      <div id="metalEstBox" style="display:none;background:#e8d9b8;border:1px solid #ccc07a;border-radius:3px;padding:10px;margin-top:6px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div>
-            <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#7a5a20">Metal estimate</div>
-            <div style="font-size:11px;color:#9a7a40;margin-top:2px">spot × purity × grams × 1.25 casting × 1.05 sprue × 1.35</div>
+      <!-- DIRECT COST MODE -->
+      <div id="metalDirectMode" style="display:none">
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Casting company bill ($)</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Enter what casting co. charged — excludes sprue loss</div>
+            <input type="number" id="metalOverride" min="0" placeholder="0" oninput="calculate()"
+              style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:8px 10px;border-radius:3px;outline:none">
           </div>
-          <div style="font-size:18px;color:#7f0034;font-weight:400" id="metalEstDisplay">—</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <input type="checkbox" id="metalOverrideToggle" style="width:15px;height:15px;accent-color:#7f0034;cursor:pointer" onchange="toggleMetalOverride()">
-          <label for="metalOverrideToggle" style="font-size:12px;color:#7a5a20;cursor:pointer">Override with my own estimate</label>
-        </div>
-        <div id="metalOverrideField" style="display:none;margin-top:8px">
-          <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:#7a5a20;margin-bottom:4px">Casting company bill (incl. casting fee, excl. sprue loss)</div>
-          <input type="number" id="metalOverride" min="0" placeholder="0" oninput="calculate()"
-            style="width:100%;background:#fafaf7;border:1px solid #ccc07a;color:#7f0034;font-family:var(--font-mono);font-size:16px;padding:8px 10px;border-radius:3px;outline:none">
         </div>
       </div>
     </div>
@@ -996,203 +1006,6 @@
           </div>
         </div>
       </div>
-      <button class="add-stone-btn" onclick="toggleNewProject()" id="newProjectToggleBtn" style="margin-bottom:12px">+ Add project directly</button>
-
-      <!-- DIRECT PROJECT FORM -->
-      <div id="newProjectForm" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:12px">
-        <div class="field-row">
-          <div class="field">
-            <div class="field-label">Client name</div>
-            <input type="text" id="npClient" placeholder="e.g. Sarah M.">
-          </div>
-          <div class="field">
-            <div class="field-label">Piece type</div>
-            <select id="npPieceType">
-              <option value="ring">Ring</option>
-              <option value="pendant">Pendant</option>
-              <option value="earrings">Earrings</option>
-              <option value="necklace">Necklace</option>
-              <option value="bracelet">Bracelet</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <div class="field-label">Occasion</div>
-            <select id="npOccasion" onchange="toggleOccasionOther('npOccasionOther',this.value)">
-              <option value="">— Select occasion</option>
-              <option value="Engagement">Engagement</option>
-              <option value="Wedding band">Wedding band</option>
-              <option value="Anniversary">Anniversary</option>
-              <option value="Birthday">Birthday</option>
-              <option value="New baby">New baby</option>
-              <option value="Self purchase">Self purchase</option>
-              <option value="Just because">Just because</option>
-              <option value="Gift">Gift</option>
-              <option value="Other">Other</option>
-            </select>
-            <input type="text" id="npOccasionOther" placeholder="Describe occasion..." style="display:none;margin-top:6px;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px 10px;border-radius:3px;outline:none">
-          </div>
-          <div class="field">
-            <div class="field-label">Purity</div>
-            <select id="npPurity">
-              <option value="18k">18k Yellow</option>
-              <option value="18kw">18k White</option>
-              <option value="14k">14k Yellow</option>
-              <option value="14kw">14k White</option>
-              <option value="plat">Platinum</option>
-            </select>
-          </div>
-        </div>
-        <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-dim);margin:10px 0 8px">Actual costs</div>
-        <div class="field-row">
-          <div class="field">
-            <div class="field-label">Stone cost ($)</div>
-            <input type="number" id="npStoneCost" min="0" placeholder="0" oninput="calcNewProject()">
-          </div>
-          <div class="field">
-            <div class="field-label">Additional materials / melee ($)</div>
-            <input type="number" id="npMeleeCost" min="0" placeholder="0" oninput="calcNewProject()">
-          </div>
-        </div>
-
-        <!-- STONE DETAILS (collapsible) -->
-        <div style="margin-bottom:10px">
-          <button onclick="document.getElementById('npStoneDetails').style.display=document.getElementById('npStoneDetails').style.display==='none'?'block':'none';this.textContent=this.textContent.includes('+')?'▴ hide stone details':'+ add stone details'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:2px;cursor:pointer;text-transform:uppercase;width:100%">+ add stone details</button>
-          <div id="npStoneDetails" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:12px;margin-top:6px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-              <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)">Stone record</div>
-              <label style="display:flex;align-items:center;gap:6px;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:2px;cursor:pointer">
-                📷 Scan GIA
-                <input type="file" accept="image/*" style="display:none" onchange="scanGIAForDirectProject(this)">
-              </label>
-            </div>
-            <div id="np-ocr-status" style="display:none;padding:8px;background:var(--bg);border-radius:3px;margin-bottom:8px;font-size:12px;color:var(--teal-dim);text-align:center">Reading...</div>
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label">GIA number</div>
-                <input type="text" id="np-gia" placeholder="optional">
-              </div>
-              <div class="field">
-                <div class="field-label">Carat</div>
-                <input type="number" id="np-carat" step="0.01" placeholder="0.00">
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label">Color</div>
-                <input type="text" id="np-color" placeholder="e.g. K">
-              </div>
-              <div class="field">
-                <div class="field-label">Clarity</div>
-                <input type="text" id="np-clarity" placeholder="e.g. VS2">
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <div class="field-label">Cut / shape</div>
-                <select id="np-cut">
-                  <option value="">— select</option>
-                  <option>Old Mine Cut</option>
-                  <option>Old European Cut</option>
-                  <option>Round Brilliant</option>
-                  <option>Oval</option>
-                  <option>Emerald Cut</option>
-                  <option>Cushion</option>
-                  <option>Pear</option>
-                  <option>Marquise</option>
-                  <option>Asscher</option>
-                  <option>Princess</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div class="field">
-                <div class="field-label">Dealer</div>
-                <select id="np-dealer">
-                  <option value="">— select</option>
-                  <option>American Gem Corp</option>
-                  <option>Virat</option>
-                  <option>Galapo</option>
-                  <option>Julius Klein</option>
-                  <option>Other</option>
-                </select>
-              </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-              <input type="checkbox" id="np-antique" style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
-              <label for="np-antique" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
-              <input type="checkbox" id="np-add-inv" style="width:16px;height:16px;accent-color:var(--teal-dim);cursor:pointer">
-              <label for="np-add-inv" style="font-size:13px;color:var(--teal-dim);cursor:pointer">Add to stone inventory</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <div class="field-label">Metal cost ($)</div>
-            <input type="number" id="npMetalCost" min="0" placeholder="0" oninput="calcNewProject()">
-          </div>
-          <div class="field">
-            <div class="field-label">Labor cost ($)</div>
-            <input type="number" id="npLaborCost" min="0" placeholder="0" oninput="calcNewProject()">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <div class="field-label">Design fee ($)</div>
-            <input type="number" id="npDesignFee" min="0" placeholder="0" oninput="calcNewProject()">
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field">
-            <div class="field-label">Chain (optional)</div>
-            <input type="hidden" id="npChainSelect" value="">
-            <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
-              <div id="npChainSelectedLabel" style="font-size:14px;color:var(--text-mid);font-style:italic">None selected</div>
-              <button id="chainTree-np-toggle" onclick="document.getElementById('chainTree-np').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Browse</button>
-            </div>
-            <div id="chainTree-np" style="border:1px solid var(--border);border-radius:3px;overflow:hidden;display:none"></div>
-          </div>
-        </div>
-        <div class="field" style="margin-bottom:10px">
-          <div class="field-label">Notes</div>
-          <textarea id="npNotes" rows="2" placeholder="Stone details, design notes..."></textarea>
-        </div>
-
-        <!-- MINI RESULT -->
-        <div id="npResult" style="background:#e8d9b8;border:1px solid #ccc07a;border-radius:3px;padding:10px;margin-bottom:10px;display:none">
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
-            <span style="color:#7a5a20">Stone markup</span>
-            <span id="npStoneDisplay" style="color:#7f0034">—</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
-            <span style="color:#7a5a20">Metal × 1.35 + labor × 1.4</span>
-            <span id="npRestDisplay" style="color:#7f0034">—</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;border-top:1px solid var(--border);padding-top:6px;margin-top:4px">
-            <span style="color:#7f0034">Retail total</span>
-            <span style="color:#7f0034;font-size:15px" id="npTotalDisplay">—</span>
-          </div>
-        </div>
-
-        <div class="field-row">
-          <button class="btn-primary" onclick="saveDirectProject('client')">Save — Client</button>
-          <button class="btn-primary" onclick="saveDirectProject('collection')" style="background:var(--teal-dim)">Save — Collection</button>
-        </div>
-        <div id="npAdditionalPieces"></div>
-        <button onclick="addExtraPieceToDirectProject()" id="npAddPieceBtn" style="width:100%;background:none;border:1px dashed var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:9px;cursor:pointer;border-radius:3px;margin-top:8px">+ Add another piece to this set</button>
-        <div style="display:none">
-        </div>
-        <div style="display:none">
-        </div>
-        <div style="margin-top:8px">
-          <button class="btn-secondary" onclick="toggleNewProject()" style="width:100%">Cancel</button>
-        </div>
-      </div>
-
       <!-- P&L SUMMARY -->
       <div id="plSummary" style="margin-bottom:16px"></div>
 
@@ -2236,15 +2049,12 @@ function toggleMetalOverride() {
 }
 
 function getMetalCost(grams, purity) {
-  const overrideToggle = document.getElementById('metalOverrideToggle');
-  const overrideVal = parseFloat(document.getElementById('metalOverride')?.value) || 0;
-  if (overrideToggle?.checked && overrideVal) {
-    // Casting company bill: includes casting fee, excludes 5% sprue loss
-    // Apply sprue loss then materials markup
-    return overrideVal * 1.05 * 1.35;
+  if (_metalMode === 'direct') {
+    const overrideVal = parseFloat(document.getElementById('metalOverride')?.value) || 0;
+    return overrideVal * 1.05 * 1.35; // casting bill × sprue × markup
   }
   // From grams: raw metal × 1.25 casting × 1.05 sprue × 1.35 materials markup
-  return grams * goldPerGram(purity) * 1.25 * 1.05 * 1.35;
+  return (parseFloat(grams)||0) * goldPerGram(purity) * 1.25 * 1.05 * 1.35;
 }
 
 function toggleOccasionOther(fieldId, val) {
@@ -2780,7 +2590,32 @@ function saveQuote(quoteType = 'client') {
 
 }
 
+
+// ===== METAL MODE =====
+let _metalMode = 'estimate'; // 'estimate' | 'direct'
+
+function setMetalMode(mode) {
+  _metalMode = mode;
+  document.getElementById('metalEstimateMode').style.display = mode === 'estimate' ? 'block' : 'none';
+  document.getElementById('metalDirectMode').style.display = mode === 'direct' ? 'block' : 'none';
+  document.getElementById('metalModeEstBtn').style.background = mode === 'estimate' ? 'var(--gold)' : 'var(--surface2)';
+  document.getElementById('metalModeEstBtn').style.color = mode === 'estimate' ? 'var(--bg)' : 'var(--text-dim)';
+  document.getElementById('metalModeDirectBtn').style.background = mode === 'direct' ? 'var(--gold)' : 'var(--surface2)';
+  document.getElementById('metalModeDirectBtn').style.color = mode === 'direct' ? 'var(--bg)' : 'var(--text-dim)';
+  calculate();
+}
+
+// ===== FINGER SIZE VISIBILITY =====
+function updateFingerSizeVisibility() {
+  const pt = document.getElementById('pieceType')?.value || '';
+  const show = pt === 'ring' || pt === 'band' || pt === 'engagement-ring' || pt === 'wedding-band';
+  const row = document.getElementById('fingerSizeRow');
+  if (row) row.style.display = show ? 'flex' : 'none';
+}
+
 function clearQuote() {
+  _metalMode = 'estimate';
+  setMetalMode('estimate');
   document.getElementById('clientName').value = '';
   document.getElementById('metalGrams').value = '';
   document.getElementById('projectOccasion').value = '';
@@ -3652,7 +3487,17 @@ function updateActuals(id, e) {
   form.id = 'actuals-form-' + id;
   form.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px';
   form.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Actual costs</div>
+    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px">Actual costs</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
+        <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.grams ? q.grams + 'g ' : ''}${q.purity || ''}</div>
+        <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim)">Design fee</div><div style="color:var(--text)">${(q.designFee||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <div class="field-label">Casting company</div>
