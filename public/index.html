@@ -4483,8 +4483,28 @@ function saveInventoryStone() {
     renderStoneInventory();
     showToast('Stone updated');
   } else {
-    // New stone
+    // New stone — check for duplicates first
     const photoUrl = document.getElementById('si-photo-url')?.value?.trim() || '';
+    const inv = getInventory();
+
+    // Check by GIA number first (strongest match)
+    const giaMatch = gia && inv.find(s => s.gia && s.gia.trim() === gia.trim());
+    if (giaMatch) {
+      const msg = 'This GIA number (' + gia + ') is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded || 'unknown date') + '\n' + [giaMatch.carat ? giaMatch.carat + 'ct' : '', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+      if (!confirm(msg)) return;
+    } else if (carat && color && clarity) {
+      // Fuzzy match by specs
+      const specsMatch = inv.find(s =>
+        Math.abs((parseFloat(s.carat)||0) - carat) < 0.05 &&
+        s.color?.toUpperCase() === color.toUpperCase() &&
+        s.clarity?.toUpperCase() === clarity.toUpperCase()
+      );
+      if (specsMatch) {
+        const msg = 'A very similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded || 'unknown date') + '\n' + [specsMatch.carat ? specsMatch.carat + 'ct' : '', specsMatch.cut, specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+        if (!confirm(msg)) return;
+      }
+    }
+
     const stone = {
       id: Date.now(),
       category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
