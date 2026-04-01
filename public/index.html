@@ -1652,11 +1652,9 @@ function renderChainList() {
   if (!container) return;
   container.innerHTML = '';
 
-  ['18k', '14k'].forEach(karat => {
+  ['18k','14k'].forEach(karat => {
     const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
     const chainsInMetal = CHAINS.filter(c => c.karat === karat);
-
-    // Group by mm size
     const byMm = {};
     chainsInMetal.forEach(c => {
       const m = c.name.match(/(\d+\.?\d*)mm/);
@@ -1664,18 +1662,14 @@ function renderChainList() {
       if (!byMm[mmKey]) byMm[mmKey] = [];
       byMm[mmKey].push(c);
     });
-    const mmKeys = Object.keys(byMm).sort((a, b) => (parseFloat(a)||0) - (parseFloat(b)||0));
+    const mmKeys = Object.keys(byMm).sort((a,b) => (parseFloat(a)||0) - (parseFloat(b)||0));
 
-    // Metal header
     const metalHeader = document.createElement('div');
     metalHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid var(--teal-dim);cursor:pointer;margin-bottom:4px';
-    metalHeader.innerHTML = '<span style="font-size:14px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase">' + metalLabel + '</span>'
-      + '<span style="font-size:13px;color:var(--text-dim)">' + mmKeys.length + ' sizes ▾</span>';
-
+    metalHeader.innerHTML = '<span style="font-size:14px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase">' + metalLabel + '</span><span style="font-size:13px;color:var(--text-dim)">' + mmKeys.length + ' sizes ▾</span>';
     const metalBody = document.createElement('div');
     metalBody.style.display = 'none';
     let metalOpen = false;
-
     metalHeader.onclick = () => {
       metalOpen = !metalOpen;
       metalBody.style.display = metalOpen ? 'block' : 'none';
@@ -1684,17 +1678,13 @@ function renderChainList() {
 
     mmKeys.forEach(mmKey => {
       const chains = byMm[mmKey];
-
       const mmRow = document.createElement('div');
       mmRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0 10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
-      mmRow.innerHTML = '<span style="font-size:14px;color:var(--text)">' + mmKey + '</span>'
-        + '<span style="font-size:13px;color:var(--text-dim)">' + chains.length + ' style' + (chains.length > 1 ? 's' : '') + ' ▾</span>';
-
+      mmRow.innerHTML = '<span style="font-size:14px;color:var(--text)">' + mmKey + '</span><span style="font-size:13px;color:var(--text-dim)">' + chains.length + ' style' + (chains.length > 1 ? 's' : '') + ' ▾</span>';
       const mmBody = document.createElement('div');
       mmBody.style.display = 'none';
       let mmOpen = false;
-
-      mmRow.onclick = (e) => {
+      mmRow.onclick = e => {
         e.stopPropagation();
         mmOpen = !mmOpen;
         mmBody.style.display = mmOpen ? 'block' : 'none';
@@ -1703,62 +1693,40 @@ function renderChainList() {
 
       chains.forEach(c => {
         const photos = getChainPhotos();
-        const photoUrl = photos[c.name] || '';
-        const item = document.createElement('div');
-        item.style.cssText = 'padding:10px 0 10px 24px;border-bottom:1px solid var(--border)';
-
-        const safeKey = c.name.replace(/[^a-zA-Z0-9]/g, '_');
         const linkUrl = photos[c.name] || '';
-        const chainName = c.name;
 
-        // Build header
-        const headerDiv = document.createElement('div');
-        headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px';
-        headerDiv.innerHTML = '<div><div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
-          + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g</div></div>'
-          + '<div style="text-align:right;padding-right:12px">'
-          + '<div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
-          + '<div style="font-size:13px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
-          + '</div>';
-        item.appendChild(headerDiv);
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:10px 12px 10px 24px;border-bottom:1px solid var(--border)';
 
-        // Product page button (if link exists)
-        const linkRow = document.createElement('div');
-        linkRow.style.cssText = 'margin-bottom:6px';
+        const row1 = document.createElement('div');
+        row1.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
+        row1.innerHTML = '<div><div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
+          + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g</div></div>'
+          + '<div style="text-align:right"><div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
+          + '<div style="font-size:12px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div></div>';
+        item.appendChild(row1);
+
+        const row2 = document.createElement('div');
+        row2.style.cssText = 'margin-top:8px;display:flex;gap:8px;align-items:center';
+
         if (linkUrl) {
           const a = document.createElement('a');
-          a.href = linkUrl;
-          a.target = '_blank';
-          a.textContent = '↗ Product page';
+          a.href = linkUrl; a.target = '_blank'; a.textContent = '↗ Product page';
           a.style.cssText = 'display:inline-block;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;text-decoration:none';
-          a.onclick = e => e.stopPropagation();
-          linkRow.appendChild(a);
+          row2.appendChild(a);
         }
-        item.appendChild(linkRow);
 
-        // URL input + save button
-        const inputRow = document.createElement('div');
-        inputRow.style.cssText = 'display:flex;gap:6px;align-items:center;padding-right:12px';
-        inputRow.onclick = e => e.stopPropagation();
-
-        const inp = document.createElement('input');
-        inp.type = 'text';
-        inp.value = linkUrl;
-        inp.placeholder = 'Paste product page URL...';
-        inp.style.cssText = 'flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none';
-        inp.onclick = e => e.stopPropagation();
-        inputRow.appendChild(inp);
-
-        const saveBtn = document.createElement('button');
-        saveBtn.textContent = 'Save';
-        saveBtn.style.cssText = 'background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer;white-space:nowrap';
-        saveBtn.onclick = function(e) {
-          e.stopPropagation();
-          saveChainPhoto(chainName, inp.value.trim());
-        };
-        inputRow.appendChild(saveBtn);
-        item.appendChild(inputRow);
-
+        const linkBtn = document.createElement('button');
+        linkBtn.textContent = linkUrl ? 'Edit link' : '+ Add link';
+        linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
+        linkBtn.addEventListener('click', (function(chainName, currentUrl) {
+          return function(e) {
+            e.stopPropagation();
+            showChainLinkModal(chainName, currentUrl);
+          };
+        })(c.name, linkUrl));
+        row2.appendChild(linkBtn);
+        item.appendChild(row2);
         mmBody.appendChild(item);
       });
 
@@ -1771,7 +1739,53 @@ function renderChainList() {
   });
 }
 
-// =================== STONES ===================
+function showChainLinkModal(chainName, currentUrl) {
+  // Remove existing modal
+  const existing = document.getElementById('chainLinkModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'chainLinkModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:420px';
+  modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px">Add product link</div>'
+    + '<div style="font-size:14px;color:var(--text);margin-bottom:12px">' + chainName + '</div>';
+
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.value = currentUrl;
+  inp.placeholder = 'Paste product page URL...';
+  inp.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;box-sizing:border-box;margin-bottom:12px';
+  modal.appendChild(inp);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  saveBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  saveBtn.onclick = () => {
+    saveChainPhoto(chainName, inp.value.trim());
+    overlay.remove();
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
+  cancelBtn.onclick = () => overlay.remove();
+
+  btnRow.appendChild(saveBtn);
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  setTimeout(() => inp.focus(), 50);
+}
+
+
 function addStone(type) {
   const id = stoneIdCounter++;
   stones.push({ id, cost: 0, desc: '', isSmall: false, gia: '', carat: '', color: '', clarity: '', cut: '', dealer: '', antique: false, detailsOpen: false });
