@@ -969,9 +969,10 @@
       <button onclick="addExtraPiece()" id="addExtraPieceBtn" style="width:100%;background:none;border:1px dashed var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px;cursor:pointer;border-radius:3px">+ Add another piece to this set</button>
     </div>
 
-    <div class="action-row" id="mainSaveButtons">
-      <button class="btn-primary" onclick="saveQuote('client')">Save — Client</button>
-      <button class="btn-primary" onclick="saveQuote('collection')" style="background:var(--teal-dim)">Save — Collection</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
+      <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
+      <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
+      <button class="btn-primary" onclick="saveQuote('collection')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
     </div>
 
     <div style="padding: 0 16px 8px">
@@ -987,7 +988,6 @@
       <div style="overflow-x:auto;scrollbar-width:none;margin-bottom:8px">
         <div class="toggle-group" style="min-width:max-content">
           <button class="toggle-btn active" onclick="setFilter('all',this)">All</button>
-          <button class="toggle-btn" onclick="setFilter('quote',this)">Quotes</button>
           <button class="toggle-btn" onclick="setFilter('project',this)">Client projects</button>
           <button class="toggle-btn" onclick="setFilter('collection',this)">Collection</button>
           <button class="toggle-btn" onclick="toggleArchivePanel(this)">Archived ▾</button>
@@ -2452,7 +2452,7 @@ function saveMultiPieceSet(quoteType) {
   const set = {
     id: Date.now(),
     client,
-    quoteType,
+    quoteType, // 'bespoke' | 'semi-custom' | 'collection'
     occasion,
     status: quoteType === 'collection' ? 'collection-quote' : 'quote',
     isMultiPiece: true,
@@ -3152,7 +3152,7 @@ function savePieceEdit(setId, pieceIdx) {
 
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
-  const statusLabel = q.status === 'project' ? 'PROJECT' : q.status === 'completed' ? 'COMPLETED' : q.status === 'abandoned' ? 'ABANDONED' : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : 'QUOTE';
+  const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : (q.isMultiPiece && q.pieces?.[0]?.pieceType ? (PIECE_EMOJIS[q.pieces[0].pieceType] || '') : '');
   const displayAmount = q.clientPrice > 0 ? q.clientPrice : q.total;
   const displayAmountColor = q.clientPrice > 0 ? 'color:var(--teal-dim)' : 'color:var(--gold)';
@@ -3220,8 +3220,11 @@ function buildMultiPieceCard(q) {
   // Action buttons
   const isActive = q.status === 'project' || q.status === 'quote' || q.status === 'collection-quote' || q.status === 'collection';
   if (isActive) {
-    if (q.status === 'quote' || q.status === 'collection-quote') {
+    if (q.status === 'quote') {
       html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+    }
+    if (q.status === 'collection-quote') {
+      html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Move to collection</button>';
     }
     // Actuals are updated per-piece via the Edit button on each piece row
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
@@ -3257,10 +3260,14 @@ function buildQuoteCard(q) {
   const statusLabel = archived.includes(q.status) ? 'ARCHIVED'
     : q.status === 'collection-quote' ? 'COLLECTION'
     : q.status === 'collection' ? 'COLLECTION'
-    : q.status === 'project' ? 'PROJECT'
-    : q.status === 'completed' ? '✓ COMPLETED'
+    : q.status === 'project' && q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
+    : q.status === 'project' ? (q.quoteType === 'collection' ? 'COLLECTION' : 'BESPOKE')
+    : q.status === 'completed' && q.quoteType === 'semi-custom' ? '✓ SEMI-CUSTOM'
+    : q.status === 'completed' ? '✓ BESPOKE'
     : q.status === 'abandoned' ? '✕ ABANDONED'
-    : 'QUOTE';
+    : q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
+    : q.quoteType === 'collection' ? 'COLLECTION'
+    : 'BESPOKE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
@@ -3325,7 +3332,9 @@ function buildQuoteCard(q) {
   if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
 
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  if (q.status === 'quote' || q.status === 'collection-quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+  if (q.status === 'quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+  if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
+
   if (q.status === 'project' || q.status === 'collection') {
     html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
     html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',\'completed\',event)">✓ Completed</button>';
@@ -3460,6 +3469,9 @@ function renderSaved() {
   let filtered;
   if (savedFilter === 'all') {
     filtered = allQuotes.filter(q => !nonActive.includes(q.status));
+  } else if (savedFilter === 'client') {
+    // Client projects = bespoke + semi-custom (active quotes and projects)
+    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection');
   } else if (savedFilter === 'collection') {
     filtered = allQuotes.filter(q => q.status === 'collection' || q.status === 'collection-quote');
   } else if (savedFilter === 'archived-all') {
@@ -3727,6 +3739,37 @@ function calcActualsLive(id) {
       + (total ? '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Retail</span><span style="color:var(--gold);font-size:15px">$' + total.toLocaleString() + '</span></div>' : '')
       + '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + ';font-size:15px">$' + profit.toLocaleString() + '</span></div>';
   }
+}
+
+function startSemiCustom(id, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const orig = quotes.find(q => q.id === id);
+  if (!orig) return;
+
+  const clientName = prompt('Client name for this semi-custom project:');
+  if (!clientName) return;
+
+  // Deep copy the collection piece as a new semi-custom entry
+  const newProject = JSON.parse(JSON.stringify(orig));
+  newProject.id = Date.now();
+  newProject.client = clientName;
+  newProject.quoteType = 'semi-custom';
+  newProject.status = 'quote';
+  newProject.clientPrice = 0;
+  newProject.actualLabor = null;
+  newProject.actualMetalCost = null;
+  newProject.actualStoneCost = null;
+  newProject.actualTotal = null;
+  newProject.castingCompany = '';
+  newProject.date = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  newProject.sourceCollectionId = orig.id; // reference back to collection original
+
+  const updated = [newProject, ...getSavedQuotes()];
+  window._savedQuotes = updated;
+  persistQuotes();
+  renderSaved();
+  showToast('Semi-custom project created for ' + clientName);
 }
 
 function saveActuals(id) {
