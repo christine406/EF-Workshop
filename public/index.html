@@ -689,16 +689,16 @@
         <div class="field">
           <div class="field-label">Type</div>
           <select id="pieceType" onchange="updateWeightOptions();updateFingerSizeVisibility()">
-            <option value="">Select type</option>
-            <optgroup label="Rings">
-              <option value="ring">Ring</option>
-            </optgroup>
-            <optgroup label="Pendants">
-              <option value="pendant">Pendant</option>
-            </optgroup>
-            <optgroup label="Earrings">
-              <option value="earrings">Earrings</option>
-            </optgroup>
+            <option value="">— select</option>
+            <option value="ring">Ring</option>
+            <option value="engagement-ring">Engagement ring</option>
+            <option value="band">Band</option>
+            <option value="wedding-band">Wedding band</option>
+            <option value="pendant">Pendant</option>
+            <option value="earrings">Earrings</option>
+            <option value="necklace">Necklace</option>
+            <option value="bracelet">Bracelet</option>
+            <option value="other">Other</option>
           </select>
         </div>
         <div class="field">
@@ -1257,6 +1257,9 @@ const OCCASION_EMOJIS = {
 
 const PIECE_EMOJIS = {
   'ring': '💍',
+  'engagement-ring': '💍',
+  'band': '⚭',
+  'wedding-band': '⚭',
   'pendant': '✨',
   'earrings': '💫',
   'necklace': '⛓️',
@@ -1953,7 +1956,7 @@ function calculate() {
   // Labor
   const laborRetail = Math.round(labor * 1.4);
   document.getElementById('laborCostDisplay').textContent = labor ? '$' + laborRetail.toLocaleString() : '—';
-  document.getElementById('laborSub').textContent = labor ? `est. $${labor.toLocaleString()} × 1.4` : '—';
+  document.getElementById('laborSub').textContent = labor ? `your cost $${labor.toLocaleString()} × 1.4 markup` : '—';
 
   // Design fee
   const designFee = parseFloat(document.getElementById('designFee').value) || 0;
@@ -2228,7 +2231,7 @@ function renderExtraPieces() {
 
     const cutOptions = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
     const purityOpts = [['18k','18k Yellow'],['18kw','18k White'],['14k','14k Yellow'],['14kw','14k White'],['plat','Platinum']];
-    const pieceOpts = [['','— select'],['ring','Ring'],['band','Band'],['pendant','Pendant'],['earrings','Earrings'],['necklace','Necklace'],['bracelet','Bracelet'],['other','Other']];
+    const pieceOpts = [['','— select'],['ring','Ring'],['engagement-ring','Engagement ring'],['band','Band'],['wedding-band','Wedding band'],['pendant','Pendant'],['earrings','Earrings'],['necklace','Necklace'],['bracelet','Bracelet'],['other','Other']];
 
     let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
       + '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold)">Piece ' + (idx + 2) + '</div>'
@@ -2287,7 +2290,9 @@ function renderExtraPieces() {
       + '<div style="display:flex;justify-content:space-between;font-size:13px">'
       + '<span style="color:#7a5a20">Piece ' + (idx+2) + ' retail</span>'
       + '<span style="color:#7f0034;font-size:16px" id="extra-total-' + p.id + '">—</span>'
-      + '</div></div>';
+      + '</div>'
+      + '<div style="font-size:11px;color:#9a7a40;margin-top:4px" id="extra-breakdown-' + p.id + '"></div>'
+      + '</div>';
 
     div.innerHTML = html;
     container.appendChild(div);
@@ -2299,7 +2304,7 @@ function calcExtraPiece(id) {
   const p = _extraPieces.find(p => p.id === id);
   if (!p) return;
   const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0) + (p.meleeCost||0) * 1.75;
-  const metalMarkup = Math.round((p.metalCost||0) * 1.35);
+  const metalMarkup = Math.round((p.metalCost||0) * 1.05 * 1.35);
   const laborRetail = (p.laborCost||0) * 1.4;
   const rest = metalMarkup + Math.round(laborRetail) + (p.designFee||0);
   const rawTotal = stoneRetail + rest * 1.13;
@@ -2310,13 +2315,21 @@ function calcExtraPiece(id) {
   if (el && totalEl) {
     el.style.display = total ? 'block' : 'none';
     totalEl.textContent = total ? '$' + total.toLocaleString() : '—';
+    const breakdownEl = document.getElementById('extra-breakdown-' + id);
+    if (breakdownEl) {
+      const stoneR = Math.round(stoneRetail);
+      const overhead = Math.round(rest * 1.13);
+      breakdownEl.textContent = (stoneR ? 'stones $' + stoneR.toLocaleString() : '') 
+        + (stoneR && overhead ? ' + ' : '') 
+        + (overhead ? 'overhead $' + overhead.toLocaleString() : '');
+    }
   }
 }
 
 function getExtraPiecesForSave() {
   return _extraPieces.map(p => {
     const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0) + (p.meleeCost||0) * 1.75;
-    const metalMarkup = Math.round((p.metalCost||0) * 1.35);
+    const metalMarkup = Math.round((p.metalCost||0) * 1.05 * 1.35);
     const laborRetail = (p.laborCost||0) * 1.4;
     const rest = metalMarkup + Math.round(laborRetail) + (p.designFee||0);
     const rawTotal = stoneRetail + rest * 1.13;
@@ -2893,6 +2906,125 @@ function markProjectStatus(id, newStatus, e) {
   }
 }
 
+function deletePieceFromSet(setId, pieceIdx, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === setId);
+  if (!q || !q.pieces) return;
+  if (q.pieces.length <= 1) { showToast('Cannot delete the only piece — delete the whole project instead'); return; }
+  if (!confirm('Delete this piece from the set?')) return;
+  q.pieces.splice(pieceIdx, 1);
+  q.total = q.pieces.reduce((s, p) => s + (p.total||0), 0);
+  if (q.pieces.length === 1) q.isMultiPiece = false; // downgrade to single if only one left
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+  showToast('Piece removed');
+}
+
+function openAddPieceToSet(setId, e) {
+  e.stopPropagation();
+  const formDiv = document.getElementById('add-piece-form-' + setId);
+  if (!formDiv) return;
+  if (formDiv.style.display !== 'none') { formDiv.style.display = 'none'; return; }
+
+  const pieceOpts = [['','— select'],['ring','Ring'],['band','Band'],['pendant','Pendant'],['earrings','Earrings'],['necklace','Necklace'],['bracelet','Bracelet'],['other','Other']];
+  const purityOpts = [['18k','18k Yellow'],['18kw','18k White'],['14k','14k Yellow'],['14kw','14k White'],['plat','Platinum']];
+  const fid = 'apf-' + setId;
+
+  let html = '<div style="background:var(--surface2);border:1px solid var(--gold);border-radius:3px;padding:12px">'
+    + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">New piece</div>'
+    + '<div class="field-row">'
+    + '<div class="field"><div class="field-label">Piece type</div>'
+    + '<select id="' + fid + '-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">'
+    + pieceOpts.map(o => '<option value="'+o[0]+'">'+o[1]+'</option>').join('') + '</select></div>'
+    + '<div class="field"><div class="field-label">Purity</div>'
+    + '<select id="' + fid + '-purity" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">'
+    + purityOpts.map(o => '<option value="'+o[0]+'">'+o[1]+'</option>').join('') + '</select></div></div>'
+    + '<div class="field-row">'
+    + '<div class="field"><div class="field-label">Finger size</div><input type="text" id="' + fid + '-fsize" placeholder="e.g. 6.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Stone cost ($)</div><input type="number" id="' + fid + '-stone" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div></div>'
+    + '<div class="field-row">'
+    + '<div class="field"><div class="field-label">Melee / materials ($)</div><input type="number" id="' + fid + '-melee" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="' + fid + '-metal" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div></div>'
+    + '<div class="field-row">'
+    + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="' + fid + '-labor" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Design fee ($)</div><input type="number" id="' + fid + '-design" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Notes</div><input type="text" id="' + fid + '-notes" placeholder="Stone details, design notes..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none"></div>'
+    + '<div id="' + fid + '-result" style="display:none;background:#e8d9b8;border:1px solid #ccc07a;border-radius:3px;padding:8px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between"><span style="color:#7a5a20">Retail</span><span id="' + fid + '-total" style="color:#7f0034;font-size:16px">—</span></div>'
+    + '<div style="display:flex;gap:8px;margin-top:10px">'
+    + '<button onclick="saveNewPieceToSet(' + setId + ')" class="btn-primary" style="flex:1;padding:9px;font-size:11px">Add to set</button>'
+    + '<button onclick="document.getElementById(&quot;add-piece-form-' + setId + '&quot;).style.display=&quot;none&quot;" class="btn-secondary" style="padding:9px;font-size:11px">Cancel</button>'
+    + '</div></div>';
+
+  formDiv.innerHTML = html;
+  formDiv.style.display = 'block';
+  formDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function calcNewPieceForSet(setId) {
+  const fid = 'apf-' + setId;
+  const stoneCost = parseFloat(document.getElementById(fid + '-stone')?.value) || 0;
+  const meleeCost = parseFloat(document.getElementById(fid + '-melee')?.value) || 0;
+  const metalCost = parseFloat(document.getElementById(fid + '-metal')?.value) || 0;
+  const laborCost = parseFloat(document.getElementById(fid + '-labor')?.value) || 0;
+  const designFee = parseFloat(document.getElementById(fid + '-design')?.value) || 0;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const metalMarkup = Math.round(metalCost * 1.35);
+  const laborRetail = laborCost * 1.4;
+  const rest = metalMarkup + Math.round(laborRetail) + designFee;
+  const total = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
+  const resultEl = document.getElementById(fid + '-result');
+  const totalEl = document.getElementById(fid + '-total');
+  if (resultEl && totalEl) {
+    resultEl.style.display = total ? 'flex' : 'none';
+    totalEl.textContent = total ? '$' + total.toLocaleString() : '—';
+  }
+}
+
+function saveNewPieceToSet(setId) {
+  const fid = 'apf-' + setId;
+  const stoneCost = parseFloat(document.getElementById(fid + '-stone')?.value) || 0;
+  const meleeCost = parseFloat(document.getElementById(fid + '-melee')?.value) || 0;
+  const metalCost = parseFloat(document.getElementById(fid + '-metal')?.value) || 0;
+  const laborCost = parseFloat(document.getElementById(fid + '-labor')?.value) || 0;
+  const designFee = parseFloat(document.getElementById(fid + '-design')?.value) || 0;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const metalMarkup = Math.round(metalCost * 1.35);
+  const laborRetail = laborCost * 1.4;
+  const rest = metalMarkup + Math.round(laborRetail) + designFee;
+  const total = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
+
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === setId);
+  if (!q) return;
+
+  const newPiece = {
+    id: Date.now(),
+    pieceType: document.getElementById(fid + '-type')?.value || 'piece',
+    purity: document.getElementById(fid + '-purity')?.value || '18k',
+    fingerSize: document.getElementById(fid + '-fsize')?.value || '',
+    notes: document.getElementById(fid + '-notes')?.value || '',
+    stoneCost, meleeCost, metalCost,
+    laborEst: laborCost, designFee,
+    chainCost: 0, chainName: '',
+    stones: [], total,
+    stoneTotal: Math.round(stoneRetail),
+    metalTotal: metalMarkup,
+    laborTotal: Math.round(laborRetail),
+  };
+
+  if (!q.pieces) q.pieces = [];
+  q.pieces.push(newPiece);
+  q.isMultiPiece = true;
+  q.total = q.pieces.reduce((s, p) => s + (p.total||0), 0);
+
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+  showToast('Piece added to set');
+}
+
 function editPieceActuals(setId, pieceIdx, e) {
   // Open the edit form then scroll to actuals section
   editPieceInSet(setId, pieceIdx, e);
@@ -2915,7 +3047,7 @@ function editPieceInSet(setId, pieceIdx, e) {
   const p = q.pieces[pieceIdx];
   if (!p) return;
 
-  const pieceOpts = [['','— select'],['ring','Ring'],['band','Band'],['pendant','Pendant'],['earrings','Earrings'],['necklace','Necklace'],['bracelet','Bracelet'],['other','Other']];
+  const pieceOpts = [['','— select'],['ring','Ring'],['engagement-ring','Engagement ring'],['band','Band'],['wedding-band','Wedding band'],['pendant','Pendant'],['earrings','Earrings'],['necklace','Necklace'],['bracelet','Bracelet'],['other','Other']];
   const purityOpts = [['18k','18k Yellow'],['18kw','18k White'],['14k','14k Yellow'],['14kw','14k White'],['plat','Platinum']];
 
   let html = '<div style="background:var(--surface2);border:1px solid var(--teal-dim);border-radius:3px;padding:12px">'
@@ -3060,6 +3192,7 @@ function buildMultiPieceCard(q) {
       + '<div style="font-size:14px;color:var(--gold);white-space:nowrap">$' + (p.total||0).toLocaleString() + '</div>'
       + '<button onclick="editPieceInSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Edit</button>'
       + '<button onclick="editPieceActuals(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Actuals</button>'
+      + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
       + '<div id="' + editId + '" style="display:none;margin-top:8px"></div>'
       + '</div>';
@@ -3067,6 +3200,8 @@ function buildMultiPieceCard(q) {
   html += '<div style="display:flex;justify-content:space-between;padding-top:8px;font-size:13px">'
     + '<span style="color:var(--text-dim)">Set total</span>'
     + '<span style="color:var(--gold);font-size:16px">$' + q.total.toLocaleString() + '</span></div>';
+  html += '<div style="margin-top:10px"><button onclick="openAddPieceToSet(' + q.id + ',event)" style="width:100%;background:none;border:1px dashed var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:8px;cursor:pointer;border-radius:3px">+ Add piece to this set</button></div>';
+  html += '<div id="add-piece-form-' + q.id + '" style="display:none;margin-top:8px"></div>';
   html += '</div>';
 
   // Discount + client price
@@ -3245,9 +3380,17 @@ function renderPL() {
       chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
       designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
     } else {
-      stoneCost = q.actualStoneCost ?? (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
-      metalCost = q.actualMetalCost ?? 0;
-      laborCost = q.actualLabor ?? (q.laborEst || 0);
+      // Use actuals if explicitly set (non-null), otherwise fall back to estimates
+      // Note: use != null (not || 0) so that a real 0 doesn't incorrectly trigger fallback
+      stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0)
+        ? q.actualStoneCost
+        : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0) + (q.meleeCost || 0);
+      metalCost = (q.actualMetalCost != null && q.actualMetalCost > 0)
+        ? q.actualMetalCost
+        : (q.metalEstimate ? q.metalEstimate / 1.35 : 0); // back-calculate from estimate
+      laborCost = (q.actualLabor != null && q.actualLabor > 0)
+        ? q.actualLabor
+        : (q.laborEst || 0);
       chainCost = q.chainCost || 0;
       designFee = q.designFee || 0;
     }
@@ -3493,7 +3636,7 @@ function updateActuals(id, e) {
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
         <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : ''} ${q.grams ? '(' + q.grams + 'g ' + (q.purity||'') + ')' : q.purity || ''}</div>
+        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : '—'}${q.purity ? ' · ' + q.purity : ''}</div>
         <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
         <div style="color:var(--text-dim)">Design fee</div><div style="color:var(--text)">${(q.designFee||0).toLocaleString()}</div>
         <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
@@ -3512,17 +3655,17 @@ function updateActuals(id, e) {
       </div>
       <div>
         <div class="field-label">Final casting cost ($)</div>
-        <input type="number" id="af-metal-${id}" value="${q.actualMetalCost || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-metal-${id}" value="${q.actualMetalCost != null ? q.actualMetalCost : (q.metalEstimate || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Stone cost ($)</div>
-        <input type="number" id="af-stone-${id}" value="${q.actualStoneCost || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-stone-${id}" value="${q.actualStoneCost != null ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st)=>s+(st.cost||0),0) : '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Final labor cost ($)</div>
-        <input type="number" id="af-labor-${id}" value="${q.actualLabor || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-labor-${id}" value="${q.actualLabor != null ? q.actualLabor : (q.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
@@ -3577,10 +3720,11 @@ function calcActualsLive(id) {
   const profit = revenue - totalCost;
 
   const liveEl = document.getElementById('af-live-' + id);
-  if (liveEl) { liveEl.style.display = total ? 'block' : 'none'; }
-  if (liveEl && total) {
-    liveEl.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Retail</span><span style="color:var(--gold);font-size:16px">$' + total.toLocaleString() + '</span></div>'
-      + '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + ';font-size:16px">$' + profit.toLocaleString() + '</span></div>';
+  if (liveEl) liveEl.style.display = 'block';
+  if (liveEl) {
+    liveEl.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Total costs</span><span style="color:var(--text);font-size:15px">$' + totalCost.toLocaleString() + '</span></div>'
+      + (total ? '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Retail</span><span style="color:var(--gold);font-size:15px">$' + total.toLocaleString() + '</span></div>' : '')
+      + '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + ';font-size:15px">$' + profit.toLocaleString() + '</span></div>';
   }
 }
 
@@ -3589,15 +3733,28 @@ function saveActuals(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
 
-  const stoneCost = parseFloat(document.getElementById('af-stone-' + id)?.value) || 0;
-  const metalCost = parseFloat(document.getElementById('af-metal-' + id)?.value) || 0;
-  const laborCost = parseFloat(document.getElementById('af-labor-' + id)?.value) || 0;
-  const designFee = parseFloat(document.getElementById('af-design-' + id)?.value) || 0;
-  const castingCompany = document.getElementById('af-caster-' + id)?.value || '';
+  // Use original quote values as fallback when fields are left blank
+  const origStoneCost = q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : (q.actualStoneCost || 0);
+  const origMetalCost = q.metalEstimate || 0;
+  const origLaborCost = q.laborEst || 0;
+  const origDesignFee = q.designFee || 0;
+
+  const stoneField = document.getElementById('af-stone-' + id)?.value;
+  const metalField = document.getElementById('af-metal-' + id)?.value;
+  const laborField = document.getElementById('af-labor-' + id)?.value;
+  const designField = document.getElementById('af-design-' + id)?.value;
+  const clientField = document.getElementById('af-client-' + id)?.value;
+
+  const stoneCost = stoneField !== '' && stoneField != null ? parseFloat(stoneField) : origStoneCost;
+  const metalCost = metalField !== '' && metalField != null ? parseFloat(metalField) : origMetalCost;
+  const laborCost = laborField !== '' && laborField != null ? parseFloat(laborField) : origLaborCost;
+  const designFee = designField !== '' && designField != null ? parseFloat(designField) : origDesignFee;
+  const clientPrice = clientField !== '' && clientField != null ? parseFloat(clientField) || 0 : (q.clientPrice || 0);
+
+  const castingCompany = document.getElementById('af-caster-' + id)?.value || q.castingCompany || '';
   const chainEl = document.getElementById('af-chain-' + id);
   const chainIdx = chainEl?.value || '';
-  const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
-  const clientPrice = parseFloat(document.getElementById('af-client-' + id)?.value) || 0;
+  const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : (q.chainCost || 0);
 
   q.actualStoneCost = stoneCost;
   q.actualMetalCost = metalCost;
