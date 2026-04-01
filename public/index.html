@@ -4444,83 +4444,71 @@ function editInventoryStone(id) {
 }
 
 function saveInventoryStone() {
+  const form = document.getElementById('addStoneForm');
+  const editingId = form?.dataset?.editingId;
   const category = document.getElementById('si-category').value;
   const cut = document.getElementById('si-cut').value;
   const carat = parseFloat(document.getElementById('si-carat').value) || 0;
   const color = document.getElementById('si-color').value.trim();
   const clarity = document.getElementById('si-clarity').value.trim();
   const gia = document.getElementById('si-gia').value.trim();
-  const photoUrl = document.getElementById('si-photo-url')?.value?.trim() || '';
   const dealerSel = document.getElementById('si-dealer').value;
   const dealer = dealerSel === 'other' ? (document.getElementById('si-other-dealer').value.trim() || 'Other') : dealerSel;
   const cost = parseFloat(document.getElementById('si-cost').value) || 0;
   const notes = document.getElementById('si-notes').value.trim();
   const returnBy = document.getElementById('si-return-by').value.trim();
   const antique = document.getElementById('si-antique').checked;
+  const photoUrl = document.getElementById('si-photo-url')?.value?.trim() || '';
 
-  if (!carat && !gia) { showToast('Enter at least a carat weight or GIA number'); return; }
+  const inv = getInventory();
 
-  const editingId = document.getElementById('addStoneForm').dataset.editingId;
-
-  if (editingId) {
-    // Edit existing stone
-    const inv = getInventory();
-    const idx = inv.findIndex(s => s.id === parseFloat(editingId));
-    if (idx !== -1) {
-      // Derive status from category — allow override even if in-use
-      const currentStatus = inv[idx].status;
-      let newStatus = currentStatus;
-      if (category === 'owned-reserved') newStatus = 'unavailable';
-      else if (category === 'owned-available' && currentStatus !== 'in-use') newStatus = 'available';
-      else if (category === 'memo' && currentStatus !== 'in-use') newStatus = 'available';
-      else if (category === 'viewed' && currentStatus !== 'in-use') newStatus = 'available';
-      inv[idx] = { ...inv[idx], category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique, status: newStatus };
-      window._inventory = inv;
-      persistInventory();
-    }
-    delete document.getElementById('addStoneForm').dataset.editingId;
-    closeAddStoneForm();
-    renderStoneInventory();
-    showToast('Stone updated');
-  } else {
-    // New stone — check for duplicates first
-    const photoUrl = document.getElementById('si-photo-url')?.value?.trim() || '';
-    const inv = getInventory();
-
-    // Check by GIA number first (strongest match)
-    const giaMatch = gia && inv.find(s => s.gia && s.gia.trim() === gia.trim());
+  if (!editingId) {
+    // Duplicate check — GIA match first, then specs match
+    const giaMatch = gia && inv.find(s => s.gia && s.gia.trim() === gia);
     if (giaMatch) {
-      const msg = 'This GIA number (' + gia + ') is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded || 'unknown date') + '\n' + [giaMatch.carat ? giaMatch.carat + 'ct' : '', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+      const msg = 'GIA ' + gia + ' is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded||'unknown') + '\n' + [giaMatch.carat?giaMatch.carat+'ct':'', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
       if (!confirm(msg)) return;
     } else if (carat && color && clarity) {
-      // Fuzzy match by specs
-      const specsMatch = inv.find(s =>
-        Math.abs((parseFloat(s.carat)||0) - carat) < 0.05 &&
-        s.color?.toUpperCase() === color.toUpperCase() &&
-        s.clarity?.toUpperCase() === clarity.toUpperCase()
-      );
+      const specsMatch = inv.find(s => Math.abs((parseFloat(s.carat)||0) - carat) < 0.05 && (s.color||'').toUpperCase() === color.toUpperCase() && (s.clarity||'').toUpperCase() === clarity.toUpperCase());
       if (specsMatch) {
-        const msg = 'A very similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded || 'unknown date') + '\n' + [specsMatch.carat ? specsMatch.carat + 'ct' : '', specsMatch.cut, specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+        const msg = 'A similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded||'unknown') + '\n' + [specsMatch.carat?specsMatch.carat+'ct':'', specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
         if (!confirm(msg)) return;
       }
     }
 
+    // New stone
     const stone = {
-      id: Date.now(),
-      category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
+      id: Date.now(), category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
       photoUrl: photoUrl || undefined,
       status: category === 'owned-reserved' ? 'unavailable' : 'available',
       dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
-      usedInProjectId: null,
+      inquiries: [], usedInProjectId: null,
     };
-    const updated = [...getInventory(), stone];
-    window._inventory = updated;
+    window._inventory = [...inv, stone];
     persistInventory();
     closeAddStoneForm();
     renderStoneInventory();
-    showToast('Stone saved');
+    showToast('Stone added');
+
+  } else {
+    // Editing existing stone
+    const s = inv.find(s => String(s.id) === String(editingId));
+    if (s) {
+      s.category = category; s.cut = cut; s.carat = carat; s.color = color;
+      s.clarity = clarity; s.gia = gia; s.dealer = dealer; s.cost = cost;
+      s.notes = notes; s.returnBy = returnBy; s.antique = antique;
+      if (photoUrl) s.photoUrl = photoUrl;
+      if (category === 'owned-reserved') s.status = 'unavailable';
+      else if (s.status === 'unavailable' && category !== 'owned-reserved') s.status = 'available';
+    }
+    window._inventory = inv;
+    persistInventory();
+    closeAddStoneForm();
+    renderStoneInventory();
+    showToast('Stone updated');
   }
 }
+
 
 function toggleInquiryForm(stoneId) {
   const form = document.getElementById('inq-form-' + stoneId);
@@ -4781,6 +4769,11 @@ function renderStoneInventory() {
     html += `<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="editInventoryStone(${s.id})">Edit</button>`;
     html += `<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="deleteInventoryStone(${s.id})">Delete</button>`;
     html += '</div>';
+
+    // Photo (if exists)
+    if (s.photoUrl) {
+      html += `<div style="margin-bottom:10px"><img src="${s.photoUrl}" style="width:100%;max-width:220px;border-radius:4px;display:block" onerror="this.style.display='none'"></div>`;
+    }
 
     // Inquiry form (hidden by default)
     html += `<div id="inq-form-${s.id}" style="display:none;margin-top:10px;background:var(--surface2);border-radius:3px;padding:10px">
