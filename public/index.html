@@ -4251,7 +4251,7 @@ async function lookupGIAByNumber() {
     const res = await fetch('/api/gia-lookup?report=' + encodeURIComponent(giaNum));
     const data = await res.json();
     if (!data.found && !data.carat) {
-      statusEl.textContent = 'Report not found or not public — fill in manually';
+      statusEl.textCnnerHTML = 'Not found automatically — <a href="https://www.gia.edu/report-check?reportno=' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
       statusEl.style.color = '#ccc07a';
       return;
     }
@@ -4260,7 +4260,7 @@ async function lookupGIAByNumber() {
     statusEl.textContent = '✓ ' + filled.join(' · ');
     statusEl.style.color = 'var(--green-bright)';
   } catch(e) {
-    statusEl.textContent = 'Lookup failed — fill in manually';
+    statusEl.innerHTML = 'Lookup failed — <a href="https://www.gia.edu/report-check?reportno=' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
     statusEl.style.color = '#ccc07a';
   }
 }
