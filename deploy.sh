@@ -15,16 +15,8 @@ if [ -z "$ZIP" ]; then
   exit 1
 fi
 
-echo "📦 Found zip: $(basename "$ZIP")"
+echo "📦 Using zip: $(basename "$ZIP")"
 echo ""
-
-# Ask for confirmation
-read -p "Replace EF-Workshop files with this zip? (y/n) " -n 1 -r
-echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-  echo "Cancelled."
-  exit 0
-fi
 
 # ── 2. Extract to a temp folder ──
 TEMP_DIR=$(mktemp -d)
