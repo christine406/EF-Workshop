@@ -1582,6 +1582,11 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
           document.getElementById(selectedLabelId).textContent = karat + ' ' + c.name + ' · ' + c.length;
           document.getElementById(selectedLabelId).style.color = 'var(--gold)';
           onSelect(c.idx);
+          // Collapse tree after selection
+          const tree = document.getElementById(containerId);
+          if (tree) tree.style.display = 'none';
+          const toggleBtn = document.getElementById(containerId + '-toggle');
+          if (toggleBtn) toggleBtn.style.display = 'inline-block';
         });
         mmBody.appendChild(item);
       });
