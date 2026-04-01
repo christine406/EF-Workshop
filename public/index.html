@@ -1709,20 +1709,55 @@ function renderChainList() {
 
         const safeKey = c.name.replace(/[^a-zA-Z0-9]/g, '_');
         const linkUrl = photos[c.name] || '';
-        item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
-          + '<div><div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
+        const chainName = c.name;
+
+        // Build header
+        const headerDiv = document.createElement('div');
+        headerDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px';
+        headerDiv.innerHTML = '<div><div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
           + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g</div></div>'
           + '<div style="text-align:right;padding-right:12px">'
           + '<div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
           + '<div style="font-size:13px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
-          + '</div></div>'
-          + (linkUrl ? '<div style="margin-bottom:6px"><a href="' + linkUrl + '" target="_blank" style="display:inline-block;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;text-decoration:none">↗ Product page</a></div>' : '')
-          + '<div style="padding-right:12px" onclick="event.stopPropagation()">'
-          + '<input type="text" value="' + linkUrl + '" placeholder="Paste product URL — saves automatically when you click away..." onclick="event.stopPropagation()" '
-          + 'onblur="saveChainPhoto(this.dataset.name,this.value.trim())" '
-          + 'data-name="' + c.name.replace(/"/g,'&quot;') + '" '
-          + 'style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none;box-sizing:border-box">'
           + '</div>';
+        item.appendChild(headerDiv);
+
+        // Product page button (if link exists)
+        const linkRow = document.createElement('div');
+        linkRow.style.cssText = 'margin-bottom:6px';
+        if (linkUrl) {
+          const a = document.createElement('a');
+          a.href = linkUrl;
+          a.target = '_blank';
+          a.textContent = '↗ Product page';
+          a.style.cssText = 'display:inline-block;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;text-decoration:none';
+          a.onclick = e => e.stopPropagation();
+          linkRow.appendChild(a);
+        }
+        item.appendChild(linkRow);
+
+        // URL input + save button
+        const inputRow = document.createElement('div');
+        inputRow.style.cssText = 'display:flex;gap:6px;align-items:center;padding-right:12px';
+        inputRow.onclick = e => e.stopPropagation();
+
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.value = linkUrl;
+        inp.placeholder = 'Paste product page URL...';
+        inp.style.cssText = 'flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none';
+        inp.onclick = e => e.stopPropagation();
+        inputRow.appendChild(inp);
+
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save';
+        saveBtn.style.cssText = 'background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer;white-space:nowrap';
+        saveBtn.onclick = function(e) {
+          e.stopPropagation();
+          saveChainPhoto(chainName, inp.value.trim());
+        };
+        inputRow.appendChild(saveBtn);
+        item.appendChild(inputRow);
 
         mmBody.appendChild(item);
       });
