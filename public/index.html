@@ -2518,6 +2518,7 @@ function saveQuote(quoteType = 'client') {
     total,
     fingerSize,
     clientBudget,
+    metalEstimate: Math.round(getMetalCost(grams, purity)),
     date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
     actualLabor: null,
     actualStones: null,
@@ -3492,7 +3493,7 @@ function updateActuals(id, e) {
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
         <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.grams ? q.grams + 'g ' : ''}${q.purity || ''}</div>
+        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : ''} ${q.grams ? '(' + q.grams + 'g ' + (q.purity||'') + ')' : q.purity || ''}</div>
         <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
         <div style="color:var(--text-dim)">Design fee</div><div style="color:var(--text)">${(q.designFee||0).toLocaleString()}</div>
         <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
