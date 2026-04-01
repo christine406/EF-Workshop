@@ -1567,11 +1567,13 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
       chains.forEach(c => {
         const item = document.createElement('div');
         item.style.cssText = 'padding:8px 10px 8px 28px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s';
+        const pickerLink = (getChainPhotos())[c.name] || '';
         item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline">'
           + '<span style="font-size:14px;color:var(--text)">' + c.name + '</span>'
           + '<span style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</span>'
           + '</div>'
-          + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g · retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>';
+          + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g · retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
+          + (pickerLink ? '<div style="margin-top:4px"><a href="' + pickerLink + '" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none">↗ Product page</a></div>' : '');
         item.onmouseover = () => item.style.background = 'var(--surface2)';
         item.onmouseout = () => item.style.background = '';
         item.onclick = (e) => {
@@ -1705,6 +1707,7 @@ function renderChainList() {
         item.style.cssText = 'padding:10px 0 10px 24px;border-bottom:1px solid var(--border)';
 
         const safeKey = c.name.replace(/[^a-zA-Z0-9]/g, '_');
+        const linkUrl = photos[c.name] || '';
         item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">'
           + '<div><div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
           + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g</div></div>'
@@ -1712,11 +1715,11 @@ function renderChainList() {
           + '<div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
           + '<div style="font-size:13px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
           + '</div></div>'
-          + (photoUrl ? '<img src="' + photoUrl + '" style="width:100%;max-width:300px;border-radius:3px;margin-bottom:6px;display:block" onerror="this.style.display=&quot;none&quot;">' : '')
+          + (linkUrl ? '<div style="margin-bottom:6px"><a href="' + linkUrl + '" target="_blank" style="font-size:12px;color:var(--teal-dim);text-decoration:none">↗ View product page</a></div>' : '')
           + '<div style="display:flex;gap:6px;align-items:center;padding-right:12px">'
-          + '<input type="text" id="photo-' + safeKey + '" value="' + photoUrl + '" placeholder="Paste photo URL..." '
+          + '<input type="text" id="link-' + safeKey + '" value="' + linkUrl + '" placeholder="Paste product page URL..." '
           + 'style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none">'
-          + '<button onclick="var v=document.getElementById(this.dataset.key).value.trim();saveChainPhoto(this.dataset.name,v);renderChainList()" data-name="' + c.name.replace(/"/g,'&quot;') + '" data-key="photo-' + safeKey + '" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer;white-space:nowrap">Save</button>'
+          + '<button onclick="var k=this.dataset.key,v=document.getElementById(k).value.trim();saveChainPhoto(this.dataset.name,v);renderChainList()" data-key="link-' + safeKey + '" data-name="' + c.name.replace(/"/g,'&quot;') + '" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer;white-space:nowrap">Save</button>'
           + '</div>';
 
         mmBody.appendChild(item);
