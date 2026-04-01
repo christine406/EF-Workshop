@@ -3152,7 +3152,7 @@ function savePieceEdit(setId, pieceIdx) {
 
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
-  const statusLabel = q.status === 'project' ? 'PROJECT' : q.status === 'completed' ? 'COMPLETED' : q.status === 'abandoned' ? 'ABANDONED' : 'QUOTE';
+  const statusLabel = q.status === 'project' ? 'PROJECT' : q.status === 'completed' ? 'COMPLETED' : q.status === 'abandoned' ? 'ABANDONED' : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : 'QUOTE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : (q.isMultiPiece && q.pieces?.[0]?.pieceType ? (PIECE_EMOJIS[q.pieces[0].pieceType] || '') : '');
   const displayAmount = q.clientPrice > 0 ? q.clientPrice : q.total;
   const displayAmountColor = q.clientPrice > 0 ? 'color:var(--teal-dim)' : 'color:var(--gold)';
@@ -3254,12 +3254,13 @@ function buildQuoteCard(q) {
     : q.status === 'completed' ? 'status-project'
     : q.status === 'abandoned' ? 'status-archived'
     : 'status-quote';
-  const statusLabel = archived.includes(q.status) ? 'archived'
-    : q.status === 'collection-quote' ? 'collection quote'
-    : q.status === 'collection' ? 'collection'
-    : q.status === 'completed' ? '✓ completed'
-    : q.status === 'abandoned' ? '✕ abandoned'
-    : q.status;
+  const statusLabel = archived.includes(q.status) ? 'ARCHIVED'
+    : q.status === 'collection-quote' ? 'COLLECTION'
+    : q.status === 'collection' ? 'COLLECTION'
+    : q.status === 'project' ? 'PROJECT'
+    : q.status === 'completed' ? '✓ COMPLETED'
+    : q.status === 'abandoned' ? '✕ ABANDONED'
+    : 'QUOTE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
@@ -3324,7 +3325,7 @@ function buildQuoteCard(q) {
   if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
 
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  if (q.status === 'quote' || q.status === 'collection-quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ ' + (q.status === 'collection-quote' ? 'Move to collection' : 'Convert to project') + '</button>';
+  if (q.status === 'quote' || q.status === 'collection-quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
   if (q.status === 'project' || q.status === 'collection') {
     html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
     html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',\'completed\',event)">✓ Completed</button>';
