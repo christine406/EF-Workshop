@@ -1576,13 +1576,13 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
           + (pickerLink ? '<div style="margin-top:4px"><a href="' + pickerLink + '" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none">↗ Product page</a></div>' : '');
         item.onmouseover = () => item.style.background = 'var(--surface2)';
         item.onmouseout = () => item.style.background = '';
-        item.onclick = (e) => {
+        item.addEventListener('click', (e) => {
           e.stopPropagation();
           document.getElementById(hiddenInputId).value = c.idx;
           document.getElementById(selectedLabelId).textContent = karat + ' ' + c.name + ' · ' + c.length;
           document.getElementById(selectedLabelId).style.color = 'var(--gold)';
           onSelect(c.idx);
-        };
+        });
         mmBody.appendChild(item);
       });
 
@@ -1644,7 +1644,8 @@ function saveChainPhoto(chainName, url) {
   else delete photos[chainName];
   window._chainPhotos = photos;
   if (window._fb) window._fb.saveChainPhotos(photos);
-  if (typeof renderChainList === 'function') renderChainList();
+  showToast(url ? 'Link saved' : 'Link removed');
+  renderChainList();
 }
 
 function renderChainList() {
@@ -1766,10 +1767,16 @@ function showChainLinkModal(chainName, currentUrl) {
   const saveBtn = document.createElement('button');
   saveBtn.textContent = 'Save';
   saveBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
-  saveBtn.onclick = () => {
-    saveChainPhoto(chainName, inp.value.trim());
+  saveBtn.addEventListener('click', () => {
+    const url = inp.value.trim();
+    const photos = getChainPhotos();
+    if (url) photos[chainName] = url; else delete photos[chainName];
+    window._chainPhotos = photos;
+    if (window._fb) window._fb.saveChainPhotos(photos);
+    showToast(url ? 'Link saved' : 'Link removed');
     overlay.remove();
-  };
+    renderChainList();
+  });
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
