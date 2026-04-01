@@ -1632,15 +1632,21 @@ function renderChainList() {
     const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
     const chainsInMetal = CHAINS.filter(c => c.karat === karat);
 
-    // Group by type
-
+    // Group by mm size
+    const byMm = {};
+    chainsInMetal.forEach(c => {
+      const m = c.name.match(/(\d+\.?\d*)mm/);
+      const mmKey = m ? parseFloat(m[1]) + 'mm' : 'Other';
+      if (!byMm[mmKey]) byMm[mmKey] = [];
+      byMm[mmKey].push(c);
+    });
+    const mmKeys = Object.keys(byMm).sort((a, b) => (parseFloat(a)||0) - (parseFloat(b)||0));
 
     // Metal header
     const metalHeader = document.createElement('div');
     metalHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid var(--teal-dim);cursor:pointer;margin-bottom:4px';
-    metalHeader.innerHTML = `
-      <span style="font-size:14px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase">${metalLabel}</span>
-      <span style="font-size:13px;color:var(--text-dim)">${Object.keys(byType).length} types ▾</span>`;
+    metalHeader.innerHTML = '<span style="font-size:14px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase">' + metalLabel + '</span>'
+      + '<span style="font-size:13px;color:var(--text-dim)">' + mmKeys.length + ' sizes ▾</span>';
 
     const metalBody = document.createElement('div');
     metalBody.style.display = 'none';
@@ -1649,49 +1655,44 @@ function renderChainList() {
     metalHeader.onclick = () => {
       metalOpen = !metalOpen;
       metalBody.style.display = metalOpen ? 'block' : 'none';
-      metalHeader.querySelector('span:last-child').textContent =
-        `${Object.keys(byType).length} types ${metalOpen ? '▴' : '▾'}`;
+      metalHeader.querySelector('span:last-child').textContent = mmKeys.length + ' sizes ' + (metalOpen ? '▴' : '▾');
     };
 
-    Object.keys(byType).sort().forEach(type => {
-      const chains = byType[type];
+    mmKeys.forEach(mmKey => {
+      const chains = byMm[mmKey];
 
-      // Type row
-      const typeRow = document.createElement('div');
-      typeRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0 10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
-      typeRow.innerHTML = `
-        <span style="font-size:14px;color:var(--text)">${type}</span>
-        <span style="font-size:13px;color:var(--text-dim)">${chains.length} style${chains.length > 1 ? 's' : ''} ▾</span>`;
+      const mmRow = document.createElement('div');
+      mmRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0 10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+      mmRow.innerHTML = '<span style="font-size:14px;color:var(--text)">' + mmKey + '</span>'
+        + '<span style="font-size:13px;color:var(--text-dim)">' + chains.length + ' style' + (chains.length > 1 ? 's' : '') + ' ▾</span>';
 
-      const typeBody = document.createElement('div');
-      typeBody.style.display = 'none';
-      let typeOpen = false;
+      const mmBody = document.createElement('div');
+      mmBody.style.display = 'none';
+      let mmOpen = false;
 
-      typeRow.onclick = (e) => {
+      mmRow.onclick = (e) => {
         e.stopPropagation();
-        typeOpen = !typeOpen;
-        typeBody.style.display = typeOpen ? 'block' : 'none';
-        typeRow.querySelector('span:last-child').textContent =
-          `${chains.length} style${chains.length > 1 ? 's' : ''} ${typeOpen ? '▴' : '▾'}`;
+        mmOpen = !mmOpen;
+        mmBody.style.display = mmOpen ? 'block' : 'none';
+        mmRow.querySelector('span:last-child').textContent = chains.length + ' style' + (chains.length > 1 ? 's' : '') + ' ' + (mmOpen ? '▴' : '▾');
       };
 
       chains.forEach(c => {
         const item = document.createElement('div');
         item.style.cssText = 'display:flex;justify-content:space-between;align-items:baseline;padding:8px 0 8px 24px;border-bottom:1px solid var(--border)';
-        item.innerHTML = `
-          <div>
-            <div style="font-size:14px;color:var(--text)">${c.name}</div>
-            <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${c.length} · ${c.grams}g</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:14px;color:var(--text);font-weight:500">$${c.wholesale.toLocaleString()}</div>
-            <div style="font-size:13px;color:var(--text-dim)">retail $${Math.round(c.wholesale*1.75).toLocaleString()}</div>
-          </div>`;
-        typeBody.appendChild(item);
+        item.innerHTML = '<div>'
+          + '<div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
+          + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g</div>'
+          + '</div>'
+          + '<div style="text-align:right">'
+          + '<div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
+          + '<div style="font-size:13px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
+          + '</div>';
+        mmBody.appendChild(item);
       });
 
-      metalBody.appendChild(typeRow);
-      metalBody.appendChild(typeBody);
+      metalBody.appendChild(mmRow);
+      metalBody.appendChild(mmBody);
     });
 
     container.appendChild(metalHeader);
