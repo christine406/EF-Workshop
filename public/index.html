@@ -1508,12 +1508,7 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
   ['18k','14k'].forEach(karat => {
     const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
     const chainsInMetal = CHAINS.map((c,i) => ({...c, idx:i})).filter(c => c.karat === karat);
-    const byType = {};
-    chainsInMetal.forEach(c => {
-      const t = getChainType(c.name);
-      if (!byType[t]) byType[t] = [];
-      byType[t].push(c);
-    });
+
 
     // Metal row
     const metalRow = document.createElement('div');
@@ -1528,44 +1523,59 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
       metalRow.querySelector('span:last-child').textContent = metalOpen ? '▴' : '▾';
     };
 
-    Object.keys(byType).sort().forEach(type => {
-      const chains = byType[type];
-      const typeRow = document.createElement('div');
-      typeRow.style.cssText = 'padding:8px 10px 8px 18px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;background:var(--surface)';
-      typeRow.innerHTML = `<span>${type}</span><span style="color:var(--text-dim)">${chains.length} ▾</span>`;
-      const typeBody = document.createElement('div');
-      typeBody.style.display = 'none';
-      let typeOpen = false;
-      typeRow.onclick = (e) => {
+    // Group by mm size
+    const byMm = {};
+    chainsInMetal.forEach(c => {
+      const m = c.name.match(/(\d+\.?\d*)mm/);
+      const mmKey = m ? parseFloat(m[1]) + 'mm' : 'Other';
+      if (!byMm[mmKey]) byMm[mmKey] = [];
+      byMm[mmKey].push(c);
+    });
+
+    // Sort mm sizes numerically
+    const mmKeys = Object.keys(byMm).sort((a, b) => {
+      const aNum = parseFloat(a) || 0;
+      const bNum = parseFloat(b) || 0;
+      return aNum - bNum;
+    });
+
+    mmKeys.forEach(mmKey => {
+      const chains = byMm[mmKey];
+      const mmRow = document.createElement('div');
+      mmRow.style.cssText = 'padding:8px 10px 8px 18px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;background:var(--surface)';
+      mmRow.innerHTML = '<span>' + mmKey + '</span><span style="color:var(--text-dim)">' + chains.length + ' style' + (chains.length !== 1 ? 's' : '') + ' ▾</span>';
+      const mmBody = document.createElement('div');
+      mmBody.style.display = 'none';
+      let mmOpen = false;
+      mmRow.onclick = (e) => {
         e.stopPropagation();
-        typeOpen = !typeOpen;
-        typeBody.style.display = typeOpen ? 'block' : 'none';
-        typeRow.querySelector('span:last-child').textContent = `${chains.length} ${typeOpen ? '▴' : '▾'}`;
+        mmOpen = !mmOpen;
+        mmBody.style.display = mmOpen ? 'block' : 'none';
+        mmRow.querySelector('span:last-child').textContent = chains.length + ' style' + (chains.length !== 1 ? 's' : '') + ' ' + (mmOpen ? '▴' : '▾');
       };
 
       chains.forEach(c => {
         const item = document.createElement('div');
         item.style.cssText = 'padding:8px 10px 8px 28px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s';
-        item.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <span style="font-size:14px;color:var(--text)">${c.name}</span>
-            <span style="font-size:14px;color:var(--text);font-weight:500">$${c.wholesale.toLocaleString()}</span>
-          </div>
-          <div style="font-size:13px;color:var(--text-dim);margin-top:2px">${c.length} · ${c.grams}g · retail $${Math.round(c.wholesale*1.75).toLocaleString()}</div>`;
+        item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline">'
+          + '<span style="font-size:14px;color:var(--text)">' + c.name + '</span>'
+          + '<span style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</span>'
+          + '</div>'
+          + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g · retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>';
         item.onmouseover = () => item.style.background = 'var(--surface2)';
         item.onmouseout = () => item.style.background = '';
         item.onclick = (e) => {
           e.stopPropagation();
           document.getElementById(hiddenInputId).value = c.idx;
-          document.getElementById(selectedLabelId).textContent = `${karat} ${c.name} · ${c.length}`;
+          document.getElementById(selectedLabelId).textContent = karat + ' ' + c.name + ' · ' + c.length;
           document.getElementById(selectedLabelId).style.color = 'var(--gold)';
           onSelect(c.idx);
         };
-        typeBody.appendChild(item);
+        mmBody.appendChild(item);
       });
 
-      metalBody.appendChild(typeRow);
-      metalBody.appendChild(typeBody);
+      metalBody.appendChild(mmRow);
+      metalBody.appendChild(mmBody);
     });
 
     container.appendChild(metalRow);
@@ -1584,12 +1594,7 @@ function buildChainOptgroups(sel, labelFn) {
     const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
     const chainsInMetal = CHAINS.map((c,i) => ({...c, idx:i})).filter(c => c.karat === karat);
     // Group by type
-    const byType = {};
-    chainsInMetal.forEach(c => {
-      const t = getChainType(c.name);
-      if (!byType[t]) byType[t] = [];
-      byType[t].push(c);
-    });
+
     Object.keys(byType).sort().forEach(type => {
       const grp = document.createElement('optgroup');
       grp.label = `${metalLabel} — ${type}`;
@@ -1628,12 +1633,7 @@ function renderChainList() {
     const chainsInMetal = CHAINS.filter(c => c.karat === karat);
 
     // Group by type
-    const byType = {};
-    chainsInMetal.forEach(c => {
-      const t = getChainType(c.name);
-      if (!byType[t]) byType[t] = [];
-      byType[t].push(c);
-    });
+
 
     // Metal header
     const metalHeader = document.createElement('div');
@@ -3330,6 +3330,31 @@ function buildQuoteCard(q) {
   }
 
   if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
+
+  // Cost summary — show actuals if entered, estimates if not
+  const hasActuals = q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null;
+  const showStoneCost = hasActuals ? (q.actualStoneCost || 0) : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
+  const showMetalCost = hasActuals ? (q.actualMetalCost || 0) : (q.metalEstimate || 0);
+  const showLaborCost = hasActuals ? (q.actualLabor || 0) : (q.laborEst || 0);
+  const showDesignFee = q.designFee || 0;
+  const showChainCost = q.chainCost || 0;
+  const totalCosts = showStoneCost + showMetalCost + showLaborCost + showDesignFee + showChainCost;
+  if (totalCosts > 0) {
+    html += '<div style="margin-bottom:8px;background:var(--surface2);border-radius:3px;padding:8px 10px">';
+    html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">'
+      + (hasActuals ? 'Actual costs' : 'Est. costs') + '</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:12px">';
+    if (showStoneCost) html += '<span style="color:var(--text-dim)">Stone</span><span style="color:var(--text)">$' + showStoneCost.toLocaleString() + '</span>';
+    if (showMetalCost) html += '<span style="color:var(--text-dim)">Metal</span><span style="color:var(--text)">$' + showMetalCost.toLocaleString() + '</span>';
+    if (showLaborCost) html += '<span style="color:var(--text-dim)">Labor</span><span style="color:var(--text)">$' + showLaborCost.toLocaleString() + '</span>';
+    if (showDesignFee) html += '<span style="color:var(--text-dim)">Design fee</span><span style="color:var(--text)">$' + showDesignFee.toLocaleString() + '</span>';
+    if (showChainCost) html += '<span style="color:var(--text-dim)">Chain</span><span style="color:var(--text)">$' + showChainCost.toLocaleString() + '</span>';
+    html += '</div>';
+    html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:6px;padding-top:6px;font-size:13px">'
+      + '<span style="color:var(--text-dim)">Total costs</span>'
+      + '<span style="color:var(--text);font-weight:500">$' + totalCosts.toLocaleString() + '</span></div>';
+    html += '</div>';
+  }
 
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
   if (q.status === 'quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
