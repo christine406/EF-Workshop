@@ -1717,9 +1717,9 @@ function renderChainList() {
           + '</div></div>'
           + (linkUrl ? '<div style="margin-bottom:6px"><a href="' + linkUrl + '" target="_blank" style="font-size:12px;color:var(--teal-dim);text-decoration:none">↗ View product page</a></div>' : '')
           + '<div style="display:flex;gap:6px;align-items:center;padding-right:12px">'
-          + '<input type="text" id="link-' + safeKey + '" value="' + linkUrl + '" placeholder="Paste product page URL..." '
+          + '<input type="text" value="' + linkUrl + '" placeholder="Paste product page URL..." '
           + 'style="flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:5px 7px;border-radius:2px;outline:none">'
-          + '<button onclick="var k=this.dataset.key,v=document.getElementById(k).value.trim();saveChainPhoto(this.dataset.name,v);renderChainList()" data-key="link-' + safeKey + '" data-name="' + c.name.replace(/"/g,'&quot;') + '" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer;white-space:nowrap">Save</button>'
+          + '<button onclick="var inp=this.previousElementSibling,n=this.dataset.name,v=inp.value.trim();saveChainPhoto(n,v);renderChainList()" data-name="' + c.name.replace(/"/g,'&quot;') + '" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer;white-space:nowrap">Save</button>'
           + '</div>';
 
         mmBody.appendChild(item);
