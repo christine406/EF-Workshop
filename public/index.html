@@ -688,7 +688,7 @@
       <div class="field-row">
         <div class="field">
           <div class="field-label">Type</div>
-          <select id="pieceType" onchange="updateWeightOptions();updateFingerSizeVisibility()">
+          <select id="pieceType" onchange="updateWeightOptions();updateFingerSizeVisibility();autoFillOccasionFromPieceType()">
             <option value="">— select</option>
             <option value="ring">Ring</option>
             <option value="engagement-ring">Engagement ring</option>
@@ -1262,6 +1262,8 @@ const OCCASION_EMOJIS = {
   'Self purchase': '💝',
   'Just because': '✨',
   'Gift': '🎁',
+  'Graduation': '🎓',
+  'graduation': '🎓',
   'Other': '💝',
 };
 
@@ -2545,7 +2547,7 @@ function saveMultiPieceSet(quoteType) {
   if (!_stagedPieces.length) { showToast('No pieces staged'); return; }
   const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
   const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
-  const occasion = '';
+  const occasion = document.getElementById('projectOccasion')?.value || '';
 
   const set = {
     id: Date.now(),
@@ -2580,7 +2582,8 @@ function saveMultiPieceSet(quoteType) {
 
 function saveQuote(quoteType = 'client') {
   const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
-  const occasion = '';
+  const occasionEl = document.getElementById('projectOccasion');
+  const occasion = occasionEl ? occasionEl.value : '';
   const purity = document.getElementById('metalPurity').value;
   const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
   const labor = parseFloat(document.getElementById('laborCost').value) || 0;
@@ -2718,6 +2721,20 @@ function setMetalMode(mode) {
 }
 
 // ===== FINGER SIZE VISIBILITY =====
+
+function autoFillOccasionFromPieceType() {
+  const pt = document.getElementById('pieceType')?.value || '';
+  const occasionSel = document.getElementById('projectOccasion');
+  if (!occasionSel) return;
+  // Only auto-fill if occasion not already set
+  if (occasionSel.value && occasionSel.value !== '') return;
+  if (pt === 'engagement-ring') {
+    occasionSel.value = 'Engagement';
+  } else if (pt === 'wedding-band') {
+    occasionSel.value = 'Wedding band';
+  }
+}
+
 function updateFingerSizeVisibility() {
   const pt = document.getElementById('pieceType')?.value || '';
   const show = pt === 'ring' || pt === 'band' || pt === 'engagement-ring' || pt === 'wedding-band';
