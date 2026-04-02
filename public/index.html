@@ -972,8 +972,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
       <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
       <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
-      <button class="btn-primary" onclick="saveQuote('collection-mto')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Made to order</button>
-      <button class="btn-primary" onclick="saveQuote('collection-rts')" style="font-size:11px;padding:10px 6px;background:var(--surface2);color:var(--text)">Save — Ready to ship</button>
+      <button class="btn-primary" onclick="saveQuote('collection')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
     </div>
 
     <div style="padding: 0 16px 8px">
@@ -990,8 +989,7 @@
         <div class="toggle-group" style="min-width:max-content">
           <button class="toggle-btn active" onclick="setFilter('all',this)">All</button>
           <button class="toggle-btn" onclick="setFilter('project',this)">Client projects</button>
-          <button class="toggle-btn" onclick="setFilter('collection-mto',this)">Made to order</button>
-          <button class="toggle-btn" onclick="setFilter('collection-rts',this)">Ready to ship</button>
+          <button class="toggle-btn" onclick="setFilter('collection',this)">Collection</button>
           <button class="toggle-btn" onclick="toggleArchivePanel(this)">Archived ▾</button>
         </div>
       </div>
@@ -3030,12 +3028,8 @@ function saveQuoteEdit(id) {
     }
   }
 
-  // Migrate old quoteType values
-  quotes = quotes.map(q => {
-    if (q.quoteType === 'client') return {...q, quoteType: 'bespoke'};
-    if (q.quoteType === 'collection') return {...q, quoteType: 'collection-mto'};
-    return q;
-  });
+  // Migrate 'client' → 'bespoke'
+  quotes = quotes.map(q => q.quoteType === 'client' ? {...q, quoteType: 'bespoke'} : q);
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
@@ -3309,7 +3303,7 @@ function buildMultiPieceCard(q) {
 
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
-    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + consignmentBadge + '</div>'
+    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
     + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
     + '</div>'
     + '<div style="text-align:right">'
@@ -3436,8 +3430,7 @@ function buildQuoteCard(q) {
     : q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION'
     : 'BESPOKE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
-  const isRTS = q.quoteType === 'collection-rts';
-  const consignmentBadge = isRTS && q.consignment ? '<span style="font-size:10px;background:#8B4513;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-left:6px">Consignment · ' + (q.consignmentDealer || 'dealer TBD') + '</span>' : '';
+
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
   const discLabel = discAmt ? '<div style="font-size:13px;color:var(--teal-dim)">after disc: $' + discountedPrice.toLocaleString() + '</div>' : '';
@@ -3659,18 +3652,14 @@ function renderSaved() {
   const allQuotes = getSavedQuotes();
   const archived = ['archived-quote', 'archived-project', 'archived-collection'];
   const nonActive = [...archived, 'completed', 'abandoned'];
-  const isCollection = q => q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts';
-  const isClient = q => !isCollection(q) && !archived.includes(q.status);
 
   let filtered;
   if (savedFilter === 'all') {
     filtered = allQuotes.filter(q => !nonActive.includes(q.status));
   } else if (savedFilter === 'client') {
-    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && !isCollection(q));
-  } else if (savedFilter === 'collection-mto') {
-    filtered = allQuotes.filter(q => q.quoteType === 'collection-mto');
-  } else if (savedFilter === 'collection-rts') {
-    filtered = allQuotes.filter(q => q.quoteType === 'collection-rts');
+    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts');
+  } else if (savedFilter === 'collection') {
+    filtered = allQuotes.filter(q => q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts');
   } else if (savedFilter === 'archived-all') {
     filtered = allQuotes.filter(q => archived.includes(q.status));
   } else if (savedFilter === 'completed') {
