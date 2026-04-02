@@ -1878,7 +1878,8 @@ function showChainLinkModal(chainName, currentUrl) {
   saveBtn.addEventListener('click', () => {
     const url = inp.value.trim();
     const photos = getChainPhotos();
-    if (url) photos[chainName] = url; else delete photos[chainName];
+    const safeKey = chainName.replace(/[.#$\/\[\]]/g, '_');
+    if (url) photos[safeKey] = url; else delete photos[safeKey];
     window._chainPhotos = photos;
     if (window._fb) window._fb.saveChainPhotos(photos);
     showToast(url ? 'Link saved' : 'Link removed');
