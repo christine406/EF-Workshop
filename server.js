@@ -7,23 +7,78 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// ─── Password protection ──────────────────────────────────────────────────────
+// ─── Cookie-based password protection ────────────────────────────────────────
+const COOKIE_NAME = 'ef_auth';
+
+function parseCookies(req) {
+  const list = {};
+  const header = req.headers.cookie;
+  if (!header) return list;
+  header.split(';').forEach(cookie => {
+    const [name, ...rest] = cookie.split('=');
+    list[name.trim()] = decodeURIComponent(rest.join('=').trim());
+  });
+  return list;
+}
+
+// Login page
+app.get('/login', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EF Workshop</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a1a1a; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: monospace; }
+    .card { background: #242424; border: 1px solid #333; border-radius: 8px; padding: 32px; width: 100%; max-width: 340px; margin: 20px; }
+    .logo { font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; color: #ccc07a; margin-bottom: 24px; text-align: center; }
+    input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: #fafaf7; font-family: monospace; font-size: 16px; padding: 12px; border-radius: 4px; outline: none; margin-bottom: 12px; }
+    button { width: 100%; background: #ccc07a; color: #1a1a1a; border: none; font-family: monospace; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; padding: 13px; border-radius: 4px; cursor: pointer; }
+    .error { color: #e07070; font-size: 13px; margin-bottom: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">EF Workshop</div>
+    ${req.query.error ? '<div class="error">Incorrect password</div>' : ''}
+    <form method="POST" action="/login">
+      <input type="password" name="password" placeholder="Password" autofocus autocomplete="current-password">
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+</body>
+</html>`);
+});
+
+// Login handler
+app.post('/login', express.urlencoded({ extended: false }), (req, res) => {
+  const password = process.env.APP_PASSWORD;
+  if (!password || req.body.password === password) {
+    // Set cookie for 30 days
+    res.set('Set-Cookie', COOKIE_NAME + '=' + Buffer.from(req.body.password || '').toString('base64') + '; Path=/; Max-Age=2592000; HttpOnly; SameSite=Strict');
+    res.redirect('/');
+  } else {
+    res.redirect('/login?error=1');
+  }
+});
+
+// Auth middleware
 app.use((req, res, next) => {
-  // Skip auth for manifest and icons (needed for PWA install)
-  if (req.path === '/manifest.json' || req.path === '/icon.png' || req.path === '/icon-192.png') return next();
+  const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png'];
+  if (skipPaths.includes(req.path)) return next();
 
   const password = process.env.APP_PASSWORD;
-  if (!password) return next(); // no password set = open (fallback)
+  if (!password) return next();
 
-  const auth = req.headers['authorization'];
-  if (auth && auth.startsWith('Basic ')) {
-    const decoded = Buffer.from(auth.slice(6), 'base64').toString();
-    const [, pass] = decoded.split(':');
-    if (pass === password) return next();
-  }
+  const cookies = parseCookies(req);
+  const cookieVal = cookies[COOKIE_NAME];
+  const decoded = cookieVal ? Buffer.from(cookieVal, 'base64').toString() : '';
 
-  res.set('WWW-Authenticate', 'Basic realm="EF Workshop"');
-  res.status(401).send('Authentication required');
+  if (decoded === password) return next();
+
+  res.redirect('/login');
 });
 
 // Serve static files
