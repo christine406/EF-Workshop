@@ -972,7 +972,8 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
       <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
       <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
-      <button class="btn-primary" onclick="saveQuote('collection')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
+      <button class="btn-primary" onclick="saveQuote('collection-mto')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Made to order</button>
+      <button class="btn-primary" onclick="saveQuote('collection-rts')" style="font-size:11px;padding:10px 6px;background:var(--surface2);color:var(--text)">Save — Ready to ship</button>
     </div>
 
     <div style="padding: 0 16px 8px">
@@ -989,7 +990,8 @@
         <div class="toggle-group" style="min-width:max-content">
           <button class="toggle-btn active" onclick="setFilter('all',this)">All</button>
           <button class="toggle-btn" onclick="setFilter('project',this)">Client projects</button>
-          <button class="toggle-btn" onclick="setFilter('collection',this)">Collection</button>
+          <button class="toggle-btn" onclick="setFilter('collection-mto',this)">Made to order</button>
+          <button class="toggle-btn" onclick="setFilter('collection-rts',this)">Ready to ship</button>
           <button class="toggle-btn" onclick="toggleArchivePanel(this)">Archived ▾</button>
         </div>
       </div>
@@ -2921,6 +2923,26 @@ function editQuoteCard(id, e) {
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;resize:none">${q.notes || ''}</textarea>
     </div>
+    \${q.quoteType === 'collection-rts' ? \`
+    <div style="margin-top:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:3px">
+      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px">Consignment</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <input type="checkbox" id="eq-consignment-\${id}" \${q.consignment ? 'checked' : ''} onchange="document.getElementById('eq-dealer-row-\${id}').style.display=this.checked?'block':'none'" style="width:15px;height:15px;accent-color:var(--gold);cursor:pointer">
+        <label for="eq-consignment-\${id}" style="font-size:13px;color:var(--text);cursor:pointer">Stone is on consignment from dealer</label>
+      </div>
+      <div id="eq-dealer-row-\${id}" style="display:\${q.consignment ? 'block' : 'none'}">
+        <div class="field-label">Dealer</div>
+        <select id="eq-consignment-dealer-\${id}" onchange="document.getElementById('eq-consignment-dealer-other-\${id}').style.display=this.value==='other'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+          <option value="">— Select dealer</option>
+          <option value="American Gem Corp" \${q.consignmentDealer==='American Gem Corp'?'selected':''}>American Gem Corp</option>
+          <option value="Virat" \${q.consignmentDealer==='Virat'?'selected':''}>Virat</option>
+          <option value="Galapo" \${q.consignmentDealer==='Galapo'?'selected':''}>Galapo</option>
+          <option value="Julius Klein" \${q.consignmentDealer==='Julius Klein'?'selected':''}>Julius Klein</option>
+          <option value="other" \${q.consignmentDealer&&!['American Gem Corp','Virat','Galapo','Julius Klein'].includes(q.consignmentDealer)?'selected':''}>Other</option>
+        </select>
+        <input type="text" id="eq-consignment-dealer-other-\${id}" placeholder="Enter dealer name" value="\${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'') ? q.consignmentDealer : ''}" style="display:\${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'')?'block':'none'};width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">
+      </div>
+    </div>\` : ''}
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="saveQuoteEdit(${id})">Save</button>
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-form').remove()">Cancel</button>
@@ -2946,6 +2968,16 @@ function saveQuoteEdit(id) {
   q.occasion = occasionSel === 'Other' ? (occasionOther || 'Other') : occasionSel;
   q.purity = document.getElementById('eq-purity-' + id).value;
   q.notes = document.getElementById('eq-notes-' + id).value.trim();
+  // Consignment fields (RTS only)
+  const consignCheck = document.getElementById('eq-consignment-' + id);
+  if (consignCheck) {
+    q.consignment = consignCheck.checked;
+    const dealerSel = document.getElementById('eq-consignment-dealer-' + id);
+    const dealerOther = document.getElementById('eq-consignment-dealer-other-' + id);
+    if (dealerSel) {
+      q.consignmentDealer = dealerSel.value === 'other' ? (dealerOther?.value?.trim() || '') : dealerSel.value;
+    }
+  }
   q.fingerSize = document.getElementById('eq-fingersize-' + id)?.value?.trim() || q.fingerSize || '';
   q.clientBudget = parseFloat(document.getElementById('eq-budget-' + id)?.value) || q.clientBudget || 0;
 
@@ -2998,6 +3030,8 @@ function saveQuoteEdit(id) {
     }
   }
 
+  // Migrate 'collection' → 'collection-mto'
+  quotes = quotes.map(q => q.quoteType === 'collection' ? {...q, quoteType: 'collection-mto'} : q);
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
@@ -3271,7 +3305,7 @@ function buildMultiPieceCard(q) {
 
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
-    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
+    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + consignmentBadge + '</div>'
     + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
     + '</div>'
     + '<div style="text-align:right">'
@@ -3390,14 +3424,16 @@ function buildQuoteCard(q) {
     : q.status === 'collection-quote' ? 'COLLECTION'
     : q.status === 'collection' ? 'COLLECTION'
     : q.status === 'project' && q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
-    : q.status === 'project' ? (q.quoteType === 'collection' ? 'COLLECTION' : 'BESPOKE')
+    : q.status === 'project' ? (q.quoteType === 'collection-mto' ? 'MADE TO ORDER' : q.quoteType === 'collection-rts' ? 'READY TO SHIP' : q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION' : 'BESPOKE')
     : q.status === 'completed' && q.quoteType === 'semi-custom' ? '✓ SEMI-CUSTOM'
     : q.status === 'completed' ? '✓ BESPOKE'
     : q.status === 'abandoned' ? '✕ ABANDONED'
     : q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
-    : q.quoteType === 'collection' ? 'COLLECTION'
+    : q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION'
     : 'BESPOKE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
+  const isRTS = q.quoteType === 'collection-rts';
+  const consignmentBadge = isRTS && q.consignment ? '<span style="font-size:10px;background:#8B4513;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px;margin-left:6px">Consignment · ' + (q.consignmentDealer || 'dealer TBD') + '</span>' : '';
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
   const discLabel = discAmt ? '<div style="font-size:13px;color:var(--teal-dim)">after disc: $' + discountedPrice.toLocaleString() + '</div>' : '';
@@ -3627,7 +3663,11 @@ function renderSaved() {
     // Client projects = bespoke + semi-custom (active quotes and projects)
     filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection');
   } else if (savedFilter === 'collection') {
-    filtered = allQuotes.filter(q => q.status === 'collection' || q.status === 'collection-quote');
+    filtered = allQuotes.filter(q => q.status === 'collection' || q.status === 'collection-quote' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts');
+  } else if (savedFilter === 'collection-mto') {
+    filtered = allQuotes.filter(q => q.quoteType === 'collection-mto' || (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' && q.status !== 'collection-rts'));
+  } else if (savedFilter === 'collection-rts') {
+    filtered = allQuotes.filter(q => q.quoteType === 'collection-rts');
   } else if (savedFilter === 'archived-all') {
     filtered = allQuotes.filter(q => archived.includes(q.status));
   } else if (savedFilter === 'completed') {
@@ -3714,7 +3754,7 @@ function unarchiveItem(id, e) {
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === id);
   if (q) {
-    if (q.status === 'archived-quote') q.status = q.quoteType === 'collection' ? 'collection-quote' : 'quote';
+    if (q.status === 'archived-quote') q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection-quote' : 'quote';
     else if (q.status === 'archived-collection') q.status = 'collection';
     else q.status = 'project';
     window._savedQuotes = quotes;
@@ -3767,7 +3807,7 @@ function convertToProject(id, e) {
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === id);
   if (q) {
-    q.status = q.quoteType === 'collection' ? 'collection' : 'project';
+    q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
     window._savedQuotes = quotes;
     persistQuotes();
     renderSaved();
