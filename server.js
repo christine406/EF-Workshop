@@ -7,6 +7,25 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// ─── Password protection ──────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  // Skip auth for manifest and icons (needed for PWA install)
+  if (req.path === '/manifest.json' || req.path === '/icon.png' || req.path === '/icon-192.png') return next();
+
+  const password = process.env.APP_PASSWORD;
+  if (!password) return next(); // no password set = open (fallback)
+
+  const auth = req.headers['authorization'];
+  if (auth && auth.startsWith('Basic ')) {
+    const decoded = Buffer.from(auth.slice(6), 'base64').toString();
+    const [, pass] = decoded.split(':');
+    if (pass === password) return next();
+  }
+
+  res.set('WWW-Authenticate', 'Basic realm="EF Workshop"');
+  res.status(401).send('Authentication required');
+});
+
 // Serve static files
 
 // PWA icon and manifest
