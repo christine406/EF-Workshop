@@ -5344,7 +5344,7 @@ fetchGold();
       const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
       if (s.category === 'owned-available' || (!s.category)) { s.category = correctCategory; changed = true; }
       const expectedNote = 'Added from project: ' + linkedQ.client;
-      if (s.notes !== expectedNote && s.notes?.startsWith('Added from project:')) { s.notes = expectedNote; changed = true; }
+      if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
     });
     if (changed) persistInventory();
     if (typeof renderInventory === 'function') renderInventory();
