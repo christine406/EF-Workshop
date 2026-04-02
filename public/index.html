@@ -972,7 +972,7 @@
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
       <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
       <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
-      <button class="btn-primary" onclick="saveQuote('collection')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
+      <button class="btn-primary" onclick="showCollectionModal()" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
     </div>
 
     <div style="padding: 0 16px 8px">
@@ -2555,6 +2555,9 @@ function saveMultiPieceSet(quoteType) {
     id: Date.now(),
     client,
     quoteType, // 'bespoke' | 'semi-custom' | 'collection'
+    collectionType: extras?.collectionType || null,
+    consignment: extras?.consignment || false,
+    consignmentDealer: extras?.consignmentDealer || '',
     occasion,
     status: quoteType === 'collection' ? 'collection-quote' : 'quote',
     isMultiPiece: true,
@@ -2580,6 +2583,121 @@ function saveMultiPieceSet(quoteType) {
   clearQuote();
   renderSaved();
   showToast('Set saved');
+}
+
+
+function showCollectionModal() {
+  const existing = document.getElementById('collectionModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'collectionModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:380px';
+
+  // Title
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:14px';
+  title.textContent = 'Save to collection';
+  modal.appendChild(title);
+
+  // Type question
+  const typeLabel = document.createElement('div');
+  typeLabel.style.cssText = 'font-size:13px;color:var(--text);margin-bottom:10px';
+  typeLabel.textContent = 'Is this piece made to order or ready to ship?';
+  modal.appendChild(typeLabel);
+
+  const typeRow = document.createElement('div');
+  typeRow.style.cssText = 'display:flex;gap:8px;margin-bottom:16px';
+
+  const mtoBtn = document.createElement('button');
+  mtoBtn.textContent = 'Made to order';
+  mtoBtn.style.cssText = 'flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer';
+
+  const rtsBtn = document.createElement('button');
+  rtsBtn.textContent = 'Ready to ship';
+  rtsBtn.style.cssText = 'flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer';
+
+  let selectedType = null;
+  function selectType(type, activeBtn, otherBtn) {
+    selectedType = type;
+    activeBtn.style.background = 'var(--teal-dim)';
+    activeBtn.style.color = '#fafaf7';
+    activeBtn.style.borderColor = 'var(--teal-dim)';
+    otherBtn.style.background = 'var(--surface2)';
+    otherBtn.style.color = 'var(--text)';
+    otherBtn.style.borderColor = 'var(--border)';
+    consignSection.style.display = type === 'rts' ? 'block' : 'none';
+  }
+
+  mtoBtn.addEventListener('click', () => selectType('mto', mtoBtn, rtsBtn));
+  rtsBtn.addEventListener('click', () => selectType('rts', rtsBtn, mtoBtn));
+  typeRow.appendChild(mtoBtn);
+  typeRow.appendChild(rtsBtn);
+  modal.appendChild(typeRow);
+
+  // Consignment section (RTS only)
+  const consignSection = document.createElement('div');
+  consignSection.style.cssText = 'display:none;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:3px;margin-bottom:14px';
+
+  const consignRow = document.createElement('div');
+  consignRow.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:10px';
+  const consignCheck = document.createElement('input');
+  consignCheck.type = 'checkbox'; consignCheck.id = 'cm-consignment';
+  consignCheck.style.cssText = 'width:15px;height:15px;accent-color:var(--gold);cursor:pointer';
+  const consignLbl = document.createElement('label');
+  consignLbl.htmlFor = 'cm-consignment';
+  consignLbl.textContent = 'Stone is on consignment from dealer';
+  consignLbl.style.cssText = 'font-size:13px;color:var(--text);cursor:pointer';
+  consignRow.appendChild(consignCheck); consignRow.appendChild(consignLbl);
+  consignSection.appendChild(consignRow);
+
+  const dealerRow = document.createElement('div');
+  dealerRow.style.display = 'none';
+  const dealerSel = document.createElement('select');
+  dealerSel.style.cssText = 'width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;margin-bottom:6px';
+  ['— Select dealer','American Gem Corp','Virat','Galapo','Julius Klein','Other'].forEach((d,i) => {
+    const o = document.createElement('option'); o.value = i === 0 ? '' : d; o.textContent = d; dealerSel.appendChild(o);
+  });
+  const dealerOther = document.createElement('input');
+  dealerOther.type = 'text'; dealerOther.placeholder = 'Enter dealer name';
+  dealerOther.style.cssText = 'display:none;width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';
+  dealerSel.addEventListener('change', () => { dealerOther.style.display = dealerSel.value === 'Other' ? 'block' : 'none'; });
+  dealerRow.appendChild(dealerSel); dealerRow.appendChild(dealerOther);
+  consignSection.appendChild(dealerRow);
+  consignCheck.addEventListener('change', () => { dealerRow.style.display = consignCheck.checked ? 'block' : 'none'; });
+  modal.appendChild(consignSection);
+
+  // Action buttons
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save';
+  saveBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  saveBtn.addEventListener('click', () => {
+    if (!selectedType) { showToast('Please choose made to order or ready to ship'); return; }
+    const extras = { collectionType: selectedType };
+    if (selectedType === 'rts' && consignCheck.checked) {
+      extras.consignment = true;
+      extras.consignmentDealer = dealerSel.value === 'Other' ? (dealerOther.value.trim() || '') : dealerSel.value;
+    }
+    overlay.remove();
+    saveQuote('collection', extras);
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
+  cancelBtn.addEventListener('click', () => overlay.remove());
+
+  btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 function saveQuote(quoteType = 'client') {
@@ -2921,26 +3039,6 @@ function editQuoteCard(id, e) {
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;resize:none">${q.notes || ''}</textarea>
     </div>
-    \${q.quoteType === 'collection-rts' ? \`
-    <div style="margin-top:10px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:3px">
-      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px">Consignment</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <input type="checkbox" id="eq-consignment-\${id}" \${q.consignment ? 'checked' : ''} onchange="document.getElementById('eq-dealer-row-\${id}').style.display=this.checked?'block':'none'" style="width:15px;height:15px;accent-color:var(--gold);cursor:pointer">
-        <label for="eq-consignment-\${id}" style="font-size:13px;color:var(--text);cursor:pointer">Stone is on consignment from dealer</label>
-      </div>
-      <div id="eq-dealer-row-\${id}" style="display:\${q.consignment ? 'block' : 'none'}">
-        <div class="field-label">Dealer</div>
-        <select id="eq-consignment-dealer-\${id}" onchange="document.getElementById('eq-consignment-dealer-other-\${id}').style.display=this.value==='other'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
-          <option value="">— Select dealer</option>
-          <option value="American Gem Corp" \${q.consignmentDealer==='American Gem Corp'?'selected':''}>American Gem Corp</option>
-          <option value="Virat" \${q.consignmentDealer==='Virat'?'selected':''}>Virat</option>
-          <option value="Galapo" \${q.consignmentDealer==='Galapo'?'selected':''}>Galapo</option>
-          <option value="Julius Klein" \${q.consignmentDealer==='Julius Klein'?'selected':''}>Julius Klein</option>
-          <option value="other" \${q.consignmentDealer&&!['American Gem Corp','Virat','Galapo','Julius Klein'].includes(q.consignmentDealer)?'selected':''}>Other</option>
-        </select>
-        <input type="text" id="eq-consignment-dealer-other-\${id}" placeholder="Enter dealer name" value="\${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'') ? q.consignmentDealer : ''}" style="display:\${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'')?'block':'none'};width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">
-      </div>
-    </div>\` : ''}
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="saveQuoteEdit(${id})">Save</button>
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-form').remove()">Cancel</button>
@@ -3303,7 +3401,7 @@ function buildMultiPieceCard(q) {
 
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
-    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
+    + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + (q.consignment ? '<span style="font-size:10px;background:#7a5c3a;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px">Consignment' + (q.consignmentDealer ? ' · ' + q.consignmentDealer : '') + '</span>' : '') + '</div>'
     + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
     + '</div>'
     + '<div style="text-align:right">'
@@ -3422,12 +3520,12 @@ function buildQuoteCard(q) {
     : q.status === 'collection-quote' ? 'COLLECTION'
     : q.status === 'collection' ? 'COLLECTION'
     : q.status === 'project' && q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
-    : q.status === 'project' ? (q.quoteType === 'collection-mto' ? 'MADE TO ORDER' : q.quoteType === 'collection-rts' ? 'READY TO SHIP' : q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION' : 'BESPOKE')
+    : q.status === 'project' ? (q.quoteType === 'collection' ? (q.collectionType === 'rts' ? 'READY TO SHIP' : 'MADE TO ORDER') || 'COLLECTION' : q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION' : 'BESPOKE')
     : q.status === 'completed' && q.quoteType === 'semi-custom' ? '✓ SEMI-CUSTOM'
     : q.status === 'completed' ? '✓ BESPOKE'
     : q.status === 'abandoned' ? '✕ ABANDONED'
     : q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
-    : q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION'
+    : q.quoteType === 'collection' ? (q.collectionType === 'rts' ? 'READY TO SHIP' : 'MADE TO ORDER') || 'COLLECTION' : q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION'
     : 'BESPOKE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
 
@@ -3687,13 +3785,55 @@ function renderSaved() {
     return;
   }
   list.innerHTML = '';
-  filtered.forEach(function(q) {
-    const div = document.createElement('div');
-    div.className = 'quote-item';
-    div.dataset.id = q.id;
-    div.innerHTML = buildQuoteCard(q);
-    list.appendChild(div);
-  });
+  if (savedFilter === 'collection') {
+    // Split into MTO and RTS groups
+    const mto = filtered.filter(q => !q.collectionType || q.collectionType === 'mto');
+    const rts = filtered.filter(q => q.collectionType === 'rts');
+
+    function makeGroup(label, items, openByDefault) {
+      if (!items.length) return;
+      let isOpen = openByDefault;
+      const group = document.createElement('div');
+      group.style.cssText = 'margin-bottom:8px';
+
+      const header = document.createElement('div');
+      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;cursor:pointer;user-select:none';
+      header.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">' + label + ' <span style="color:var(--text-dim)">(' + items.length + ')</span></span><span style="font-size:12px;color:var(--text-dim)">' + (isOpen ? '▴' : '▾') + '</span>';
+
+      const body = document.createElement('div');
+      body.style.display = isOpen ? 'block' : 'none';
+
+      header.addEventListener('click', () => {
+        isOpen = !isOpen;
+        body.style.display = isOpen ? 'block' : 'none';
+        header.querySelector('span:last-child').textContent = isOpen ? '▴' : '▾';
+      });
+
+      items.forEach(q => {
+        const div = document.createElement('div');
+        div.className = 'quote-item';
+        div.dataset.id = q.id;
+        div.innerHTML = (q.pieces && q.pieces.length > 1) ? buildMultiPieceCard(q) : buildQuoteCard(q);
+        body.appendChild(div);
+      });
+
+      group.appendChild(header);
+      group.appendChild(body);
+      list.appendChild(group);
+    }
+
+    makeGroup('Made to order', mto, true);
+    makeGroup('Ready to ship', rts, true);
+
+  } else {
+    filtered.forEach(function(q) {
+      const div = document.createElement('div');
+      div.className = 'quote-item';
+      div.dataset.id = q.id;
+      div.innerHTML = (q.pieces && q.pieces.length > 1) ? buildMultiPieceCard(q) : buildQuoteCard(q);
+      list.appendChild(div);
+    });
+  }
 }
 
 
