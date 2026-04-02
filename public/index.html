@@ -3008,14 +3008,14 @@ function toggleCard(header) {
   if (arrow) arrow.textContent = isOpen ? 'tap to expand ▾' : 'tap to collapse ▴';
 }
 
-function editQuoteCard(id, e) {
+function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   e.stopPropagation();
 
   // Remove any existing edit forms
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
 
   const quotes = getSavedQuotes();
-  const q = quotes.find(q => q.id === id);
+  const q = _synthQ || quotes.find(q => q.id === id);
   if (!q) return;
 
   const card = e.target.closest('.quote-item') || document.querySelector('.quote-item[data-id="' + id + '"]') || Array.from(document.querySelectorAll('.quote-item')).find(c => c.innerHTML.includes('editQuoteCard(' + id + ','));
@@ -3029,6 +3029,7 @@ function editQuoteCard(id, e) {
   const overlay = document.createElement('div');
   overlay.className = 'inline-edit-overlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9000;overflow-y:auto;padding:20px;display:flex;align-items:flex-start;justify-content:center';
+  if (_pieceIdx !== undefined) overlay.dataset.pieceIdx = _pieceIdx;
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
   const form = document.createElement('div');
@@ -3325,6 +3326,33 @@ function saveQuoteEdit(id) {
   }
 
   // Migrate 'client' → 'bespoke' (handled at load time, no-op here)
+  // If editing a piece within a set, save back to the piece
+  const overlay = document.querySelector('.inline-edit-overlay');
+  const pieceIdx = overlay?.dataset?.pieceIdx;
+  if (pieceIdx !== undefined && pieceIdx !== '') {
+    const pi = parseInt(pieceIdx);
+    const set = quotes.find(q2 => q2.id === id);
+    if (set && set.pieces && set.pieces[pi]) {
+      const p = set.pieces[pi];
+      p.purity = q.purity;
+      p.grams = q.grams;
+      p.pieceType = q.pieceType;
+      p.fingerSize = q.fingerSize;
+      p.laborEst = q.laborEst;
+      p.designFee = q.designFee;
+      p.notes = q.notes;
+      p.actualStoneCost = q.actualStoneCost;
+      p.actualMetalCost = q.actualMetalCost;
+      p.actualLabor = q.actualLabor;
+      p.actualDesignFee = q.actualDesignFee;
+      p.actualChainCost = q.actualChainCost;
+      p.actualTotal = q.actualTotal;
+      p.clientPrice = q.clientPrice;
+      // Recalculate set total
+      set.total = set.pieces.reduce((s, pc) => s + (pc.total || 0), 0);
+    }
+  }
+
   window._savedQuotes = quotes;
   persistQuotes();
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
@@ -3485,6 +3513,62 @@ function editPieceActuals(setId, pieceIdx, e) {
     const el = document.getElementById('pe-actual-stone-' + setId + '-' + pieceIdx);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, 150);
+}
+
+
+function editPieceAsQuote(setId, pieceIdx, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const set = quotes.find(q => q.id === setId);
+  if (!set || !set.pieces) return;
+  const p = set.pieces[pieceIdx];
+  if (!p) return;
+
+  // Build a synthetic quote object from the piece, using set-level data where piece doesn't have it
+  const synth = {
+    id: setId,
+    _isPiece: true,
+    _pieceIdx: pieceIdx,
+    client: set.client + ' — Piece ' + (pieceIdx + 1),
+    projectName: set.projectName,
+    quoteType: set.quoteType,
+    status: set.status,
+    date: set.date,
+    purity: p.purity || set.purity,
+    grams: p.grams,
+    pieceType: p.pieceType,
+    fingerSize: p.fingerSize,
+    stones: p.stones || [],
+    laborEst: p.laborEst,
+    designFee: p.designFee,
+    chainCost: p.chainCost,
+    chainName: p.chainName,
+    metalEstimate: p.metalCost,
+    total: p.total,
+    clientPrice: p.clientPrice || 0,
+    notes: p.notes,
+    actualStoneCost: p.actualStoneCost,
+    actualMetalCost: p.actualMetalCost,
+    actualLabor: p.actualLabor,
+    actualDesignFee: p.actualDesignFee,
+    actualChainCost: p.actualChainCost,
+    actualTotal: p.actualTotal,
+    stoneDetail: p.stoneDetail,
+  };
+
+  // Open the standard edit modal with the synthetic quote
+  editQuoteCard(setId, e, synth, pieceIdx);
+}
+
+function editPieceActualsAsQuote(setId, pieceIdx, e) {
+  e.stopPropagation();
+  editPieceAsQuote(setId, pieceIdx, e);
+  // Scroll to actuals section after modal opens
+  setTimeout(() => {
+    const actuals = document.querySelector('.inline-edit-overlay [id^="af-stone"]') ||
+                    document.querySelector('.inline-edit-overlay [id^="af-metal"]');
+    if (actuals) actuals.closest('[style*="background"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 300);
 }
 
 function editPieceInSet(setId, pieceIdx, e) {
@@ -3654,8 +3738,8 @@ function buildMultiPieceCard(q) {
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
       + '<div style="font-size:14px;color:var(--gold);white-space:nowrap">$' + (p.total||0).toLocaleString() + '</div>'
-      + '<button onclick="editPieceInSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Edit</button>'
-      + '<button onclick="editPieceActuals(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Actuals</button>'
+      + '<button onclick="editPieceAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Edit</button>'
+      + '<button onclick="editPieceActualsAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Actuals</button>'
       + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
       + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:var(--surface2);border-radius:3px;padding:8px 10px">'
