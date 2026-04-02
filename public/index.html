@@ -3562,13 +3562,10 @@ function editPieceAsQuote(setId, pieceIdx, e) {
 
 function editPieceActualsAsQuote(setId, pieceIdx, e) {
   e.stopPropagation();
-  editPieceAsQuote(setId, pieceIdx, e);
-  // Scroll to actuals section after modal opens
-  setTimeout(() => {
-    const actuals = document.querySelector('.inline-edit-overlay [id^="af-stone"]') ||
-                    document.querySelector('.inline-edit-overlay [id^="af-metal"]');
-    if (actuals) actuals.closest('[style*="background"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, 300);
+  // Close any open overlays first
+  document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
+  // Use the standard actuals flow on the set, passing pieceIdx
+  updateActuals(setId, e, pieceIdx);
 }
 
 function editPieceInSet(setId, pieceIdx, e) {
@@ -4242,14 +4239,28 @@ function convertToProject(id, e) {
   }
 }
 
-function updateActuals(id, e) {
+function updateActuals(id, e, pieceIdx) {
   e.stopPropagation();
   const existing = document.getElementById('actuals-form-' + id);
-  if (existing) { existing.remove(); return; }
+  if (existing && pieceIdx === undefined) { existing.remove(); return; }
 
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === id);
   if (!q) return;
+
+  // If pieceIdx provided, use piece-level data
+  const src = (pieceIdx !== undefined && q.pieces?.[pieceIdx]) ? q.pieces[pieceIdx] : q;
+  const effectiveQ = pieceIdx !== undefined ? {
+    ...q,
+    laborEst: src.laborEst, designFee: src.designFee, chainCost: src.chainCost,
+    metalEstimate: src.metalCost, stones: src.stones || [],
+    actualStoneCost: src.actualStoneCost, actualMetalCost: src.actualMetalCost,
+    actualLabor: src.actualLabor, actualDesignFee: src.actualDesignFee,
+    actualChainCost: src.actualChainCost, actualTotal: src.actualTotal,
+    _pieceIdx: pieceIdx,
+  } : q;
+  // Use effectiveQ as q for the template below
+  if (pieceIdx !== undefined) Object.assign(q, effectiveQ);
 
   // Find the card body to append the form into
   let card = e?.target?.closest('.quote-item');
@@ -4436,6 +4447,22 @@ function saveActuals(id) {
   const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + designFee;
   const rawTotal = stoneRetail + rest * 1.13;
   q.actualTotal = Math.round(rawTotal / 50) * 50;
+
+  // If this is a piece in a set, copy actuals back to the piece
+  if (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) {
+    const p = q.pieces[q._pieceIdx];
+    p.actualStoneCost = q.actualStoneCost;
+    p.actualMetalCost = q.actualMetalCost;
+    p.actualLabor = q.actualLabor;
+    p.actualDesignFee = q.designFee;
+    p.actualChainCost = q.chainCost;
+    p.actualTotal = q.actualTotal;
+    p.clientPrice = q.clientPrice;
+    // Recalculate set total from pieces
+    q.total = (q.pieces || []).reduce((s, pc) => s + (pc.total || 0), 0);
+    // Remove temporary _pieceIdx
+    delete q._pieceIdx;
+  }
 
   window._savedQuotes = quotes;
   persistQuotes();
