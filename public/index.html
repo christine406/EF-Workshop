@@ -1146,6 +1146,23 @@
             <div class="field-label">Clarity</div>
             <input type="text" id="si-clarity" placeholder="e.g. VS2">
           </div>
+          <div class="field">
+            <div class="field-label">Fluorescence</div>
+            <select id="si-fluorescence">
+              <option value="">— unknown</option>
+              <option value="None">None</option>
+              <option value="Faint">Faint</option>
+              <option value="Medium">Medium</option>
+              <option value="Strong">Strong</option>
+              <option value="Very Strong">Very Strong</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <div class="field-label">Dimensions (mm)</div>
+            <input type="text" id="si-dimensions" placeholder="e.g. 8.2 × 7.9 × 5.1">
+          </div>
           <div class="field" style="display:none"><!-- GIA moved to top -->
             <input type="hidden" id="si-gia-hidden">
           </div>
@@ -1179,6 +1196,10 @@
         <div class="field">
           <div class="field-label">Notes</div>
           <textarea id="si-notes" rows="2" placeholder="Any details..."></textarea>
+        </div>
+        <div class="field" id="si-passed-row" style="display:none">
+          <div class="field-label">Why you passed</div>
+          <input type="text" id="si-passed-reason" placeholder="e.g. poor spread, color too warm, too included...">
         </div>
         <div class="field-row" style="margin-top:4px">
           <button class="btn-primary" onclick="saveInventoryStone()">Save Stone</button>
@@ -4662,6 +4683,17 @@ function fillStoneFormFromGIA(data) {
     const matchingOpt = Array.from(cutSel.options).find(o => o.value.toLowerCase().includes(data.cut.toLowerCase()) || data.cut.toLowerCase().includes(o.value.toLowerCase()));
     if (matchingOpt) cutSel.value = matchingOpt.value;
   }
+  if (data.fluorescence) {
+    const fluSel = document.getElementById('si-fluorescence');
+    if (fluSel) {
+      const opt = Array.from(fluSel.options).find(o => o.value.toLowerCase() === data.fluorescence.toLowerCase());
+      if (opt) fluSel.value = opt.value;
+    }
+  }
+  if (data.dimensions) {
+    const dimEl = document.getElementById('si-dimensions');
+    if (dimEl) dimEl.value = data.dimensions;
+  }
 }
 
 async function scanGIAPhoto(input) {
@@ -4750,6 +4782,8 @@ function closeAddStoneForm() {
 function toggleMemoFields() {
   const cat = document.getElementById('si-category').value;
   document.getElementById('si-memo-return-field').style.display = cat === 'memo' ? 'flex' : 'none';
+  const passedRow = document.getElementById('si-passed-row');
+  if (passedRow) passedRow.style.display = cat === 'viewed' ? 'block' : 'none';
 }
 
 function toggleOtherDealer() {
@@ -4807,6 +4841,9 @@ function saveInventoryStone() {
   const color = document.getElementById('si-color').value.trim();
   const clarity = document.getElementById('si-clarity').value.trim();
   const gia = document.getElementById('si-gia').value.trim();
+  const fluorescence = document.getElementById('si-fluorescence')?.value || '';
+  const dimensions = document.getElementById('si-dimensions')?.value?.trim() || '';
+  const passedReason = document.getElementById('si-passed-reason')?.value?.trim() || '';
   const dealerSel = document.getElementById('si-dealer').value;
   const dealer = dealerSel === 'other' ? (document.getElementById('si-other-dealer').value.trim() || 'Other') : dealerSel;
   const cost = parseFloat(document.getElementById('si-cost').value) || 0;
@@ -4833,6 +4870,7 @@ function saveInventoryStone() {
     const stone = {
       id: Date.now(), category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
       status: category === 'owned-reserved' ? 'unavailable' : 'available',
+      passedReason: passedReason || undefined,
       dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
       inquiries: [], usedInProjectId: null,
     };
@@ -5063,6 +5101,11 @@ function renderStoneInventory() {
         const giaLink = s.gia
       ? `<a href="https://www.gia.edu/report-check?reportno=${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
       : '';
+    const extraDetails = [
+      s.dimensions ? s.dimensions : '',
+      s.fluorescence ? 'Fluorescence: ' + s.fluorescence : '',
+      s.passedReason ? 'Passed: ' + s.passedReason : '',
+    ].filter(Boolean).join(' · ');
 
     const pendingInquiries = (s.inquiries || []).filter(i => i.status === 'open');
     const hasPending = pendingInquiries.length > 0;
@@ -5091,6 +5134,7 @@ function renderStoneInventory() {
         ${giaLink}
         ${s.returnBy ? '<span style="font-size:13px;color:var(--text-dim)">return by ' + s.returnBy + '</span>' : ''}
       </div>
+      ${extraDetails ? '<div style="margin-top:4px;font-size:12px;color:var(--text-dim)">' + extraDetails + '</div>' : ''}
       ${s.notes ? '<div style="margin-top:6px;font-size:13px;color:var(--text-dim);font-style:italic">' + s.notes + '</div>' : ''}`;
 
     // Show existing inquiries
