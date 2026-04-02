@@ -5479,71 +5479,7 @@ renderInventory();
 fetchGold();
 </script>
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
-    authDomain: "ef-workshop-ff6cf.firebaseapp.com",
-    databaseURL: "https://ef-workshop-ff6cf-default-rtdb.firebaseio.com",
-    projectId: "ef-workshop-ff6cf",
-    storageBucket: "ef-workshop-ff6cf.firebasestorage.app",
-    messagingSenderId: "624210833780",
-    appId: "1:624210833780:web:31492a409e36607d30fc21"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  window._fb = {
-    saveQuotes: (data) => set(ref(db, 'quotes'), data),
-    saveInventory: (data) => set(ref(db, 'inventory'), data),
-    saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
-    saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
-  };
-  window._chainPhotos = {};
-
-  onValue(ref(db, 'chainPhotos'), snap => {
-    window._chainPhotos = snap.val() || {};
-    if (typeof renderChainList === 'function') renderChainList();
-  });
-
-  onValue(ref(db, 'quotes'), snap => {
-    const val = snap.val();
-    window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    if (typeof renderSaved === 'function') renderSaved();
-  });
-
-  onValue(ref(db, 'fieldLog'), snap => {
-    const val = snap.val();
-    window._fieldLog = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    if (typeof renderFieldLog === 'function') renderFieldLog();
-  });
-
-  onValue(ref(db, 'inventory'), snap => {
-    const val = snap.val();
-    window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    // Fix stone category and notes based on linked quote
-    const quotes = window._savedQuotes || [];
-    let changed = false;
-    (window._inventory || []).forEach(s => {
-      if (!s.usedInProjectId) return;
-      const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
-      if (!linkedQ) return;
-      const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
-      if (s.category === 'owned-available' || (!s.category)) { 
-        s.category = correctCategory; 
-        s.status = correctCategory === 'memo' ? 'unavailable' : 'unavailable';
-        changed = true; 
-      }
-      const expectedNote = 'Added from project: ' + linkedQ.client;
-      if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
-    });
-    if (changed) persistInventory();
-    if (typeof renderInventory === 'function') renderInventory();
-  });
-
+<script>
 // =================== DATA SCREEN ===================
 function renderDataScreen() {
   const el = document.getElementById('data-screen-content');
@@ -5895,6 +5831,72 @@ function renderFieldLog() {
     reconciled.forEach(e => list.appendChild(renderEntry(e)));
   }
 }
+
+</script>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
+    authDomain: "ef-workshop-ff6cf.firebaseapp.com",
+    databaseURL: "https://ef-workshop-ff6cf-default-rtdb.firebaseio.com",
+    projectId: "ef-workshop-ff6cf",
+    storageBucket: "ef-workshop-ff6cf.firebasestorage.app",
+    messagingSenderId: "624210833780",
+    appId: "1:624210833780:web:31492a409e36607d30fc21"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window._fb = {
+    saveQuotes: (data) => set(ref(db, 'quotes'), data),
+    saveInventory: (data) => set(ref(db, 'inventory'), data),
+    saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
+    saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
+  };
+  window._chainPhotos = {};
+
+  onValue(ref(db, 'chainPhotos'), snap => {
+    window._chainPhotos = snap.val() || {};
+    if (typeof renderChainList === 'function') renderChainList();
+  });
+
+  onValue(ref(db, 'quotes'), snap => {
+    const val = snap.val();
+    window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderSaved === 'function') renderSaved();
+  });
+
+  onValue(ref(db, 'fieldLog'), snap => {
+    const val = snap.val();
+    window._fieldLog = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderFieldLog === 'function') renderFieldLog();
+  });
+
+  onValue(ref(db, 'inventory'), snap => {
+    const val = snap.val();
+    window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    // Fix stone category and notes based on linked quote
+    const quotes = window._savedQuotes || [];
+    let changed = false;
+    (window._inventory || []).forEach(s => {
+      if (!s.usedInProjectId) return;
+      const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
+      if (!linkedQ) return;
+      const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
+      if (s.category === 'owned-available' || (!s.category)) { 
+        s.category = correctCategory; 
+        s.status = correctCategory === 'memo' ? 'unavailable' : 'unavailable';
+        changed = true; 
+      }
+      const expectedNote = 'Added from project: ' + linkedQ.client;
+      if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
+    });
+    if (changed) persistInventory();
+    if (typeof renderInventory === 'function') renderInventory();
+  });
 
 </script>
 </body>
