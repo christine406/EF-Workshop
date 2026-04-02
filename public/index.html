@@ -3198,8 +3198,7 @@ function saveQuoteEdit(id) {
     }
   }
 
-  // Migrate 'client' → 'bespoke'
-  quotes = quotes.map(q => q.quoteType === 'client' ? {...q, quoteType: 'bespoke'} : q);
+  // Migrate 'client' → 'bespoke' (handled at load time, no-op here)
   window._savedQuotes = quotes;
   persistQuotes();
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
