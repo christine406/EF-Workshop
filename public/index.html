@@ -3290,13 +3290,24 @@ function buildMultiPieceCard(q) {
     const pieceEmoji = PIECE_EMOJIS[p.pieceType] || '';
     const typeLabel = (pieceEmoji ? pieceEmoji + ' ' : '') + (p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1));
     const editId = 'piece-edit-' + q.id + '-' + i;
+    const costsId = 'piece-costs-' + q.id + '-' + i;
+    // Cost breakdown rows
+    const hasActuals = p.actualStoneCost || p.actualMetalCost || p.actualLabor || p.actualDesignFee || p.actualChainCost;
+    const stoneLine = hasActuals && p.actualStoneCost ? 'Stones: $' + Number(p.actualStoneCost).toLocaleString() : (p.stoneCost ? 'Stones (est): $' + Number(p.stoneCost).toLocaleString() : '');
+    const metalLine = hasActuals && p.actualMetalCost ? 'Metal: $' + Number(p.actualMetalCost).toLocaleString() : (p.metalCost ? 'Metal (est): $' + Number(p.metalCost).toLocaleString() : '');
+    const laborLine = hasActuals && p.actualLabor ? 'Labor: $' + Number(p.actualLabor).toLocaleString() : (p.laborEst ? 'Labor (est): $' + Number(p.laborEst).toLocaleString() : '');
+    const designLine = hasActuals && p.actualDesignFee ? 'Design fee: $' + Number(p.actualDesignFee).toLocaleString() : (p.designFee ? 'Design fee (est): $' + Number(p.designFee).toLocaleString() : '');
+    const chainLine = hasActuals && p.actualChainCost ? 'Chain: $' + Number(p.actualChainCost).toLocaleString() : (p.chainCost ? 'Chain (est): $' + Number(p.chainCost).toLocaleString() : '');
+    const costLines = [stoneLine, metalLine, laborLine, designLine, chainLine].filter(Boolean);
+    const totalCost = hasActuals
+      ? (Number(p.actualStoneCost||0) + Number(p.actualMetalCost||0) + Number(p.actualLabor||0) + Number(p.actualDesignFee||0) + Number(p.actualChainCost||0))
+      : (Number(p.stoneCost||0) + Number(p.metalCost||0) + Number(p.laborEst||0) + Number(p.designFee||0) + Number(p.chainCost||0));
+    const profit = (p.total||0) - totalCost;
+
     html += '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
       + '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-      + '<div><div style="font-size:13px;color:var(--text)">' + typeLabel + (p.fingerSize ? ' · size ' + p.fingerSize : '') + '</div>'
-      + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (p.purity||'') + (p.grams ? ' · ' + p.grams + 'g' : '')
-      + (p.stoneTotal ? ' · stones $' + p.stoneTotal.toLocaleString() : '')
-      + (p.metalTotal ? ' · metal $' + p.metalTotal.toLocaleString() : '')
-      + (p.laborTotal ? ' · labor $' + p.laborTotal.toLocaleString() : '') + '</div>'
+      + '<div style="flex:1"><div style="font-size:13px;color:var(--text);cursor:pointer" onclick="var el=document.getElementById(\'' + costsId + '\');el.style.display=el.style.display===\'none\'?\'block\':\'none\'">' + typeLabel + (p.fingerSize ? ' · size ' + p.fingerSize : '') + ' <span style="font-size:10px;color:var(--text-dim)">▾ costs</span></div>'
+      + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (p.purity||'') + (p.grams ? ' · ' + p.grams + 'g' : '') + '</div>'
       + (p.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px">' + p.notes + '</div>' : '')
       + (p.clientPrice > 0 ? '<div style="font-size:11px;margin-top:2px"><span style="color:var(--text-dim)">Client price:</span> <span style="color:var(--teal-dim)">$' + p.clientPrice.toLocaleString() + '</span></div>' : '')
       + '</div>'
@@ -3306,6 +3317,12 @@ function buildMultiPieceCard(q) {
       + '<button onclick="editPieceActuals(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Actuals</button>'
       + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
+      + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:var(--surface2);border-radius:3px;padding:8px 10px">'
+      + (hasActuals ? '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">Actual costs</div>' : '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Estimated costs</div>')
+      + costLines.map(l => '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text);margin-bottom:3px"><span>' + l.split(':')[0] + '</span><span>' + l.split(':')[1] + '</span></div>').join('')
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);margin-top:4px;padding-top:4px"><span style="color:var(--text-dim)">Total cost</span><span style="color:var(--text)">$' + totalCost.toLocaleString() + '</span></div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:2px"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + '">$' + profit.toLocaleString() + '</span></div>'
+      + '</div>'
       + '<div id="' + editId + '" style="display:none;margin-top:8px"></div>'
       + '</div>';
   });
