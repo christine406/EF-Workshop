@@ -4522,15 +4522,23 @@ function renderGroupedPicker(list, stones, onSelect) {
     'owned-available': 'Owned — available',
     'owned-reserved': 'Owned — reserved',
     'memo': 'On memo',
-    'viewed': 'Viewed / recorded'
+    'viewed': 'Viewed / recorded',
+    'archived-stone': 'Archived'
   };
   const catOrder = ['owned-available', 'owned-reserved', 'memo', 'viewed'];
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef'];
 
   if (!window._pickerExpanded) window._pickerExpanded = {};
 
   const grouped = {};
   catOrder.forEach(c => { grouped[c] = []; });
+  const archivedStones = [];
   stones.forEach(s => {
+    // Sold stones go to archive regardless of category
+    if (archivedStatuses.includes(s.status)) {
+      archivedStones.push(s);
+      return;
+    }
     const cat = s.category || 'owned-available';
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(s);
@@ -4931,6 +4939,7 @@ function markStoneSoldByDealer(id) {
   const s = inv.find(s => s.id === id);
   if (s) {
     s.status = 'sold-by-dealer';
+    s.soldDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     window._inventory = inv;
     persistInventory();
     renderStoneInventory();
@@ -4973,9 +4982,11 @@ function renderStoneInventory() {
     'owned-available': 'Owned — available',
     'owned-reserved': 'Owned — reserved',
     'memo': 'On memo',
-    'viewed': 'Viewed / recorded'
+    'viewed': 'Viewed / recorded',
+    'archived-stone': 'Archived'
   };
   const catOrder = ['owned-available', 'owned-reserved', 'memo', 'viewed'];
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef'];
 
   const statusColors = {
     'available': 'var(--green-bright)',
@@ -4988,6 +4999,7 @@ function renderStoneInventory() {
     'available': 'available',
     'in-use': 'in use',
     'sold-by-dealer': 'sold by dealer',
+    'sold-by-ef': 'sold by EF',
     'out-with-jeweler': 'out w/ jeweler',
     'unavailable': 'unavailable'
   };
@@ -4997,7 +5009,13 @@ function renderStoneInventory() {
   // Group stones by category
   const grouped = {};
   catOrder.forEach(c => { grouped[c] = []; });
+  const archivedStones = [];
   stones.forEach(s => {
+    // Sold stones go to archive regardless of category
+    if (archivedStatuses.includes(s.status)) {
+      archivedStones.push(s);
+      return;
+    }
     const cat = s.category || 'owned-available';
     if (!grouped[cat]) grouped[cat] = [];
     grouped[cat].push(s);
@@ -5145,6 +5163,42 @@ function renderStoneInventory() {
 
     }); // end group.forEach
   }); // end catOrder.forEach
+
+  // Archive section — sold stones
+  if (archivedStones.length > 0) {
+    const archiveKey = 'archived';
+    const archiveExpanded = window._stoneSecExpanded?.[archiveKey] ?? false;
+
+    const archiveHeader = document.createElement('div');
+    archiveHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface);border-top:2px solid var(--border);margin-top:8px;cursor:pointer;user-select:none';
+    archiveHeader.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">Archived <span style="color:var(--text-dim);font-size:10px">(' + archivedStones.length + ')</span></span><span style="font-size:13px;color:var(--text-dim)">' + (archiveExpanded ? '▴' : '▾') + '</span>';
+    archiveHeader.onclick = () => {
+      window._stoneSecExpanded = window._stoneSecExpanded || {};
+      window._stoneSecExpanded[archiveKey] = !window._stoneSecExpanded[archiveKey];
+      renderStoneInventory();
+    };
+    list.appendChild(archiveHeader);
+
+    if (archiveExpanded) {
+      archivedStones.forEach(s => {
+        const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+        const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : 'Sold by dealer';
+        const soldColor = s.status === 'sold-by-ef' ? 'var(--teal-dim)' : '#8B6914';
+
+        const card = document.createElement('div');
+        card.style.cssText = 'padding:10px 14px;border-bottom:1px solid var(--border);opacity:0.7';
+        card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+          + '<div style="flex:1"><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div>'
+          + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (s.dealer || '') + (s.soldDate ? ' · ' + s.soldDate : '') + '</div>'
+          + (s.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px">' + s.notes + '</div>' : '') + '</div>'
+          + '<div style="text-align:right">'
+          + (s.cost ? '<div style="font-size:13px;color:var(--text-dim)">cost $' + Number(s.cost).toLocaleString() + '</div>' : '')
+          + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:2px">' + soldLabel + '</div>'
+          + '</div></div>';
+        list.appendChild(card);
+      });
+    }
+  }
 }
 
 function addInventoryStone() { openAddStoneForm(); }
@@ -5233,7 +5287,8 @@ function markLooseStoneSold() {
     const inv = getInventory();
     const s = inv.find(i => i.id === _looseSelectedStoneId);
     if (s) {
-      s.status = 'sold-by-dealer';
+      s.status = 'sold-by-ef';
+      s.soldDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
       window._inventory = inv;
       persistInventory();
     }
