@@ -995,6 +995,7 @@
       <div style="overflow-x:auto;scrollbar-width:none;margin-bottom:8px">
         <div class="toggle-group" style="min-width:max-content">
           <button class="toggle-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="toggle-btn" onclick="setFilter('quotes',this)">Quotes</button>
           <button class="toggle-btn" onclick="setFilter('project',this)">Client projects</button>
           <button class="toggle-btn" onclick="setFilter('collection',this)">Collection</button>
           <button class="toggle-btn" onclick="toggleArchivePanel(this)">Archived ▾</button>
@@ -4035,8 +4036,10 @@ function renderSaved() {
   let filtered;
   if (savedFilter === 'all') {
     filtered = allQuotes.filter(q => !nonActive.includes(q.status));
+  } else if (savedFilter === 'quotes') {
+    filtered = allQuotes.filter(q => q.status === 'quote');
   } else if (savedFilter === 'client') {
-    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts');
+    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.status !== 'quote' && q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts');
   } else if (savedFilter === 'collection') {
     filtered = allQuotes.filter(q => q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts');
   } else if (savedFilter === 'archived-all') {
@@ -4053,6 +4056,7 @@ function renderSaved() {
     'all': 'No saved quotes yet.<br>Build one in the Quote tab.',
     'quote': 'No quotes yet.',
     'project': 'No client projects yet.',
+    'quotes': 'No saved quotes yet.',
     'collection': 'No collection pieces yet.',
     'archived-all': 'No archived items.',
     'archived-quote': 'No archived quotes.',
