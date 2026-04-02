@@ -3716,8 +3716,8 @@ function buildQuoteCard(q) {
   const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(q.total * q.discountValue / 100) : q.discountValue) : 0;
   const discountedPrice = q.total - discAmt;
   const clientPrice = q.clientPrice || discountedPrice;
-  const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : 0;
-  const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : 0;
+  const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
+  const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : (q.metalEstimate || 0);
   const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
   const cost = stoneCost + metalCost + laborCost + (q.designFee || 0) + (q.chainCost || 0);
   const profitBefore = q.total - cost;
