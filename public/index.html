@@ -1615,10 +1615,13 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
     metalRow.style.cssText = 'padding:10px 10px;font-size:13px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;background:var(--surface2)';
     metalRow.innerHTML = `<span>${metalLabel}</span><span>▾</span>`;
     const metalBody = document.createElement('div');
-    metalBody.style.display = 'none';
-    let metalOpen = false;
+    const metalStateKey = 'metal_' + metal;
+    const metalOpen_init = window._chainState?.[metalStateKey] ?? false;
+    metalBody.style.display = metalOpen_init ? 'block' : 'none';
     metalRow.onclick = () => {
-      metalOpen = !metalOpen;
+      if (!window._chainState) window._chainState = {};
+      window._chainState[metalStateKey] = !window._chainState[metalStateKey];
+      const metalOpen = window._chainState[metalStateKey];
       metalBody.style.display = metalOpen ? 'block' : 'none';
       metalRow.querySelector('span:last-child').textContent = metalOpen ? '▴' : '▾';
     };
@@ -1645,11 +1648,14 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
       mmRow.style.cssText = 'padding:8px 10px 8px 18px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;background:var(--surface)';
       mmRow.innerHTML = '<span>' + mmKey + '</span><span style="color:var(--text-dim)">' + chains.length + ' style' + (chains.length !== 1 ? 's' : '') + ' ▾</span>';
       const mmBody = document.createElement('div');
-      mmBody.style.display = 'none';
-      let mmOpen = false;
+      const mmStateKey = 'mm_' + metal + '_' + mm;
+      const mmOpen_init = window._chainState?.[mmStateKey] ?? false;
+      mmBody.style.display = mmOpen_init ? 'block' : 'none';
       mmRow.onclick = (e) => {
         e.stopPropagation();
-        mmOpen = !mmOpen;
+        if (!window._chainState) window._chainState = {};
+        window._chainState[mmStateKey] = !window._chainState[mmStateKey];
+        const mmOpen = window._chainState[mmStateKey];
         mmBody.style.display = mmOpen ? 'block' : 'none';
         mmRow.querySelector('span:last-child').textContent = chains.length + ' style' + (chains.length !== 1 ? 's' : '') + ' ' + (mmOpen ? '▴' : '▾');
       };
