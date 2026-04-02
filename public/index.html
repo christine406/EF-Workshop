@@ -1224,6 +1224,10 @@
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center"><span>⛓️ Chains — Downeast</span><button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">+ Add chain</button></div>
       <div id="chainTree"></div>
+      <div id="chainRestoreBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--surface2);border-radius:3px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--text-dim)" id="chainRestoreMsg"></span>
+        <button onclick="restoreAllChains()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer">Restore all</button>
+      </div>
     </div>
   </div>
 
@@ -1773,8 +1777,16 @@ function persistCustomChains() {
 }
 
 function getAllChains() {
-  // Merge hardcoded CHAINS with custom chains added by user
-  return [...CHAINS, ...getCustomChains()];
+  const removed = window._removedChains || [];
+  const base = CHAINS.filter(c => !removed.some(r => r.name === c.name && r.karat === c.karat));
+  return [...base, ...getCustomChains()];
+}
+
+function getRemovedChains() { return window._removedChains || []; }
+function persistRemovedChains() {
+  if (window._fb) window._fb.saveRemovedChains(
+    Object.fromEntries((window._removedChains || []).map((c,i) => [i, c]))
+  );
 }
 
 function showAddChainModal(existingChain, existingIdx) {
@@ -1857,6 +1869,23 @@ function deleteCustomChain(idx) {
   showToast('Chain removed');
 }
 
+function removeBuiltinChain(name, karat) {
+  if (!confirm('Remove ' + name + '? You can restore it later.')) return;
+  if (!window._removedChains) window._removedChains = [];
+  window._removedChains.push({ name, karat });
+  persistRemovedChains();
+  renderChainList();
+  showToast('Chain removed');
+}
+
+function restoreAllChains() {
+  if (!confirm('Restore all removed chains?')) return;
+  window._removedChains = [];
+  persistRemovedChains();
+  renderChainList();
+  showToast('All chains restored');
+}
+
 function renderChainList() {
   const container = document.getElementById('chainTree');
   if (!container) return;
@@ -1917,8 +1946,9 @@ function renderChainList() {
 
       chains.forEach((c, chainIdx) => {
         const photos = getChainPhotos();
-        const safeKey = c.name.replace(/[.#$\/\[\]]/g, '_');
-        const linkUrl = photos[safeKey] || photos[c.name] || '';
+        const safeKey = (c.karat + '_' + c.name).replace(/[.#$\/\[\]]/g, '_');
+        const legacyKey = c.name.replace(/[.#$\/\[\]]/g, '_');
+        const linkUrl = photos[safeKey] || photos[legacyKey] || '';
         const customIdx = c.custom ? getCustomChains().findIndex(cc => cc.name === c.name && cc.karat === c.karat) : -1;
 
         const item = document.createElement('div');
@@ -1946,20 +1976,24 @@ function renderChainList() {
         const linkBtn = document.createElement('button');
         linkBtn.textContent = linkUrl ? 'Edit link' : '+ Add link';
         linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
-        linkBtn.addEventListener('click', (function(n, u) {
-          return function(e) { e.stopPropagation(); showChainLinkModal(n, u); };
-        })(c.name, linkUrl));
+        linkBtn.addEventListener('click', (function(n, k, u) {
+          return function(e) { e.stopPropagation(); showChainLinkModal(n, k, u); };
+        })(c.name, c.karat, linkUrl));
         row2.appendChild(linkBtn);
 
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Remove';
+        delBtn.style.cssText = 'background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
         if (c.custom && customIdx >= 0) {
-          const delBtn = document.createElement('button');
-          delBtn.textContent = 'Remove';
-          delBtn.style.cssText = 'background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
           delBtn.addEventListener('click', (function(idx) {
             return function(e) { e.stopPropagation(); deleteCustomChain(idx); };
           })(customIdx));
-          row2.appendChild(delBtn);
+        } else {
+          delBtn.addEventListener('click', (function(n, k) {
+            return function(e) { e.stopPropagation(); removeBuiltinChain(n, k); };
+          })(c.name, c.karat));
         }
+        row2.appendChild(delBtn);
 
         item.appendChild(row2);
         mmBody.appendChild(item);
@@ -1972,10 +2006,19 @@ function renderChainList() {
     container.appendChild(metalHeader);
     container.appendChild(metalBody);
   });
+
+  // Show restore bar if any chains were removed
+  const removedCount = (window._removedChains || []).length;
+  const restoreBar = document.getElementById('chainRestoreBar');
+  const restoreMsg = document.getElementById('chainRestoreMsg');
+  if (restoreBar) {
+    restoreBar.style.display = removedCount > 0 ? 'flex' : 'none';
+    if (restoreMsg) restoreMsg.textContent = removedCount + ' chain' + (removedCount !== 1 ? 's' : '') + ' hidden';
+  }
 }
 
 
-function updateChainLinkInPlace(chainName, url) {
+function updateChainLinkInPlace(chainName, url, chainKarat) {
   // Find the chain item by scanning all chain rows for matching name text
   const items = document.querySelectorAll('#chainListContainer div');
   for (const item of items) {
@@ -1993,9 +2036,7 @@ function updateChainLinkInPlace(chainName, url) {
       const linkBtn = document.createElement('button');
       linkBtn.textContent = url ? 'Edit link' : '+ Add link';
       linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
-      linkBtn.addEventListener('click', (function(n, u) {
-        return function(e) { e.stopPropagation(); showChainLinkModal(n, u); };
-      })(chainName, url));
+      linkBtn.addEventListener('click', function(e) { e.stopPropagation(); showChainLinkModal(chainName, chainKarat, url); });
       row2.appendChild(linkBtn);
       return;
     }
@@ -2004,7 +2045,7 @@ function updateChainLinkInPlace(chainName, url) {
   renderChainList();
 }
 
-function showChainLinkModal(chainName, currentUrl) {
+function showChainLinkModal(chainName, chainKarat, currentUrl) {
   // Remove existing modal
   const existing = document.getElementById('chainLinkModal');
   if (existing) existing.remove();
@@ -2034,14 +2075,16 @@ function showChainLinkModal(chainName, currentUrl) {
   saveBtn.addEventListener('click', () => {
     const url = inp.value.trim();
     const photos = getChainPhotos();
-    const safeKey = chainName.replace(/[.#$\/\[\]]/g, '_');
+    const safeKey = ((chainKarat || '') + '_' + chainName).replace(/[.#$\/\[\]]/g, '_');
+    const legacyKey = chainName.replace(/[.#$\/\[\]]/g, '_');
     if (url) photos[safeKey] = url; else delete photos[safeKey];
+    // Clean up legacy key if it exists
+    if (photos[legacyKey] && legacyKey !== safeKey) delete photos[legacyKey];
     window._chainPhotos = photos;
     if (window._fb) window._fb.saveChainPhotos(photos);
     showToast(url ? 'Link saved' : 'Link removed');
     overlay.remove();
-    // Update only the affected chain row in place — don't re-render whole list
-    updateChainLinkInPlace(chainName, url);
+    updateChainLinkInPlace(chainName, url, chainKarat);
   });
 
   const cancelBtn = document.createElement('button');
@@ -6119,9 +6162,15 @@ function renderFieldLog() {
     saveInventory: (data) => set(ref(db, 'inventory'), data),
     saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
     saveCustomChains: (data) => set(ref(db, 'customChains'), data),
+    saveRemovedChains: (data) => set(ref(db, 'removedChains'), data),
     saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
   };
   window._chainPhotos = {};
+
+  onValue(ref(db, 'removedChains'), snap => {
+    window._removedChains = snap.val() ? Object.values(snap.val()) : [];
+    if (typeof renderChainList === 'function') renderChainList();
+  });
 
   onValue(ref(db, 'customChains'), snap => {
     window._customChains = snap.val() ? Object.values(snap.val()) : [];
