@@ -4431,11 +4431,9 @@ function saveActuals(id) {
   q.clientPrice = clientPrice;
 
   // Recalculate actual retail
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
-  const laborRetail = laborCost * 1.4;
-  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + designFee;
-  const rawTotal = stoneRetail + rest * 1.13;
-  q.actualTotal = Math.round(rawTotal / 50) * 50;
+  // actualTotal = the quoted retail price (what was presented to the client)
+  // Only override if client paid something different
+  q.actualTotal = clientPrice > 0 ? clientPrice : q.total;
 
   // If this is a piece in a set, copy actuals back to the piece
   if (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) {
