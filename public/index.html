@@ -1652,9 +1652,22 @@ function saveChainPhoto(chainName, url) {
   if (url) photos[chainName] = url;
   else delete photos[chainName];
   window._chainPhotos = photos;
-  if (window._fb) window._fb.saveChainPhotos(photos);
+  // Firebase keys can't contain . # $ / [ ] — sanitize for storage
+  const sanitized = {};
+  Object.keys(photos).forEach(k => {
+    const safeKey = k.replace(/[.#$\/\[\]]/g, '_');
+    sanitized[safeKey] = photos[k];
+  });
+  if (window._fb) window._fb.saveChainPhotos(sanitized);
   showToast(url ? 'Link saved' : 'Link removed');
   renderChainList();
+}
+
+function getChainPhotoUrl(chainName) {
+  const photos = getChainPhotos();
+  // Also check sanitized key
+  const safeKey = chainName.replace(/[.#$\/\[\]]/g, '_');
+  return photos[chainName] || photos[safeKey] || '';
 }
 
 function renderChainList() {
@@ -1703,7 +1716,7 @@ function renderChainList() {
 
       chains.forEach(c => {
         const photos = getChainPhotos();
-        const linkUrl = photos[c.name] || '';
+        const linkUrl = getChainPhotoUrl ? getChainPhotoUrl(c.name) : (photos[c.name] || photos[c.name.replace(/[.#$\/\[\]]/g, '_')] || '');
 
         const item = document.createElement('div');
         item.style.cssText = 'padding:10px 12px 10px 24px;border-bottom:1px solid var(--border)';
