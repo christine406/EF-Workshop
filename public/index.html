@@ -2915,9 +2915,10 @@ function editQuoteCard(id, e) {
   const form = document.createElement('div');
   form.className = 'inline-edit-form';
   form.style.cssText = 'background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px';
+  form.addEventListener('click', e => e.stopPropagation());
   // Pre-compute stone details from stoneDetail or linked inventory stone
   const _linkedInv = getInventory().find(i => i.usedInProjectId === id);
-  const _sd = q.stoneDetail || (_linkedInv ? _linkedInv : {});
+  const _sd = q.stoneDetail || (_linkedInv ? _linkedInv : (q.stones && q.stones.length ? q.stones[0] : {}));
   const _epGia = _sd.gia || '';
   const _epCarat = _sd.carat || '';
   const _epColor = _sd.color || '';
@@ -2997,8 +2998,8 @@ function editQuoteCard(id, e) {
     <div style="margin-bottom:12px">
       <div class="field-label">Collection type</div>
       <div style="display:flex;gap:8px;margin-top:4px">
-        <button id="eq-ctype-mto-${id}" onclick="setCollectionType(${id},'mto')" style="flex:1;padding:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid ${(!q.collectionType||q.collectionType==='mto')?'var(--teal-dim)':'var(--border)'};background:${(!q.collectionType||q.collectionType==='mto')?'var(--teal-dim)':'var(--surface2)'};color:${(!q.collectionType||q.collectionType==='mto')?'#fafaf7':'var(--text)'}">Made to order</button>
-        <button id="eq-ctype-rts-${id}" onclick="setCollectionType(${id},'rts')" style="flex:1;padding:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid ${q.collectionType==='rts'?'var(--teal-dim)':'var(--border)'};background:${q.collectionType==='rts'?'var(--teal-dim)':'var(--surface2)'};color:${q.collectionType==='rts'?'#fafaf7':'var(--text)'}">Ready to ship</button>
+        <button id="eq-ctype-mto-${id}" onclick="event.stopPropagation();setCollectionType(${id},'mto')" style="flex:1;padding:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid ${(!q.collectionType||q.collectionType==='mto')?'var(--teal-dim)':'var(--border)'};background:${(!q.collectionType||q.collectionType==='mto')?'var(--teal-dim)':'var(--surface2)'};color:${(!q.collectionType||q.collectionType==='mto')?'#fafaf7':'var(--text)'}">Made to order</button>
+        <button id="eq-ctype-rts-${id}" onclick="event.stopPropagation();setCollectionType(${id},'rts')" style="flex:1;padding:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid ${q.collectionType==='rts'?'var(--teal-dim)':'var(--border)'};background:${q.collectionType==='rts'?'var(--teal-dim)':'var(--surface2)'};color:${q.collectionType==='rts'?'#fafaf7':'var(--text)'}">Ready to ship</button>
       </div>
       <div id="eq-consign-section-${id}" style="display:${q.collectionType==='rts'?'block':'none'};margin-top:10px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
@@ -3065,7 +3066,7 @@ function editQuoteCard(id, e) {
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;resize:none">${q.notes || ''}</textarea>
     </div>
     <div style="display:flex;gap:8px">
-      <button class="btn-primary" style="padding:9px;font-size:12px" onclick="saveQuoteEdit(${id})">Save</button>
+      <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-form').remove()">Cancel</button>
     </div>`;
   card.insertAdjacentElement('afterend', form);
