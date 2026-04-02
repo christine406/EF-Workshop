@@ -3120,7 +3120,9 @@ function saveQuoteEdit(id) {
   // Collection type fields
   const rtsBtn = document.getElementById('eq-ctype-rts-' + id);
   if (rtsBtn) {
-    const isRTS = rtsBtn.dataset.selected === '1' || (rtsBtn.dataset.selected === undefined && q.collectionType === 'rts');
+    // Check button style to determine selection — more reliable than dataset
+    const rtsActive = rtsBtn.style.background.includes('teal') || rtsBtn.style.cssText.includes('var(--teal-dim)') || rtsBtn.dataset.selected === '1';
+    const isRTS = rtsActive || (rtsBtn.dataset.selected === undefined && q.collectionType === 'rts');
     q.collectionType = isRTS ? 'rts' : 'mto';
     const consignCheck = document.getElementById('eq-consign-' + id);
     if (consignCheck) {
