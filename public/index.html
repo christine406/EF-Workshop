@@ -3061,6 +3061,9 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <select id="eq-type-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
           <option value="">—</option>
           <option value="ring" ${q.pieceType==='ring'?'selected':''}>Ring</option>
+          <option value="engagement-ring" ${q.pieceType==='engagement-ring'?'selected':''}>Engagement ring</option>
+          <option value="band" ${q.pieceType==='band'?'selected':''}>Band</option>
+          <option value="wedding-band" ${q.pieceType==='wedding-band'?'selected':''}>Wedding band</option>
           <option value="pendant" ${q.pieceType==='pendant'?'selected':''}>Pendant</option>
           <option value="earrings" ${q.pieceType==='earrings'?'selected':''}>Earrings</option>
           <option value="necklace" ${q.pieceType==='necklace'?'selected':''}>Necklace</option>
@@ -3103,15 +3106,16 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       <div class="field-label">Occasion</div>
       <select id="eq-occasion-${id}" onchange="toggleOccasionOther('eq-occasion-other-${id}',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
         <option value="">— Select occasion</option>
-        <option value="Engagement" ${q.occasion==='Engagement'?'selected':''}>Engagement</option>
-        <option value="Wedding band" ${q.occasion==='Wedding band'?'selected':''}>Wedding band</option>
+        <option value="Engagement" ${(q.occasion==='Engagement'||q.occasion==='engagement')?'selected':''}>Engagement</option>
+        <option value="Wedding band" ${(q.occasion==='Wedding band'||q.occasion==='wedding band')?'selected':''}>Wedding band</option>
         <option value="Anniversary" ${q.occasion==='Anniversary'?'selected':''}>Anniversary</option>
         <option value="Birthday" ${q.occasion==='Birthday'?'selected':''}>Birthday</option>
-        <option value="New baby" ${q.occasion==='New baby'?'selected':''}>New baby</option>
+        <option value="New baby" ${(q.occasion==='New baby'||q.occasion==='New baby')?'selected':''}>New baby</option>
         <option value="Self purchase" ${q.occasion==='Self purchase'?'selected':''}>Self purchase</option>
-        <option value="Just because" ${q.occasion==='Just because'?'selected':''}>Just because</option>
-        <option value="Gift" ${q.occasion==='Gift'?'selected':''}>Gift</option>
-        <option value="Other" ${q.occasion==='Other'||(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'selected':''}>Other</option>
+        <option value="Just because" ${(q.occasion==='Just because'||q.occasion==='just because')?'selected':''}>Just because</option>
+        <option value="Gift" ${(q.occasion==='Gift'||q.occasion==='gift')?'selected':''}>Gift</option>
+        <option value="Graduation" ${(q.occasion==='Graduation'||q.occasion==='graduation')?'selected':''}>Graduation</option>
+        <option value="Other" ${(q.occasion==='Other'||(!['Engagement','engagement','Wedding band','wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','just because','Gift','gift','Graduation','graduation',''].includes(q.occasion||'')))?'selected':''}>Other</option>
       </select>
       <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
     </div>` : ''}
