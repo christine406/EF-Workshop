@@ -4343,11 +4343,11 @@ function calcActualsLive(id) {
   const chainIdx = chainEl?.value || '';
   const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
 
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
-  const laborRetail = laborCost * 1.4;
-  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + designFee;
-  const rawTotal = stoneRetail + rest * 1.13;
-  const total = Math.round(rawTotal / 50) * 50;
+  // Use the saved quote retail total — do not recalculate
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  const total = q?.total || 0;
+
   const totalCost = stoneCost + metalCost + laborCost + designFee + chainCost;
   const clientPrice = parseFloat(document.getElementById('af-client-' + id)?.value) || 0;
   const revenue = clientPrice > 0 ? clientPrice : total;
