@@ -1255,7 +1255,9 @@
 
 const OCCASION_EMOJIS = {
   'Engagement': '💍',
+  'engagement': '💍',
   'Wedding band': '⚭',
+  'wedding band': '⚭',
   'Anniversary': '👩‍❤️‍💋‍👨',
   'Birthday': '🎂',
   'New baby': '🤰🏻',
@@ -2725,14 +2727,9 @@ function setMetalMode(mode) {
 function autoFillOccasionFromPieceType() {
   const pt = document.getElementById('pieceType')?.value || '';
   const occasionSel = document.getElementById('projectOccasion');
-  if (!occasionSel) return;
-  // Only auto-fill if occasion not already set
-  if (occasionSel.value && occasionSel.value !== '') return;
-  if (pt === 'engagement-ring') {
-    occasionSel.value = 'Engagement';
-  } else if (pt === 'wedding-band') {
-    occasionSel.value = 'Wedding band';
-  }
+  if (!occasionSel || occasionSel.value) return;
+  if (pt === 'engagement-ring') occasionSel.value = 'engagement';
+  else if (pt === 'wedding-band') occasionSel.value = 'wedding band';
 }
 
 function updateFingerSizeVisibility() {
