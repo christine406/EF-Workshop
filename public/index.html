@@ -1222,7 +1222,7 @@
   <!-- =================== CHAINS SCREEN =================== -->
   <div class="screen" id="screen-chains">
     <div class="section">
-      <div class="section-label">⛓️ Chains — Downeast</div>
+      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center"><span>⛓️ Chains — Downeast</span><button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">+ Add chain</button></div>
       <div id="chainTree"></div>
     </div>
   </div>
@@ -1763,71 +1763,182 @@ function getChainPhotoUrl(chainName) {
   return photos[chainName] || photos[safeKey] || '';
 }
 
+
+// =================== CHAIN MANAGEMENT ===================
+function getCustomChains() { return window._customChains || []; }
+function persistCustomChains() {
+  if (window._fb) window._fb.saveCustomChains(
+    Object.fromEntries((window._customChains || []).map((c,i) => [i, c]))
+  );
+}
+
+function getAllChains() {
+  // Merge hardcoded CHAINS with custom chains added by user
+  return [...CHAINS, ...getCustomChains()];
+}
+
+function showAddChainModal(existingChain, existingIdx) {
+  const existing = document.getElementById('chainLinkModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'chainLinkModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:420px';
+  const editing = existingChain != null;
+  modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">' + (editing ? 'Edit chain' : 'Add chain') + '</div>';
+
+  const fields = [
+    { id:'ac-name', label:'Chain name', placeholder:'e.g. Round Box 2.0mm', value: existingChain?.name || '' },
+    { id:'ac-karat', label:'Karat', placeholder:'e.g. 18k', value: existingChain?.karat || '' },
+    { id:'ac-length', label:'Length', placeholder:'e.g. 16"', value: existingChain?.length || '' },
+    { id:'ac-grams', label:'Grams', placeholder:'e.g. 10.5', value: existingChain?.grams || '' },
+    { id:'ac-wholesale', label:'Wholesale ($)', placeholder:'e.g. 1804', value: existingChain?.wholesale || '' },
+  ];
+
+  fields.forEach(f => {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:10px';
+    row.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">' + f.label + '</div>';
+    const inp = document.createElement('input');
+    inp.id = f.id; inp.type = 'text'; inp.value = f.value; inp.placeholder = f.placeholder;
+    inp.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;box-sizing:border-box';
+    row.appendChild(inp);
+    modal.appendChild(row);
+  });
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:4px';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = editing ? 'Save changes' : 'Add chain';
+  saveBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  saveBtn.addEventListener('click', () => {
+    const name = document.getElementById('ac-name').value.trim();
+    const karat = document.getElementById('ac-karat').value.trim();
+    const length = document.getElementById('ac-length').value.trim();
+    const grams = parseFloat(document.getElementById('ac-grams').value) || 0;
+    const wholesale = parseFloat(document.getElementById('ac-wholesale').value) || 0;
+    if (!name || !karat) { showToast('Name and karat required'); return; }
+    const chain = { name, karat, length, grams, wholesale, custom: true };
+    if (!window._customChains) window._customChains = [];
+    if (editing) {
+      window._customChains[existingIdx] = chain;
+    } else {
+      window._customChains.push(chain);
+    }
+    persistCustomChains();
+    overlay.remove();
+    renderChainList();
+    showToast(editing ? 'Chain updated' : 'Chain added');
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
+  cancelBtn.onclick = () => overlay.remove();
+
+  btnRow.appendChild(saveBtn);
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('ac-name')?.focus(), 50);
+}
+
+function deleteCustomChain(idx) {
+  if (!confirm('Remove this chain?')) return;
+  window._customChains.splice(idx, 1);
+  persistCustomChains();
+  renderChainList();
+  showToast('Chain removed');
+}
+
 function renderChainList() {
   const container = document.getElementById('chainTree');
   if (!container) return;
+  if (!window._chainState) window._chainState = {};
   container.innerHTML = '';
 
-  ['18k','14k'].forEach(karat => {
-    const metalLabel = karat === '18k' ? '18k Yellow Gold' : '14k Yellow Gold';
-    const chainsInMetal = CHAINS.filter(c => c.karat === karat);
+  // Merge hardcoded + custom chains
+  const allChains = getAllChains();
+  const karats = [...new Set(allChains.map(c => c.karat))].sort();
+
+  karats.forEach(karat => {
+    const metalLabel = karat === '18k' ? '18k Yellow Gold' : karat === '14k' ? '14k Yellow Gold' : karat;
+    const chainsInMetal = allChains.filter(c => c.karat === karat);
     const byMm = {};
     chainsInMetal.forEach(c => {
-      const m = c.name.match(/(\d+\.?\d*)mm/);
-      const mmKey = m ? parseFloat(m[1]) + 'mm' : 'Other';
-      if (!byMm[mmKey]) byMm[mmKey] = [];
-      byMm[mmKey].push(c);
+      const mm = (c.name.match(/([\d.]+)mm/) || [])[1] || 'other';
+      if (!byMm[mm]) byMm[mm] = [];
+      byMm[mm].push(c);
     });
-    const mmKeys = Object.keys(byMm).sort((a,b) => (parseFloat(a)||0) - (parseFloat(b)||0));
 
     const metalHeader = document.createElement('div');
-    metalHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:2px solid var(--teal-dim);cursor:pointer;margin-bottom:4px';
-    metalHeader.innerHTML = '<span style="font-size:14px;font-weight:500;color:var(--teal-dim);letter-spacing:0.08em;text-transform:uppercase">' + metalLabel + '</span><span style="font-size:13px;color:var(--text-dim)">' + mmKeys.length + ' sizes ▾</span>';
+    metalHeader.style.cssText = 'padding:10px 14px;background:var(--surface2);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none';
+
+    const metalKey = 'metal_' + karat;
+    const metalOpenNow = window._chainState[metalKey] ?? false;
+    metalHeader.innerHTML = '<span style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold)">' + metalLabel + '</span><span style="font-size:12px;color:var(--text-dim)">' + (metalOpenNow ? '▴' : '▾') + '</span>';
+
     const metalBody = document.createElement('div');
-    metalBody.style.display = 'none';
-    let metalOpen = false;
+    metalBody.style.display = metalOpenNow ? 'block' : 'none';
+
     metalHeader.onclick = () => {
-      metalOpen = !metalOpen;
-      metalBody.style.display = metalOpen ? 'block' : 'none';
-      metalHeader.querySelector('span:last-child').textContent = mmKeys.length + ' sizes ' + (metalOpen ? '▴' : '▾');
+      window._chainState[metalKey] = !window._chainState[metalKey];
+      const open = window._chainState[metalKey];
+      metalBody.style.display = open ? 'block' : 'none';
+      metalHeader.querySelector('span:last-child').textContent = open ? '▴' : '▾';
     };
 
-    mmKeys.forEach(mmKey => {
-      const chains = byMm[mmKey];
+    Object.keys(byMm).sort((a,b) => parseFloat(a) - parseFloat(b)).forEach(mm => {
+      const chains = byMm[mm];
       const mmRow = document.createElement('div');
-      mmRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0 10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
-      mmRow.innerHTML = '<span style="font-size:14px;color:var(--text)">' + mmKey + '</span><span style="font-size:13px;color:var(--text-dim)">' + chains.length + ' style' + (chains.length > 1 ? 's' : '') + ' ▾</span>';
+      mmRow.style.cssText = 'padding:8px 14px 8px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none';
+
+      const mmKey = 'mm_' + karat + '_' + mm;
+      const mmOpenNow = window._chainState[mmKey] ?? false;
+      mmRow.innerHTML = '<span style="font-size:13px;color:var(--text)">' + mm + 'mm</span>'
+        + '<span style="font-size:12px;color:var(--text-dim)">' + chains.length + ' style' + (chains.length !== 1 ? 's' : '') + ' ' + (mmOpenNow ? '▴' : '▾') + '</span>';
+
       const mmBody = document.createElement('div');
-      mmBody.style.display = 'none';
-      let mmOpen = false;
+      mmBody.style.display = mmOpenNow ? 'block' : 'none';
+
       mmRow.onclick = e => {
-        e.stopPropagation();
-        mmOpen = !mmOpen;
-        mmBody.style.display = mmOpen ? 'block' : 'none';
-        mmRow.querySelector('span:last-child').textContent = chains.length + ' style' + (chains.length > 1 ? 's' : '') + ' ' + (mmOpen ? '▴' : '▾');
+        if (e.target.tagName === 'BUTTON') return;
+        window._chainState[mmKey] = !window._chainState[mmKey];
+        const open = window._chainState[mmKey];
+        mmBody.style.display = open ? 'block' : 'none';
+        mmRow.querySelector('span:last-child').textContent = chains.length + ' style' + (chains.length !== 1 ? 's' : '') + ' ' + (open ? '▴' : '▾');
       };
 
-      chains.forEach(c => {
+      chains.forEach((c, chainIdx) => {
         const photos = getChainPhotos();
-        const linkUrl = getChainPhotoUrl ? getChainPhotoUrl(c.name) : (photos[c.name] || photos[c.name.replace(/[.#$\/\[\]]/g, '_')] || '');
+        const safeKey = c.name.replace(/[.#$\/\[\]]/g, '_');
+        const linkUrl = photos[safeKey] || photos[c.name] || '';
+        const customIdx = c.custom ? getCustomChains().findIndex(cc => cc.name === c.name && cc.karat === c.karat) : -1;
 
         const item = document.createElement('div');
         item.style.cssText = 'padding:10px 12px 10px 24px;border-bottom:1px solid var(--border)';
 
         const row1 = document.createElement('div');
-        row1.style.cssText = 'display:flex;justify-content:space-between;align-items:center';
-        row1.innerHTML = '<div><div style="font-size:14px;color:var(--text)">' + c.name + '</div>'
-          + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + c.length + ' · ' + c.grams + 'g</div></div>'
+        row1.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start';
+        row1.innerHTML = '<div><div style="font-size:14px;color:var(--text)">' + c.name + (c.custom ? ' <span style="font-size:10px;color:var(--teal-dim);letter-spacing:0.06em">custom</span>' : '') + '</div>'
+          + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + (c.length || '') + ' · ' + c.grams + 'g</div></div>'
           + '<div style="text-align:right"><div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
           + '<div style="font-size:12px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div></div>';
         item.appendChild(row1);
 
         const row2 = document.createElement('div');
-        row2.style.cssText = 'margin-top:8px;display:flex;gap:8px;align-items:center';
+        row2.style.cssText = 'margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap';
 
         if (linkUrl) {
           const a = document.createElement('a');
           a.href = linkUrl; a.target = '_blank'; a.textContent = '↗ Product page';
+          a.onclick = e => e.stopPropagation();
           a.style.cssText = 'display:inline-block;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;text-decoration:none';
           row2.appendChild(a);
         }
@@ -1835,13 +1946,21 @@ function renderChainList() {
         const linkBtn = document.createElement('button');
         linkBtn.textContent = linkUrl ? 'Edit link' : '+ Add link';
         linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
-        linkBtn.addEventListener('click', (function(chainName, currentUrl) {
-          return function(e) {
-            e.stopPropagation();
-            showChainLinkModal(chainName, currentUrl);
-          };
+        linkBtn.addEventListener('click', (function(n, u) {
+          return function(e) { e.stopPropagation(); showChainLinkModal(n, u); };
         })(c.name, linkUrl));
         row2.appendChild(linkBtn);
+
+        if (c.custom && customIdx >= 0) {
+          const delBtn = document.createElement('button');
+          delBtn.textContent = 'Remove';
+          delBtn.style.cssText = 'background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
+          delBtn.addEventListener('click', (function(idx) {
+            return function(e) { e.stopPropagation(); deleteCustomChain(idx); };
+          })(customIdx));
+          row2.appendChild(delBtn);
+        }
+
         item.appendChild(row2);
         mmBody.appendChild(item);
       });
@@ -1853,6 +1972,36 @@ function renderChainList() {
     container.appendChild(metalHeader);
     container.appendChild(metalBody);
   });
+}
+
+
+function updateChainLinkInPlace(chainName, url) {
+  // Find the chain item by scanning all chain rows for matching name text
+  const items = document.querySelectorAll('#chainListContainer div');
+  for (const item of items) {
+    const nameEl = item.querySelector('div[style*="font-size:14px"]');
+    if (nameEl && nameEl.textContent === chainName) {
+      const row2 = item.children[1];
+      if (!row2) continue;
+      row2.innerHTML = '';
+      if (url) {
+        const a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.textContent = '↗ Product page';
+        a.style.cssText = 'display:inline-block;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;text-decoration:none';
+        row2.appendChild(a);
+      }
+      const linkBtn = document.createElement('button');
+      linkBtn.textContent = url ? 'Edit link' : '+ Add link';
+      linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
+      linkBtn.addEventListener('click', (function(n, u) {
+        return function(e) { e.stopPropagation(); showChainLinkModal(n, u); };
+      })(chainName, url));
+      row2.appendChild(linkBtn);
+      return;
+    }
+  }
+  // Fallback: full re-render only if in-place update fails
+  renderChainList();
 }
 
 function showChainLinkModal(chainName, currentUrl) {
@@ -1891,7 +2040,8 @@ function showChainLinkModal(chainName, currentUrl) {
     if (window._fb) window._fb.saveChainPhotos(photos);
     showToast(url ? 'Link saved' : 'Link removed');
     overlay.remove();
-    renderChainList();
+    // Update only the affected chain row in place — don't re-render whole list
+    updateChainLinkInPlace(chainName, url);
   });
 
   const cancelBtn = document.createElement('button');
@@ -5968,9 +6118,15 @@ function renderFieldLog() {
     saveQuotes: (data) => set(ref(db, 'quotes'), data),
     saveInventory: (data) => set(ref(db, 'inventory'), data),
     saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
+    saveCustomChains: (data) => set(ref(db, 'customChains'), data),
     saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
   };
   window._chainPhotos = {};
+
+  onValue(ref(db, 'customChains'), snap => {
+    window._customChains = snap.val() ? Object.values(snap.val()) : [];
+    if (typeof renderChainList === 'function') renderChainList();
+  });
 
   onValue(ref(db, 'chainPhotos'), snap => {
     window._chainPhotos = snap.val() || {};
