@@ -3658,18 +3658,17 @@ function renderSaved() {
   const list = document.getElementById('savedList');
   const allQuotes = getSavedQuotes();
   const archived = ['archived-quote', 'archived-project', 'archived-collection'];
-  const nonActive = [...archived, 'collection-quote', 'completed', 'abandoned'];
+  const nonActive = [...archived, 'completed', 'abandoned'];
+  const isCollection = q => q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts';
+  const isClient = q => !isCollection(q) && !archived.includes(q.status);
 
   let filtered;
   if (savedFilter === 'all') {
     filtered = allQuotes.filter(q => !nonActive.includes(q.status));
   } else if (savedFilter === 'client') {
-    // Client projects = bespoke + semi-custom (active quotes and projects)
-    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts');
-  } else if (savedFilter === 'collection') {
-    filtered = allQuotes.filter(q => q.status === 'collection' || q.status === 'collection-quote' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts');
+    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && !isCollection(q));
   } else if (savedFilter === 'collection-mto') {
-    filtered = allQuotes.filter(q => q.quoteType === 'collection-mto' || (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' && q.status !== 'collection-rts'));
+    filtered = allQuotes.filter(q => q.quoteType === 'collection-mto');
   } else if (savedFilter === 'collection-rts') {
     filtered = allQuotes.filter(q => q.quoteType === 'collection-rts');
   } else if (savedFilter === 'archived-all') {
