@@ -1227,7 +1227,7 @@
   </div>
 
   <!-- =================== DATA SCREEN =================== -->
-  <div class="screen" id="screen-data" style="display:none">
+  <div class="screen" id="screen-data">
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
         📊 Stone data
@@ -1238,7 +1238,7 @@
   </div>
 
 <!-- =================== FIELD LOG SCREEN =================== -->
-  <div class="screen" id="screen-field" style="display:none">
+  <div class="screen" id="screen-field">
     <div class="section">
       <div class="section-label">📍 Field log</div>
 
@@ -5457,7 +5457,7 @@ function calcLoose() {
 
 // =================== NAV ===================
 function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const screen = document.getElementById('screen-' + name);
   if (screen) screen.classList.add('active');
