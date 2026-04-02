@@ -3212,7 +3212,7 @@ function saveQuoteEdit(id) {
         cost: q.actualStoneCost || 0,
         antique: stoneDetail.antique,
         notes: 'Added from project: ' + q.client,
-        status: 'in-use',
+        status: 'unavailable',
         category: (q.consignment ? 'memo' : 'owned-reserved'),
         usedInProjectId: id,
         dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
@@ -4179,7 +4179,7 @@ function startSemiCustom(id, e) {
   newProject.id = Date.now();
   newProject.client = clientName;
   newProject.quoteType = 'semi-custom';
-  newProject.status = 'quote';
+  newProject.status = 'project';
   newProject.clientPrice = 0;
   newProject.actualLabor = null;
   newProject.actualMetalCost = null;
@@ -5342,7 +5342,11 @@ fetchGold();
       const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
       if (!linkedQ) return;
       const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
-      if (s.category === 'owned-available' || (!s.category)) { s.category = correctCategory; changed = true; }
+      if (s.category === 'owned-available' || (!s.category)) { 
+        s.category = correctCategory; 
+        s.status = correctCategory === 'memo' ? 'unavailable' : 'unavailable';
+        changed = true; 
+      }
       const expectedNote = 'Added from project: ' + linkedQ.client;
       if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
     });
