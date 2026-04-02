@@ -3122,7 +3122,19 @@ function saveQuoteEdit(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
 
-  q.client = document.getElementById('eq-client-' + id).value.trim() || q.client;
+  const newClientName = document.getElementById('eq-client-' + id).value.trim() || q.client;
+  const oldClientName = q.client;
+  q.client = newClientName;
+  // If name changed, update linked stone's notes
+  if (newClientName !== oldClientName) {
+    const inv = getInventory();
+    const linkedStone = inv.find(s => s.usedInProjectId === id);
+    if (linkedStone) {
+      linkedStone.notes = 'Added from project: ' + newClientName;
+      window._inventory = inv;
+      persistInventory();
+    }
+  }
   q.pieceType = document.getElementById('eq-type-' + id).value;
   const occasionEl = document.getElementById('eq-occasion-' + id);
   const occasionSel = occasionEl?.value || '';
@@ -3201,6 +3213,7 @@ function saveQuoteEdit(id) {
         antique: stoneDetail.antique,
         notes: 'Added from project: ' + q.client,
         status: 'in-use',
+        category: (q.consignment ? 'memo' : 'owned-reserved'),
         usedInProjectId: id,
         dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
         inquiries: [],
@@ -5321,6 +5334,19 @@ fetchGold();
   onValue(ref(db, 'inventory'), snap => {
     const val = snap.val();
     window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    // Fix stone category and notes based on linked quote
+    const quotes = window._savedQuotes || [];
+    let changed = false;
+    (window._inventory || []).forEach(s => {
+      if (!s.usedInProjectId) return;
+      const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
+      if (!linkedQ) return;
+      const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
+      if (s.category === 'owned-available' || (!s.category)) { s.category = correctCategory; changed = true; }
+      const expectedNote = 'Added from project: ' + linkedQ.client;
+      if (s.notes !== expectedNote && s.notes?.startsWith('Added from project:')) { s.notes = expectedNote; changed = true; }
+    });
+    if (changed) persistInventory();
     if (typeof renderInventory === 'function') renderInventory();
   });
 </script>
