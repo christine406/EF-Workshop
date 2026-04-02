@@ -3487,7 +3487,7 @@ function buildMultiPieceCard(q) {
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + (q.consignment ? '<span style="font-size:10px;background:#7a5c3a;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px">Consignment' + (q.consignmentDealer ? ' · ' + q.consignmentDealer : '') + '</span>' : '') + '</div>'
-    + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span></div>'
+    + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px;font-family:var(--font-mono)">Consignment</span>' : '') + '</div>'
     + '</div>'
     + '<div style="text-align:right">'
     + '<div class="quote-amount" style="' + displayAmountColor + '">$' + displayAmount.toLocaleString() + '</div>'
@@ -3628,7 +3628,7 @@ function buildQuoteCard(q) {
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
-    + '<div class="quote-meta"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + occasionTag + '</div>'
+    + '<div class="quote-meta"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px;font-family:var(--font-mono)">Consignment</span>' : '') + occasionTag + '</div>'
     + (q.clientBudget ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">Budget <span style="color:#ccc07a">$' + q.clientBudget.toLocaleString() + '</span>' + (q.total ? ' · <span style="color:' + (q.clientBudget >= q.total ? 'var(--green-bright)' : 'var(--red)') + '">' + (q.clientBudget >= q.total ? '✓ $' + (q.clientBudget - q.total).toLocaleString() + ' under' : '$' + (q.total - q.clientBudget).toLocaleString() + ' over') + '</span>' : '') + '</div>' : '')
     + '</div>'
     + '<div style="text-align:right">'
