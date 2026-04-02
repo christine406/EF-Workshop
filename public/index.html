@@ -3030,8 +3030,12 @@ function saveQuoteEdit(id) {
     }
   }
 
-  // Migrate 'collection' → 'collection-mto'
-  quotes = quotes.map(q => q.quoteType === 'collection' ? {...q, quoteType: 'collection-mto'} : q);
+  // Migrate old quoteType values
+  quotes = quotes.map(q => {
+    if (q.quoteType === 'client') return {...q, quoteType: 'bespoke'};
+    if (q.quoteType === 'collection') return {...q, quoteType: 'collection-mto'};
+    return q;
+  });
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
@@ -3661,7 +3665,7 @@ function renderSaved() {
     filtered = allQuotes.filter(q => !nonActive.includes(q.status));
   } else if (savedFilter === 'client') {
     // Client projects = bespoke + semi-custom (active quotes and projects)
-    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection');
+    filtered = allQuotes.filter(q => !nonActive.includes(q.status) && q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts');
   } else if (savedFilter === 'collection') {
     filtered = allQuotes.filter(q => q.status === 'collection' || q.status === 'collection-quote' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts');
   } else if (savedFilter === 'collection-mto') {
