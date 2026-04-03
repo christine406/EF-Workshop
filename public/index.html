@@ -6322,21 +6322,35 @@ function renderFieldLog() {
   onValue(ref(db, 'inventory'), snap => {
     const val = snap.val();
     window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    // Fix stone category and notes based on linked quote
+    // Fix stone status based on linked quote
     const quotes = window._savedQuotes || [];
     let changed = false;
     (window._inventory || []).forEach(s => {
       if (!s.usedInProjectId) return;
       const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
       if (!linkedQ) return;
-      const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
-      if (s.category === 'owned-available' || (!s.category)) { 
-        s.category = correctCategory; 
-        s.status = correctCategory === 'memo' ? 'unavailable' : 'unavailable';
-        changed = true; 
+      // Only fix status — never overwrite category (memo should stay memo)
+      if (s.status !== 'in-use') {
+        s.status = 'in-use';
+        changed = true;
       }
+      // Note: never change category here — memo stays memo, owned stays owned
       const expectedNote = 'Added from project: ' + linkedQ.client;
       if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
+    });
+    // Also: link stones via GIA number if usedInProjectId missing
+    const allQuotes = window._savedQuotes || [];
+    allQuotes.forEach(q => {
+      if (!q.stones) return;
+      q.stones.forEach(qs => {
+        if (!qs.gia) return;
+        const invStone = (window._inventory || []).find(s => s.gia === qs.gia && !s.usedInProjectId);
+        if (invStone) {
+          invStone.usedInProjectId = q.id;
+          invStone.status = 'in-use';
+          changed = true;
+        }
+      });
     });
     if (changed) persistInventory();
     if (typeof renderInventory === 'function') renderInventory();
