@@ -4594,22 +4594,22 @@ function updateActuals(id, e, pieceIdx) {
 
   const form = document.createElement('div');
   form.id = 'actuals-form-' + id;
-  form.style.cssText = 'background:#A9CBBF;border:1px solid #8ab5a8;border-radius:4px;padding:12px;margin-top:10px';
+  form.style.cssText = 'background:#8dadaf;border:1px solid #6b9496;border-radius:4px;padding:12px;margin-top:10px;color:#ffffff';
   form.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px">Actual costs</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:12px">
-      <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
+    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#ffffff;font-weight:600;margin-bottom:8px">Actual costs</div>
+    <div style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:3px;padding:10px;margin-bottom:12px">
+      <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ffffff;font-weight:600;margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
-        <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : '—'}${q.purity ? ' · ' + q.purity : ''}</div>
-        <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim)">Design fee</div><div style="color:var(--text)">${(q.designFee||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
+        <div style="color:rgba(255,255,255,0.85)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
+        <div style="color:rgba(255,255,255,0.85)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : '—'}${q.purity ? ' · ' + q.purity : ''}</div>
+        <div style="color:rgba(255,255,255,0.85)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
+        <div style="color:rgba(255,255,255,0.85)">Design fee</div><div style="color:var(--text)">${(q.designFee||0).toLocaleString()}</div>
+        <div style="color:#ffffff;font-weight:600">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
-        <div class="field-label">Casting company</div>
+        <div class="field-label" style="color:#ffffff;font-weight:500">Casting company</div>
         <select id="af-caster-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
           <option value="">— Select</option>
           <option value="Carrera" ${q.castingCompany==='Carrera'?'selected':''}>Carrera</option>
@@ -4619,28 +4619,28 @@ function updateActuals(id, e, pieceIdx) {
         </select>
       </div>
       <div>
-        <div class="field-label">Final casting cost ($)</div>
+        <div class="field-label" style="color:#ffffff;font-weight:500">Final casting cost ($)</div>
         <input type="number" id="af-metal-${id}" value="${q.actualMetalCost != null ? q.actualMetalCost : (q.metalEstimate || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
-        <div class="field-label">Stone cost ($)</div>
+        <div class="field-label" style="color:#ffffff;font-weight:500">Stone cost ($)</div>
         <input type="number" id="af-stone-${id}" value="${q.actualStoneCost != null ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st)=>s+(st.cost||0),0) : '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
-        <div class="field-label">Final labor cost ($)</div>
+        <div class="field-label" style="color:#ffffff;font-weight:500">Final labor cost ($)</div>
         <input type="number" id="af-labor-${id}" value="${q.actualLabor != null ? q.actualLabor : (q.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
-        <div class="field-label">Design fee ($)</div>
+        <div class="field-label" style="color:#ffffff;font-weight:500">Design fee ($)</div>
         <input type="number" id="af-design-${id}" value="${q.designFee || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
     </div>
     <div style="margin-bottom:8px">
-      <div class="field-label">Chain</div>
+      <div class="field-label" style="color:#ffffff;font-weight:500">Chain</div>
       <input type="hidden" id="af-chain-${id}" value="${q.chainCost ? CHAINS.findIndex(c => c.wholesale === q.chainCost) : ''}">
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
         <div id="af-chain-label-${id}" style="font-size:14px;color:var(--gold);font-style:italic">${q.chainName || 'None selected'}</div>
@@ -4650,12 +4650,12 @@ function updateActuals(id, e, pieceIdx) {
     </div>
     <div id="af-live-${id}" style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:10px;display:none"></div>
     <div style="margin-bottom:10px">
-      <div class="field-label">Additional materials / melee ($)</div>
+      <div class="field-label" style="color:#ffffff;font-weight:500">Additional materials / melee ($)</div>
       <input type="number" id="af-melee-${id}" value="${q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
     </div>
     <div style="margin-bottom:10px">
-      <div class="field-label">Client price ($) — what you're actually charging</div>
+      <div class="field-label" style="color:#ffffff;font-weight:500">Client price ($) — what you're actually charging</div>
       <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcActualsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:3px;outline:none">
     </div>
@@ -5708,7 +5708,7 @@ function renderStoneInventory() {
       <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Log inquiry</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
-          <div class="field-label">Platform</div>
+          <div class="field-label" style="color:#ffffff;font-weight:500">Platform</div>
           <select id="inq-platform-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none;appearance:none">
             <option>Instagram</option>
             <option>TikTok</option>
@@ -5717,22 +5717,22 @@ function renderStoneInventory() {
           </select>
         </div>
         <div>
-          <div class="field-label">Name / username</div>
+          <div class="field-label" style="color:#ffffff;font-weight:500">Name / username</div>
           <input type="text" id="inq-name-${s.id}" placeholder="@username" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
-          <div class="field-label">Date</div>
+          <div class="field-label" style="color:#ffffff;font-weight:500">Date</div>
           <input type="date" id="inq-date-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
         </div>
         <div>
-          <div class="field-label">Price quoted ($)</div>
+          <div class="field-label" style="color:#ffffff;font-weight:500">Price quoted ($)</div>
           <input type="number" id="inq-price-${s.id}" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
         </div>
       </div>
       <div style="margin-bottom:6px">
-        <div class="field-label">Note</div>
+        <div class="field-label" style="color:#ffffff;font-weight:500">Note</div>
         <input type="text" id="inq-note-${s.id}" placeholder="e.g. very interested, following up next week..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
       </div>
       <div style="display:flex;gap:6px">
