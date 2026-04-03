@@ -1662,7 +1662,7 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
         selectedKarat = k; selectedType = '';
         // Highlight selected
         row.querySelectorAll('button').forEach(b => { b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
-        c.style.background = 'var(--teal-dim)'; c.style.borderColor = 'var(--teal-dim)'; c.style.color = '#fafaf7';
+        c.style.background = 'var(--teal-faint)'; c.style.borderColor = 'var(--teal-dim)'; c.style.color = 'var(--teal-dim)';
         renderStep2(); step3.innerHTML = '';
       });
       row.appendChild(c);
@@ -1682,7 +1682,7 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
       const c = chip(type, () => {
         selectedType = type;
         row.querySelectorAll('button').forEach(b => { b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
-        c.style.background = 'var(--teal-dim)'; c.style.borderColor = 'var(--teal-dim)'; c.style.color = '#fafaf7';
+        c.style.background = 'var(--teal-faint)'; c.style.borderColor = 'var(--teal-dim)'; c.style.color = 'var(--teal-dim)';
         renderStep3();
       });
       row.appendChild(c);
@@ -4549,9 +4549,9 @@ function updateActuals(id, e, pieceIdx) {
 
   const form = document.createElement('div');
   form.id = 'actuals-form-' + id;
-  form.style.cssText = 'background:#8dadaf;border:1px solid #6b9496;border-radius:4px;padding:12px;margin-top:10px;color:#ffffff';
+  form.style.cssText = 'background:var(--gold-faint);border:1px solid #ccc07a;border-radius:4px;padding:12px;margin-top:10px';
   form.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#ffffff;font-weight:600;margin-bottom:8px">Actual costs</div>
+    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px">Actual costs</div>
     <div style="background:none;border:none;padding:10px 0;margin-bottom:12px">
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ffffff;font-weight:600;margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
