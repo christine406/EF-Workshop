@@ -6003,7 +6003,7 @@ function renderDataScreen() {
     const statusLabel = archivedStatuses.includes(s.status) ? 'archived' : s.status === 'unavailable' ? 'reserved' : s.status === 'in-use' ? 'in use' : s.status;
     html += '<tr style="border-bottom:1px solid var(--border)">'
       + '<td style="padding:7px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:var(--teal-dim)">✦</span>' : '') + '</td>'
-      + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + s.carat + '</td>'
+      + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + parseFloat(s.carat).toFixed(2) + ' ct</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
       + '<td style="padding:7px 4px;color:var(--text-dim)">' + (s.dealer || '—') + '</td>'
