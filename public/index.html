@@ -646,8 +646,8 @@
   <button class="nav-btn active" onclick="showScreen('quote')">Quote</button>
   <button class="nav-btn" onclick="showScreen('saved')">Saved</button>
   <button class="nav-btn" onclick="showScreen('stones')">Stones</button>
-  <button class="nav-btn" onclick="showScreen('chains')">Chains</button>
   <button class="nav-btn" onclick="showScreen('loose')">Loose Sale</button>
+  <button class="nav-btn" onclick="showScreen('chains')">Chains</button>
   <button class="nav-btn" onclick="showScreen('field')" id="tab-field">Field Log</button>
   <button class="nav-btn" onclick="showScreen('data')" id="tab-data">Data</button>
 </nav>
@@ -1224,7 +1224,9 @@
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center"><span>⛓️ Chains — Downeast</span><button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">+ Add chain</button></div>
       <div style="margin-bottom:10px">
-        <input type="text" id="chainSearch" placeholder="Search chains..." oninput="renderChainList()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;box-sizing:border-box">
+        <select id="chainJump" onchange="jumpToChain(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;appearance:none;box-sizing:border-box">
+          <option value="">— Browse all chains</option>
+        </select>
       </div>
       <div id="chainTree"></div>
       <div id="chainRestoreBar" style="display:none;margin-top:8px;padding:8px 12px;background:var(--surface2);border-radius:3px;display:flex;justify-content:space-between;align-items:center">
@@ -1957,6 +1959,58 @@ function restoreAllChains() {
   showToast('All chains restored');
 }
 
+
+function populateChainDropdown() {
+  const sel = document.getElementById('chainJump');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Browse all chains</option>';
+  const chains = getAllChains();
+  const karats = [...new Set(chains.map(c => c.karat))].sort();
+  karats.forEach(karat => {
+    const group = document.createElement('optgroup');
+    group.label = karat === '18k' ? '18k Yellow Gold' : karat === '14k' ? '14k Yellow Gold' : karat;
+    const inKarat = chains.filter(c => c.karat === karat)
+      .sort((a,b) => a.name.localeCompare(b.name));
+    inKarat.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.karat + '||' + c.name;
+      opt.textContent = c.name + ' · $' + c.wholesale.toLocaleString();
+      group.appendChild(opt);
+    });
+    sel.appendChild(group);
+  });
+  sel.value = current;
+}
+
+function jumpToChain(val) {
+  if (!val) return;
+  const [karat, name] = val.split('||');
+  // Open the metal group and mm group containing this chain
+  const metalKey = 'metal_' + karat;
+  const mm = (name.match(/([\d.]+)mm/) || [])[1];
+  const mmKey = mm ? 'mm_' + karat + '_' + mm : null;
+  if (!window._chainState) window._chainState = {};
+  window._chainState[metalKey] = true;
+  if (mmKey) window._chainState[mmKey] = true;
+  renderChainList();
+  // Scroll to the chain after render
+  setTimeout(() => {
+    const items = document.querySelectorAll('#chainTree div');
+    for (const item of items) {
+      const nameEl = item.querySelector('div[style*="font-size:14px"]');
+      if (nameEl && nameEl.textContent.trim().startsWith(name)) {
+        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        item.style.outline = '2px solid var(--teal-dim)';
+        setTimeout(() => item.style.outline = '', 2000);
+        break;
+      }
+    }
+  }, 100);
+  // Reset dropdown to placeholder
+  document.getElementById('chainJump').value = '';
+}
+
 function renderChainList() {
   const container = document.getElementById('chainTree');
   if (!container) return;
@@ -2080,6 +2134,9 @@ function renderChainList() {
     container.appendChild(metalHeader);
     container.appendChild(metalBody);
   });
+
+  // Populate the jump dropdown
+  populateChainDropdown();
 
   // Show restore bar if any chains were removed
   const removedCount = (window._removedChains || []).length;
