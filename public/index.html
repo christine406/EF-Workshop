@@ -1595,97 +1595,13 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
   const collapseBtn = document.createElement('div');
   collapseBtn.style.cssText = 'padding:7px 10px;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);border-bottom:1px solid var(--border);cursor:pointer;text-align:center;background:var(--surface2)';
   collapseBtn.textContent = '▴ Collapse';
-  collapseBtn.onclick = (e) => {
+  collapseBtn.onclick = e => {
     e.stopPropagation();
     container.style.display = 'none';
-    const toggleBtn = document.getElementById(containerId + '-toggle');
-    if (toggleBtn) toggleBtn.style.display = 'inline-block';
+    const btn = document.getElementById(containerId + '-toggle');
+    if (btn) btn.style.display = 'inline-block';
   };
   container.appendChild(collapseBtn);
-
-  // ── Search + filter state ──
-  let activeSize = '';   // e.g. '1.5mm'
-  let activeType = '';   // e.g. 'cable'
-  let searchVal = '';
-
-  const TYPE_KEYWORDS = {
-    'Bead': 'bead',
-    'Box': 'box',
-    'Cable': 'cable',
-    'Curb': 'curb',
-    'Figaro': 'figaro',
-    'Omega': 'omega',
-    'Rope': 'rope',
-    'Snake': 'snake',
-    'Wheat': 'wheat',
-  };
-
-  // ── Filter bar ──
-  const filterBar = document.createElement('div');
-  filterBar.style.cssText = 'padding:8px 10px;border-bottom:1px solid var(--border);background:var(--bg)';
-
-  // Search input
-  const searchInp = document.createElement('input');
-  searchInp.type = 'text';
-  searchInp.placeholder = 'Search chains...';
-  searchInp.style.cssText = 'width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:3px;outline:none;box-sizing:border-box;margin-bottom:8px';
-  searchInp.oninput = () => { searchVal = searchInp.value.toLowerCase().trim(); renderList(); };
-  filterBar.appendChild(searchInp);
-
-  // Size chips — extract all unique mm sizes
-  const allChainsList = getAllChains();
-  const allSizes = [...new Set(allChainsList.map(c => {
-    const m = c.name.match(/([\d.]+)mm/);
-    return m ? m[1] + 'mm' : null;
-  }).filter(Boolean))].sort((a,b) => parseFloat(a) - parseFloat(b));
-
-  const sizeLabel = document.createElement('div');
-  sizeLabel.style.cssText = 'font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px';
-  sizeLabel.textContent = 'Size';
-  filterBar.appendChild(sizeLabel);
-
-  const sizeRow = document.createElement('div');
-  sizeRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px';
-
-  function makeChip(label, isActive, onClick) {
-    const chip = document.createElement('button');
-    chip.textContent = label;
-    chip.style.cssText = 'background:' + (isActive ? 'var(--teal-dim)' : 'var(--surface2)') + ';color:' + (isActive ? '#fafaf7' : 'var(--text-dim)') + ';border:1px solid ' + (isActive ? 'var(--teal-dim)' : 'var(--border)') + ';font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;padding:3px 8px;border-radius:2px;cursor:pointer';
-    chip.onclick = e => { e.stopPropagation(); onClick(); };
-    return chip;
-  }
-
-  function refreshChips() {
-    sizeRow.innerHTML = '';
-    const allSizeChip = makeChip('All', !activeSize, () => { activeSize = ''; refreshChips(); renderList(); });
-    sizeRow.appendChild(allSizeChip);
-    allSizes.forEach(sz => {
-      const chip = makeChip(sz, activeSize === sz, () => { activeSize = activeSize === sz ? '' : sz; refreshChips(); renderList(); });
-      sizeRow.appendChild(chip);
-    });
-
-    typeRow.innerHTML = '';
-    const allTypeChip = makeChip('All', !activeType, () => { activeType = ''; refreshChips(); renderList(); });
-    typeRow.appendChild(allTypeChip);
-    Object.keys(TYPE_KEYWORDS).forEach(label => {
-      const kw = TYPE_KEYWORDS[label];
-      const chip = makeChip(label, activeType === kw, () => { activeType = activeType === kw ? '' : kw; refreshChips(); renderList(); });
-      typeRow.appendChild(chip);
-    });
-  }
-
-  filterBar.appendChild(sizeRow);
-
-  const typeLabel = document.createElement('div');
-  typeLabel.style.cssText = 'font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px';
-  typeLabel.textContent = 'Type';
-  filterBar.appendChild(typeLabel);
-
-  const typeRow = document.createElement('div');
-  typeRow.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px';
-  filterBar.appendChild(typeRow);
-
-  container.appendChild(filterBar);
 
   // ── Clear option ──
   const clearRow = document.createElement('div');
@@ -1696,81 +1612,128 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
     document.getElementById(selectedLabelId).textContent = 'None selected';
     document.getElementById(selectedLabelId).style.color = 'var(--text-mid)';
     onSelect('');
+    resetPicker();
   };
   container.appendChild(clearRow);
 
-  // ── Chain list ──
-  const listContainer = document.createElement('div');
-  container.appendChild(listContainer);
+  // ── State ──
+  let selectedKarat = '';
+  let selectedType = '';
 
-  function renderList() {
-    listContainer.innerHTML = '';
-    const chains = getAllChains()
-      .map((c, i) => ({...c, idx: i}))
-      .filter(c => {
-        if (activeSize) {
-          const m = c.name.match(/([\d.]+)mm/);
-          if (!m || m[1] + 'mm' !== activeSize) return false;
-        }
-        if (activeType && !c.name.toLowerCase().includes(activeType)) return false;
-        if (searchVal && !c.name.toLowerCase().includes(searchVal) && !c.karat.toLowerCase().includes(searchVal)) return false;
-        return true;
+  // ── Step containers ──
+  const step1 = document.createElement('div'); // Karat
+  const step2 = document.createElement('div'); // Type
+  const step3 = document.createElement('div'); // MM + chain
+
+  container.appendChild(step1);
+  container.appendChild(step2);
+  container.appendChild(step3);
+
+  function stepHeader(text) {
+    const h = document.createElement('div');
+    h.style.cssText = 'padding:6px 10px;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);background:var(--surface2);border-bottom:1px solid var(--border)';
+    h.textContent = text;
+    return h;
+  }
+
+  function chip(label, onClick) {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.style.cssText = 'background:var(--surface2);color:var(--text);border:1px solid var(--border);font-family:var(--font-mono);font-size:12px;padding:6px 12px;border-radius:2px;cursor:pointer;margin:4px;white-space:nowrap';
+    b.onmouseover = () => { b.style.background = 'var(--teal-faint)'; b.style.borderColor = 'var(--teal-dim)'; };
+    b.onmouseout = () => { b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border)'; };
+    b.onclick = e => { e.stopPropagation(); onClick(); };
+    return b;
+  }
+
+  function resetPicker() {
+    selectedKarat = ''; selectedType = '';
+    renderStep1(); step2.innerHTML = ''; step3.innerHTML = '';
+  }
+
+  function renderStep1() {
+    step1.innerHTML = '';
+    step1.appendChild(stepHeader('1. Choose karat'));
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:6px 6px;display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border)';
+    const karats = [...new Set(getAllChains().map(c => c.karat))].sort();
+    karats.forEach(k => {
+      const c = chip(k === '18k' ? '18k Yellow Gold' : k === '14k' ? '14k Yellow Gold' : k, () => {
+        selectedKarat = k; selectedType = '';
+        // Highlight selected
+        row.querySelectorAll('button').forEach(b => { b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
+        c.style.background = 'var(--teal-dim)'; c.style.borderColor = 'var(--teal-dim)'; c.style.color = '#fafaf7';
+        renderStep2(); step3.innerHTML = '';
       });
+      row.appendChild(c);
+    });
+    step1.appendChild(row);
+  }
 
-    if (!chains.length) {
-      const empty = document.createElement('div');
-      empty.style.cssText = 'padding:12px 10px;font-size:13px;color:var(--text-dim);text-align:center;font-style:italic';
-      empty.textContent = 'No chains match';
-      listContainer.appendChild(empty);
-      return;
-    }
+  function renderStep2() {
+    step2.innerHTML = '';
+    step2.appendChild(stepHeader('2. Choose chain type'));
+    const chains = getAllChains().filter(c => c.karat === selectedKarat);
+    // Extract type names (everything before the mm measurement)
+    const types = [...new Set(chains.map(c => c.name.replace(/\s*[\d.]+mm.*/, '').trim()))].sort();
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:6px 6px;display:flex;flex-wrap:wrap;border-bottom:1px solid var(--border)';
+    types.forEach(type => {
+      const c = chip(type, () => {
+        selectedType = type;
+        row.querySelectorAll('button').forEach(b => { b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)'; });
+        c.style.background = 'var(--teal-dim)'; c.style.borderColor = 'var(--teal-dim)'; c.style.color = '#fafaf7';
+        renderStep3();
+      });
+      row.appendChild(c);
+    });
+    step2.appendChild(row);
+  }
 
-    // Group filtered chains by karat
-    const byKarat = {};
-    chains.forEach(c => {
-      if (!byKarat[c.karat]) byKarat[c.karat] = [];
-      byKarat[c.karat].push(c);
+  function renderStep3() {
+    step3.innerHTML = '';
+    step3.appendChild(stepHeader('3. Choose size'));
+    const allChains = getAllChains();
+    const matches = allChains.map((c,i) => ({...c, idx:i})).filter(c =>
+      c.karat === selectedKarat && c.name.replace(/\s*[\d.]+mm.*/, '').trim() === selectedType
+    ).sort((a,b) => {
+      const aNum = parseFloat((a.name.match(/([\d.]+)mm/) || [])[1] || 0);
+      const bNum = parseFloat((b.name.match(/([\d.]+)mm/) || [])[1] || 0);
+      return aNum - bNum;
     });
 
-    Object.keys(byKarat).sort().forEach(karat => {
-      const karatLabel = karat === '18k' ? '18k Yellow Gold' : karat === '14k' ? '14k Yellow Gold' : karat;
-      const karatHeader = document.createElement('div');
-      karatHeader.style.cssText = 'padding:6px 10px;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);background:var(--surface2);border-bottom:1px solid var(--border)';
-      karatHeader.textContent = karatLabel;
-      listContainer.appendChild(karatHeader);
+    matches.forEach(c => {
+      const mm = (c.name.match(/([\d.]+)mm/) || [])[1];
+      const photos = getChainPhotos();
+      const safeKey = (c.karat + '_' + c.name).replace(/[.#$\/\[\]]/g, '_');
+      const legacyKey = c.name.replace(/[.#$\/\[\]]/g, '_');
+      const pickerLink = photos[safeKey] || photos[legacyKey] || '';
 
-      byKarat[karat].forEach(c => {
-        const item = document.createElement('div');
-        item.style.cssText = 'padding:8px 10px 8px 14px;border-bottom:1px solid var(--border);cursor:pointer';
-        const photos = getChainPhotos();
-        const safeKey = (c.karat + '_' + c.name).replace(/[.#$\/\[\]]/g, '_');
-        const legacyKey = c.name.replace(/[.#$\/\[\]]/g, '_');
-        const pickerLink = photos[safeKey] || photos[legacyKey] || '';
-        item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline">'
-          + '<span style="font-size:14px;color:var(--text)">' + c.name + '</span>'
-          + '<span style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</span>'
-          + '</div>'
-          + '<div style="font-size:13px;color:var(--text-dim);margin-top:2px">' + (c.length||'') + ' · ' + c.grams + 'g · retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
-          + (pickerLink ? '<div style="margin-top:4px"><a href="' + pickerLink + '" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none">↗ Product page</a></div>' : '');
-        item.onmouseover = () => item.style.background = 'var(--surface2)';
-        item.onmouseout = () => item.style.background = '';
-        item.addEventListener('click', e => {
-          e.stopPropagation();
-          document.getElementById(hiddenInputId).value = c.idx;
-          document.getElementById(selectedLabelId).textContent = karat + ' ' + c.name + ' · ' + (c.length||'');
-          document.getElementById(selectedLabelId).style.color = 'var(--gold)';
-          onSelect(c.idx);
-          container.style.display = 'none';
-          const toggleBtn = document.getElementById(containerId + '-toggle');
-          if (toggleBtn) toggleBtn.style.display = 'inline-block';
-        });
-        listContainer.appendChild(item);
+      const item = document.createElement('div');
+      item.style.cssText = 'padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+      item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline">'
+        + '<span style="font-size:14px;color:var(--text)">' + (mm ? mm + 'mm' : c.name) + '</span>'
+        + '<span style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + (c.length||'') + ' · ' + c.grams + 'g · retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
+        + (pickerLink ? '<div style="margin-top:4px"><a href="' + pickerLink + '" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none">↗ Product page</a></div>' : '');
+      item.onmouseover = () => item.style.background = 'var(--surface2)';
+      item.onmouseout = () => item.style.background = '';
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById(hiddenInputId).value = c.idx;
+        document.getElementById(selectedLabelId).textContent = selectedKarat + ' ' + c.name + ' · ' + (c.length||'');
+        document.getElementById(selectedLabelId).style.color = 'var(--gold)';
+        onSelect(c.idx);
+        container.style.display = 'none';
+        const btn = document.getElementById(containerId + '-toggle');
+        if (btn) btn.style.display = 'inline-block';
       });
+      step3.appendChild(item);
     });
   }
 
-  refreshChips();
-  renderList();
+  renderStep1();
 }
 
 
@@ -1960,55 +1923,45 @@ function restoreAllChains() {
 }
 
 
+function getChainTypes() {
+  // Extract unique type keywords from chain names
+  const typeKeywords = ['Bead','Box','Cable','Cablewire','Curb','Figaro','Omega','Rope','Snake','Wheat','Venetian','Boa','Twist','Paperclip'];
+  const chains = getAllChains();
+  return typeKeywords.filter(type =>
+    chains.some(c => c.name.toLowerCase().includes(type.toLowerCase()))
+  );
+}
+
 function populateChainDropdown() {
   const sel = document.getElementById('chainJump');
   if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— Browse all chains</option>';
-  const chains = getAllChains();
-  const karats = [...new Set(chains.map(c => c.karat))].sort();
-  karats.forEach(karat => {
-    const group = document.createElement('optgroup');
-    group.label = karat === '18k' ? '18k Yellow Gold' : karat === '14k' ? '14k Yellow Gold' : karat;
-    const inKarat = chains.filter(c => c.karat === karat)
-      .sort((a,b) => a.name.localeCompare(b.name));
-    inKarat.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.karat + '||' + c.name;
-      opt.textContent = c.name + ' · $' + c.wholesale.toLocaleString();
-      group.appendChild(opt);
-    });
-    sel.appendChild(group);
+  sel.innerHTML = '<option value="">— Filter by type</option>';
+  getChainTypes().forEach(type => {
+    const opt = document.createElement('option');
+    opt.value = type;
+    opt.textContent = type;
+    sel.appendChild(opt);
   });
-  sel.value = current;
 }
 
-function jumpToChain(val) {
-  if (!val) return;
-  const [karat, name] = val.split('||');
-  // Open the metal group and mm group containing this chain
-  const metalKey = 'metal_' + karat;
-  const mm = (name.match(/([\d.]+)mm/) || [])[1];
-  const mmKey = mm ? 'mm_' + karat + '_' + mm : null;
+function jumpToChain(type) {
+  if (!type) {
+    window._chainTypeFilter = '';
+    renderChainList();
+    return;
+  }
+  window._chainTypeFilter = type.toLowerCase();
+  // Open all metal groups that have matching chains
+  const chains = getAllChains();
   if (!window._chainState) window._chainState = {};
-  window._chainState[metalKey] = true;
-  if (mmKey) window._chainState[mmKey] = true;
-  renderChainList();
-  // Scroll to the chain after render
-  setTimeout(() => {
-    const items = document.querySelectorAll('#chainTree div');
-    for (const item of items) {
-      const nameEl = item.querySelector('div[style*="font-size:14px"]');
-      if (nameEl && nameEl.textContent.trim().startsWith(name)) {
-        item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        item.style.outline = '2px solid var(--teal-dim)';
-        setTimeout(() => item.style.outline = '', 2000);
-        break;
-      }
+  chains.forEach(c => {
+    if (c.name.toLowerCase().includes(type.toLowerCase())) {
+      window._chainState['metal_' + c.karat] = true;
+      const mm = (c.name.match(/([\d.]+)mm/) || [])[1];
+      if (mm) window._chainState['mm_' + c.karat + '_' + mm] = true;
     }
-  }, 100);
-  // Reset dropdown to placeholder
-  document.getElementById('chainJump').value = '';
+  });
+  renderChainList();
 }
 
 function renderChainList() {
@@ -2017,10 +1970,10 @@ function renderChainList() {
   if (!window._chainState) window._chainState = {};
   container.innerHTML = '';
 
-  // Merge hardcoded + custom chains, filter by search
-  const searchTerm = (document.getElementById('chainSearch')?.value || '').toLowerCase().trim();
+  // Merge hardcoded + custom chains, filter by type if set
+  const typeFilter = (window._chainTypeFilter || '').toLowerCase();
   const allChains = getAllChains().filter(c =>
-    !searchTerm || c.name.toLowerCase().includes(searchTerm)
+    !typeFilter || c.name.toLowerCase().includes(typeFilter)
   );
   const karats = [...new Set(allChains.map(c => c.karat))].sort();
 
@@ -2137,6 +2090,8 @@ function renderChainList() {
 
   // Populate the jump dropdown
   populateChainDropdown();
+  const sel = document.getElementById('chainJump');
+  if (sel && window._chainTypeFilter) sel.value = window._chainTypeFilter.charAt(0).toUpperCase() + window._chainTypeFilter.slice(1);
 
   // Show restore bar if any chains were removed
   const removedCount = (window._removedChains || []).length;
@@ -4597,7 +4552,7 @@ function updateActuals(id, e, pieceIdx) {
   form.style.cssText = 'background:#8dadaf;border:1px solid #6b9496;border-radius:4px;padding:12px;margin-top:10px;color:#ffffff';
   form.innerHTML = `
     <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#ffffff;font-weight:600;margin-bottom:8px">Actual costs</div>
-    <div style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:3px;padding:10px;margin-bottom:12px">
+    <div style="background:none;border:none;padding:10px 0;margin-bottom:12px">
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#ffffff;font-weight:600;margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
         <div style="color:rgba(255,255,255,0.85)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
@@ -4609,7 +4564,7 @@ function updateActuals(id, e, pieceIdx) {
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
-        <div class="field-label" style="color:#ffffff;font-weight:500">Casting company</div>
+        <div class="field-label" style="color:#ffffff">Casting company</div>
         <select id="af-caster-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
           <option value="">— Select</option>
           <option value="Carrera" ${q.castingCompany==='Carrera'?'selected':''}>Carrera</option>
@@ -4619,49 +4574,49 @@ function updateActuals(id, e, pieceIdx) {
         </select>
       </div>
       <div>
-        <div class="field-label" style="color:#ffffff;font-weight:500">Final casting cost ($)</div>
+        <div class="field-label" style="color:#ffffff">Final casting cost ($)</div>
         <input type="number" id="af-metal-${id}" value="${q.actualMetalCost != null ? q.actualMetalCost : (q.metalEstimate || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
-        <div class="field-label" style="color:#ffffff;font-weight:500">Stone cost ($)</div>
+        <div class="field-label" style="color:#ffffff">Stone cost ($)</div>
         <input type="number" id="af-stone-${id}" value="${q.actualStoneCost != null ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st)=>s+(st.cost||0),0) : '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
-        <div class="field-label" style="color:#ffffff;font-weight:500">Final labor cost ($)</div>
+        <div class="field-label" style="color:#ffffff">Final labor cost ($)</div>
         <input type="number" id="af-labor-${id}" value="${q.actualLabor != null ? q.actualLabor : (q.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
-        <div class="field-label" style="color:#ffffff;font-weight:500">Design fee ($)</div>
+        <div class="field-label" style="color:#ffffff">Design fee ($)</div>
         <input type="number" id="af-design-${id}" value="${q.designFee || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
     </div>
     <div style="margin-bottom:8px">
-      <div class="field-label" style="color:#ffffff;font-weight:500">Chain</div>
+      <div class="field-label" style="color:#ffffff">Chain</div>
       <input type="hidden" id="af-chain-${id}" value="${q.chainCost ? CHAINS.findIndex(c => c.wholesale === q.chainCost) : ''}">
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
         <div id="af-chain-label-${id}" style="font-size:14px;color:var(--gold);font-style:italic">${q.chainName || 'None selected'}</div>
-        <button id="af-chain-tree-${id}-toggle" onclick="document.getElementById('af-chain-tree-${id}').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Browse</button>
+        <button id="af-chain-tree-${id}-toggle" onclick="document.getElementById('af-chain-tree-${id}').style.display='block';this.style.display='none'" style="background:#ffffff;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Browse</button>
       </div>
       <div id="af-chain-tree-${id}" style="border:1px solid var(--border);border-radius:3px;overflow:hidden;display:none;max-height:200px;overflow-y:auto"></div>
     </div>
-    <div id="af-live-${id}" style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:10px;display:none"></div>
+    <div id="af-live-${id}" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:3px;padding:10px;margin-bottom:10px;display:none"></div>
     <div style="margin-bottom:10px">
-      <div class="field-label" style="color:#ffffff;font-weight:500">Additional materials / melee ($)</div>
+      <div class="field-label" style="color:#ffffff">Additional materials / melee ($)</div>
       <input type="number" id="af-melee-${id}" value="${q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
     </div>
     <div style="margin-bottom:10px">
-      <div class="field-label" style="color:#ffffff;font-weight:500">Client price ($) — what you're actually charging</div>
+      <div class="field-label" style="color:#ffffff">Client price ($) — what you're actually charging</div>
       <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcActualsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:3px;outline:none">
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="saveActuals(${id})" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Save</button>
-      <button onclick="document.getElementById('actuals-form-${id}').remove()" style="flex:1;background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Cancel</button>
+      <button onclick="document.getElementById('actuals-form-${id}').remove()" style="flex:1;background:#ffffff;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Cancel</button>
     </div>`;
 
   (cardBody || card).appendChild(form);
@@ -5708,7 +5663,7 @@ function renderStoneInventory() {
       <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Log inquiry</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
-          <div class="field-label" style="color:#ffffff;font-weight:500">Platform</div>
+          <div class="field-label" style="color:#ffffff">Platform</div>
           <select id="inq-platform-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none;appearance:none">
             <option>Instagram</option>
             <option>TikTok</option>
@@ -5717,22 +5672,22 @@ function renderStoneInventory() {
           </select>
         </div>
         <div>
-          <div class="field-label" style="color:#ffffff;font-weight:500">Name / username</div>
+          <div class="field-label" style="color:#ffffff">Name / username</div>
           <input type="text" id="inq-name-${s.id}" placeholder="@username" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
-          <div class="field-label" style="color:#ffffff;font-weight:500">Date</div>
+          <div class="field-label" style="color:#ffffff">Date</div>
           <input type="date" id="inq-date-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
         </div>
         <div>
-          <div class="field-label" style="color:#ffffff;font-weight:500">Price quoted ($)</div>
+          <div class="field-label" style="color:#ffffff">Price quoted ($)</div>
           <input type="number" id="inq-price-${s.id}" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
         </div>
       </div>
       <div style="margin-bottom:6px">
-        <div class="field-label" style="color:#ffffff;font-weight:500">Note</div>
+        <div class="field-label" style="color:#ffffff">Note</div>
         <input type="text" id="inq-note-${s.id}" placeholder="e.g. very interested, following up next week..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:3px;outline:none">
       </div>
       <div style="display:flex;gap:6px">
