@@ -6292,10 +6292,13 @@ function renderFieldLog() {
       const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
       if (!linkedQ) return;
       const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
-      if (s.category === 'owned-available' || (!s.category)) { 
-        s.category = correctCategory; 
+      if (s.category === 'owned-available' || (!s.category)) {
+        s.category = correctCategory;
+        changed = true;
+      }
+      if (s.status !== 'in-use') {
         s.status = 'in-use';
-        changed = true; 
+        changed = true;
       }
       const expectedNote = 'Added from project: ' + linkedQ.client;
       if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
