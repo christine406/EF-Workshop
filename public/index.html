@@ -5467,6 +5467,20 @@ function releaseStone(id) {
   showToast('Stone released — marked available');
 }
 
+function archiveStoneManually(id) {
+  if (!confirm('Archive this stone?')) return;
+  const inv = getInventory();
+  const s = inv.find(s => s.id === id);
+  if (s) {
+    s.status = 'archived-with-project';
+    s.archivedDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    window._inventory = inv;
+    persistInventory();
+    renderStoneInventory();
+    showToast('Stone archived');
+  }
+}
+
 function markStoneSoldByDealer(id) {
   const inv = getInventory();
   const s = inv.find(s => s.id === id);
@@ -5655,6 +5669,9 @@ function renderStoneInventory() {
       html += `<button class="convert-btn" style="border-color:#ccc07a;color:#ccc07a" onclick="markStoneOutWithJeweler(${s.id})">Out w/ jeweler</button>`;
     }
     html += `<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="editInventoryStone(${s.id})">Edit</button>`;
+    if (!['sold-by-dealer','sold-by-ef','archived-with-project'].includes(s.status)) {
+      html += `<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="archiveStoneManually(${s.id})">Archive</button>`;
+    }
     html += `<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="deleteInventoryStone(${s.id})">Delete</button>`;
     html += '</div>';
 
