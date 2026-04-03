@@ -1923,6 +1923,87 @@ function restoreAllChains() {
 }
 
 
+function editBuiltinChain(chain) {
+  const existing = document.getElementById('chainLinkModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'chainLinkModal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:420px';
+  modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px">Edit chain</div>'
+    + '<div style="font-size:11px;color:var(--text-dim);margin-bottom:12px">Saves as a custom entry, hides the original.</div>';
+
+  const fields = [
+    { id:'eb-name', label:'Chain name', placeholder:'e.g. Round Box 2.0mm', value: chain.name },
+    { id:'eb-karat', label:'Karat', placeholder:'e.g. 18k', value: chain.karat },
+    { id:'eb-length', label:'Length', placeholder:'e.g. 16"', value: chain.length || '' },
+    { id:'eb-grams', label:'Grams', placeholder:'e.g. 10.5', value: chain.grams || '' },
+    { id:'eb-wholesale', label:'Wholesale ($)', placeholder:'e.g. 1804', value: chain.wholesale || '' },
+  ];
+
+  fields.forEach(f => {
+    const row = document.createElement('div');
+    row.style.cssText = 'margin-bottom:10px';
+    row.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">' + f.label + '</div>';
+    const inp = document.createElement('input');
+    inp.id = f.id; inp.type = 'text'; inp.value = f.value; inp.placeholder = f.placeholder;
+    inp.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;box-sizing:border-box';
+    row.appendChild(inp);
+    modal.appendChild(row);
+  });
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:4px';
+
+  const saveBtn = document.createElement('button');
+  saveBtn.textContent = 'Save changes';
+  saveBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  saveBtn.addEventListener('click', () => {
+    const name = document.getElementById('eb-name').value.trim();
+    const karat = document.getElementById('eb-karat').value.trim();
+    const length = document.getElementById('eb-length').value.trim();
+    const grams = parseFloat(document.getElementById('eb-grams').value) || 0;
+    const wholesale = parseFloat(document.getElementById('eb-wholesale').value) || 0;
+    if (!name || !karat) { showToast('Name and karat required'); return; }
+    // Hide the original builtin
+    if (!window._removedChains) window._removedChains = [];
+    if (!window._removedChains.some(r => r.name === chain.name && r.karat === chain.karat)) {
+      window._removedChains.push({ name: chain.name, karat: chain.karat });
+      persistRemovedChains();
+    }
+    // Save edited version as custom, replacing any prior override of the same original
+    if (!window._customChains) window._customChains = [];
+    const builtinKey = chain.name + '|' + chain.karat;
+    const overrideIdx = window._customChains.findIndex(c => c._builtinKey === builtinKey);
+    const updated = { name, karat, length, grams, wholesale, custom: true, _builtinKey: builtinKey };
+    if (overrideIdx >= 0) {
+      window._customChains[overrideIdx] = updated;
+    } else {
+      window._customChains.push(updated);
+    }
+    persistCustomChains();
+    overlay.remove();
+    renderChainList();
+    showToast('Chain updated');
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
+  cancelBtn.onclick = () => overlay.remove();
+
+  btnRow.appendChild(saveBtn);
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('eb-name')?.focus(), 50);
+}
+
 function getChainTypes() {
   // Extract unique type keywords from chain names
   const typeKeywords = ['Bead','Box','Cable','Cablewire','Curb','Figaro','Omega','Rope','Snake','Wheat','Venetian','Boa','Twist','Paperclip'];
@@ -2061,6 +2142,20 @@ function renderChainList() {
           return function(e) { e.stopPropagation(); showChainLinkModal(n, k, u); };
         })(c.name, c.karat, linkUrl));
         row2.appendChild(linkBtn);
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.style.cssText = 'background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
+        if (c.custom && customIdx >= 0) {
+          editBtn.addEventListener('click', (function(chain, idx) {
+            return function(e) { e.stopPropagation(); showAddChainModal(chain, idx); };
+          })(c, customIdx));
+        } else {
+          editBtn.addEventListener('click', (function(chain) {
+            return function(e) { e.stopPropagation(); editBuiltinChain(chain); };
+          })(c));
+        }
+        row2.appendChild(editBtn);
 
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Remove';
