@@ -3171,13 +3171,26 @@ function saveQuote(quoteType = 'client') {
   window._savedQuotes = updated;
   persistQuotes();
 
-  // Flag any existing inventory stones as in-use, and auto-add new detailed stones to inventory
+  // Tag any inventory stones referenced in this quote
   const inv = getInventory();
   let invChanged = false;
   stones.forEach(s => {
     if (s.inventoryId) {
       const invStone = inv.find(i => i.id === s.inventoryId);
-      if (invStone) { invStone.status = 'in-use'; invStone.usedInProjectId = quote.id; invChanged = true; }
+      if (invStone) {
+        // Only mark in-use if this is a project, not just a quote
+        if (quote.status === 'project') {
+          invStone.status = 'in-use';
+          invStone.usedInProjectId = quote.id;
+          invStone.usedInQuoteId = null;
+          invStone.usedInQuoteClient = null;
+        } else {
+          // It's just a quote — tag it but don't change status
+          invStone.usedInQuoteId = quote.id;
+          invStone.usedInQuoteClient = quote.client || 'quote';
+        }
+        invChanged = true;
+      }
     } else if (s.gia || s.carat || (s.color && s.clarity)) {
       // Stone has detail info — add to inventory only if explicitly flagged
       if (!s.addToInventory) return;
@@ -3639,13 +3652,33 @@ function markProjectStatus(id, newStatus, e) {
     window._savedQuotes = quotes;
     persistQuotes();
 
-    // Archive linked stone if project is archived or abandoned
-    if (newStatus === 'abandoned' || newStatus === 'archived-project' || newStatus === 'archived-quote') {
-      const inv = getInventory();
-      const linkedStone = inv.find(s => s.usedInProjectId === id);
-      if (linkedStone && !['sold-by-dealer','sold-by-ef'].includes(linkedStone.status)) {
+    // Handle linked stone based on new status
+    const inv = getInventory();
+    const linkedStone = inv.find(s => s.usedInProjectId === id);
+    if (linkedStone) {
+      const now = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+      if (newStatus === 'completed') {
+        // Archive with "Used in EF project" label — not sold-by-ef (that's for loose sales)
         linkedStone.status = 'archived-with-project';
-        linkedStone.archivedDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+        linkedStone.archiveLabel = 'Used in EF project';
+        linkedStone.archivedDate = now;
+        window._inventory = inv;
+        persistInventory();
+      } else if (newStatus === 'abandoned') {
+        if (linkedStone.category === 'memo') {
+          // Memo stone — returned to dealer, archive it
+          linkedStone.status = 'archived-with-project';
+          linkedStone.archivedDate = now;
+        } else {
+          // Owned stone — release back to available
+          linkedStone.status = 'available';
+          linkedStone.usedInProjectId = null;
+        }
+        window._inventory = inv;
+        persistInventory();
+      } else if (newStatus === 'archived-project' || newStatus === 'archived-quote') {
+        linkedStone.status = 'archived-with-project';
+        linkedStone.archivedDate = now;
         window._inventory = inv;
         persistInventory();
       }
@@ -3655,6 +3688,7 @@ function markProjectStatus(id, newStatus, e) {
     showToast(newStatus === 'completed' ? 'Marked as completed' : newStatus === 'abandoned' ? 'Marked as abandoned' : 'Reopened');
   }
 }
+
 
 function deletePieceFromSet(setId, pieceIdx, e) {
   e.stopPropagation();
@@ -4483,11 +4517,16 @@ function deleteItem(id, e) {
         }
       }
     });
-    // Also release any stones where usedInProjectId matches this quote
+    // Also release any stones where usedInProjectId or usedInQuoteId matches this quote
     inv.forEach(s => {
       if (s.usedInProjectId === id) {
         s.status = 'available';
         s.usedInProjectId = null;
+        invChanged = true;
+      }
+      if (s.usedInQuoteId === id) {
+        s.usedInQuoteId = null;
+        s.usedInQuoteClient = null;
         invChanged = true;
       }
     });
@@ -4509,6 +4548,35 @@ function convertToProject(id, e) {
     q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
     window._savedQuotes = quotes;
     persistQuotes();
+
+    // Upgrade any tagged inventory stones from quote → in-use
+    const inv = getInventory();
+    let invChanged = false;
+    inv.forEach(s => {
+      if (s.usedInQuoteId === id) {
+        s.status = 'in-use';
+        s.usedInProjectId = id;
+        s.usedInQuoteId = null;
+        s.usedInQuoteClient = null;
+        invChanged = true;
+      }
+    });
+    // Also check stones array
+    if (q.stones) {
+      q.stones.forEach(qs => {
+        if (!qs.inventoryId) return;
+        const invStone = inv.find(i => i.id === qs.inventoryId);
+        if (invStone && invStone.status !== 'in-use') {
+          invStone.status = 'in-use';
+          invStone.usedInProjectId = id;
+          invStone.usedInQuoteId = null;
+          invStone.usedInQuoteClient = null;
+          invChanged = true;
+        }
+      });
+    }
+    if (invChanged) { window._inventory = inv; persistInventory(); }
+
     renderSaved();
     showToast(q.status === 'collection' ? 'Moved to collection' : 'Moved to projects');
   }
@@ -5115,6 +5183,15 @@ function addStoneFromInventory(s) {
   const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
   const id = stoneIdCounter++;
   stones.push({ id, cost: s.cost || 0, desc, isSmall: false, inventoryId: s.id });
+  // Tag stone as referenced in a quote — will get client name when quote is saved
+  const inv = getInventory();
+  const invStone = inv.find(i => i.id === s.id);
+  if (invStone) {
+    invStone.usedInQuoteId = 'pending';
+    invStone.usedInQuoteClient = 'unsaved quote';
+    window._inventory = inv;
+    persistInventory();
+  }
   renderStones();
   calculate();
   toggleInventoryPicker();
@@ -5351,7 +5428,7 @@ function saveInventoryStone() {
     // New stone
     const stone = {
       id: Date.now(), category, cut, carat, color, clarity, gia, dealer, cost, notes, returnBy, antique,
-      status: category === 'owned-reserved' ? 'unavailable' : 'available',
+      status: category === 'owned-reserved' ? 'unavailable' : category === 'memo' ? 'on-memo' : 'available',
       passedReason: passedReason || undefined,
       dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
       inquiries: [], usedInProjectId: null,
@@ -5545,6 +5622,7 @@ function renderStoneInventory() {
   const statusLabels = {
     'available': 'available',
     'in-use': 'in use',
+    'on-memo': 'on memo',
     'sold-by-dealer': 'sold by dealer',
     'sold-by-ef': 'sold by EF',
     'out-with-jeweler': 'out w/ jeweler',
@@ -5627,6 +5705,7 @@ function renderStoneInventory() {
         <span style="font-size:12px;background:#e8d9b8;color:#5a4a2a;padding:2px 6px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">${catLabels[s.category] || s.category}</span>
         ${s.antique ? '<span style="font-size:12px;background:var(--teal-dim);color:#fafaf7;padding:3px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : ''}
         ${hasPending ? '<span style="font-size:12px;background:#ccc07a;color:#3a2800;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">⏳ Pending · ' + pendingInquiries.length + '</span>' : ''}
+        ${s.usedInQuoteId && !s.usedInProjectId ? '<span style="font-size:11px;background:#f0e8d0;color:#7a5a20;padding:2px 7px;border-radius:2px;letter-spacing:0.06em">In quote · ' + (s.usedInQuoteClient || 'unknown') + '</span>' : ''}
         ${giaLink}
         ${s.returnBy ? '<span style="font-size:13px;color:var(--text-dim)">return by ' + s.returnBy + '</span>' : ''}
       </div>
@@ -5738,7 +5817,7 @@ function renderStoneInventory() {
     if (archiveExpanded) {
       archivedStones.forEach(s => {
         const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
-        const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : s.status === 'archived-with-project' ? 'Project archived' : 'Sold by dealer';
+        const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : s.status === 'archived-with-project' ? (s.archiveLabel || 'Project archived') : 'Sold by dealer';
         const soldColor = s.status === 'sold-by-ef' ? 'var(--teal-dim)' : s.status === 'archived-with-project' ? 'var(--text-dim)' : '#8B6914';
 
         const card = document.createElement('div');
@@ -6330,11 +6409,12 @@ function renderFieldLog() {
       const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
       if (!linkedQ) return;
       // Only fix status — never overwrite category (memo should stay memo)
-      if (s.status !== 'in-use') {
+      // Only mark in-use — never change category, never overwrite archived/sold statuses
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+      if (!dontTouch.includes(s.status) && s.status !== 'in-use') {
         s.status = 'in-use';
         changed = true;
       }
-      // Note: never change category here — memo stays memo, owned stays owned
       const expectedNote = 'Added from project: ' + linkedQ.client;
       if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
     });
@@ -6346,9 +6426,12 @@ function renderFieldLog() {
         if (!qs.gia) return;
         const invStone = (window._inventory || []).find(s => s.gia === qs.gia && !s.usedInProjectId);
         if (invStone) {
-          invStone.usedInProjectId = q.id;
-          invStone.status = 'in-use';
-          changed = true;
+          const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+          if (!dontTouch.includes(invStone.status)) {
+            invStone.usedInProjectId = q.id;
+            invStone.status = 'in-use';
+            changed = true;
+          }
         }
       });
     });
