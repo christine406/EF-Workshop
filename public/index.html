@@ -4081,12 +4081,13 @@ function buildQuoteCard(q) {
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
   const discLabel = discAmt ? '<div style="font-size:13px;color:var(--teal-dim)">after disc: $' + discountedPrice.toLocaleString() + '</div>' : '';
-  const displayAmount = q.clientPrice ? q.clientPrice : q.total;
+  const hasActualTotal = q.actualTotal && q.actualTotal !== q.total;
+  const displayAmount = q.clientPrice ? q.clientPrice : (q.actualTotal || q.total);
   const displayAmountStr = displayAmount ? '$' + displayAmount.toLocaleString() : 'Not determined';
   const displayAmountColor = displayAmount ? '' : 'color:var(--text-dim);font-size:14px';
   const clientPriceLabel = q.clientPrice
     ? (q.total ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">initial quote: $' + q.total.toLocaleString() + '</div>' : '')
-    : '';
+    : (hasActualTotal ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">initial quote: $' + q.total.toLocaleString() + '</div>' : '');
 
   // HEADER — always visible, tap to expand
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
