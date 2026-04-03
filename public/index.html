@@ -4057,7 +4057,7 @@ function buildQuoteCard(q) {
   const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : (q.metalEstimate || 0);
   const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
-  const cost = stoneCost + metalCost + laborCost + (q.designFee || 0) + (q.chainCost || 0) + (hasActuals ? (q.actualMeleeCost || 0) : (q.meleeCost || 0));
+  const cost = stoneCost + metalCost + laborCost + (q.designFee || 0) + (q.chainCost || 0);
   const profitBefore = q.total - cost;
   const profitAtClientPrice = clientPrice - cost;
   const statusClass = (q.status === 'project' || q.status === 'collection') ? 'status-project'
@@ -4146,9 +4146,8 @@ function buildQuoteCard(q) {
   const showMetalCost = hasActuals ? (q.actualMetalCost || 0) : (q.metalEstimate || 0);
   const showLaborCost = hasActuals ? (q.actualLabor || 0) : (q.laborEst || 0);
   const showDesignFee = q.designFee || 0;
-  const showMeleeCost = hasActuals ? (q.actualMeleeCost || 0) : (q.meleeCost || 0);
   const showChainCost = q.chainCost || 0;
-  const totalCosts = showStoneCost + showMetalCost + showLaborCost + showDesignFee + showMeleeCost + showChainCost;
+  const totalCosts = showStoneCost + showMetalCost + showLaborCost + showDesignFee + showChainCost;
   if (totalCosts > 0) {
     html += '<div style="margin-bottom:8px;background:var(--surface2);border-radius:3px;padding:8px 10px">';
     html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">'
@@ -4157,7 +4156,6 @@ function buildQuoteCard(q) {
     if (showStoneCost) html += '<span style="color:var(--text-dim)">Stone</span><span style="color:var(--text)">$' + showStoneCost.toLocaleString() + '</span>';
     if (showMetalCost) html += '<span style="color:var(--text-dim)">Metal</span><span style="color:var(--text)">$' + showMetalCost.toLocaleString() + '</span>';
     if (showLaborCost) html += '<span style="color:var(--text-dim)">Labor</span><span style="color:var(--text)">$' + showLaborCost.toLocaleString() + '</span>';
-    if (showMeleeCost) html += '<span style="color:var(--text-dim)">Materials</span><span style="color:var(--text)">$' + showMeleeCost.toLocaleString() + '</span>';
     if (showDesignFee) html += '<span style="color:var(--text-dim)">Design fee</span><span style="color:var(--text)">$' + showDesignFee.toLocaleString() + '</span>';
     if (showChainCost) html += '<span style="color:var(--text-dim)">Chain</span><span style="color:var(--text)">$' + showChainCost.toLocaleString() + '</span>';
     html += '</div>';
@@ -4592,11 +4590,6 @@ function updateActuals(id, e, pieceIdx) {
     </div>
     <div id="af-live-${id}" style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:10px;display:none"></div>
     <div style="margin-bottom:10px">
-      <div class="field-label">Additional materials / melee ($)</div>
-      <input type="number" id="af-melee-${id}" value="${q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
-    </div>
-    <div style="margin-bottom:10px">
       <div class="field-label">Client price ($) — what you're actually charging</div>
       <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcActualsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:3px;outline:none">
@@ -4617,7 +4610,6 @@ function calcActualsLive(id) {
   const metalCost = parseFloat(document.getElementById('af-metal-' + id)?.value) || 0;
   const laborCost = parseFloat(document.getElementById('af-labor-' + id)?.value) || 0;
   const designFee = parseFloat(document.getElementById('af-design-' + id)?.value) || 0;
-  const meleeCost = parseFloat(document.getElementById('af-melee-' + id)?.value) || 0;
   const chainEl = document.getElementById('af-chain-' + id);
   const chainIdx = chainEl?.value || '';
   const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
@@ -4627,7 +4619,7 @@ function calcActualsLive(id) {
   const q = quotes.find(q => q.id === id);
   const total = q?.total || 0;
 
-  const totalCost = stoneCost + metalCost + laborCost + designFee + meleeCost + chainCost;
+  const totalCost = stoneCost + metalCost + laborCost + designFee + chainCost;
   const clientPrice = parseFloat(document.getElementById('af-client-' + id)?.value) || 0;
   const revenue = clientPrice > 0 ? clientPrice : total;
   const profit = revenue - totalCost;
@@ -4687,14 +4679,12 @@ function saveActuals(id) {
   const metalField = document.getElementById('af-metal-' + id)?.value;
   const laborField = document.getElementById('af-labor-' + id)?.value;
   const designField = document.getElementById('af-design-' + id)?.value;
-  const meleeField = document.getElementById('af-melee-' + id)?.value;
   const clientField = document.getElementById('af-client-' + id)?.value;
 
   const stoneCost = stoneField !== '' && stoneField != null ? parseFloat(stoneField) : origStoneCost;
   const metalCost = metalField !== '' && metalField != null ? parseFloat(metalField) : origMetalCost;
   const laborCost = laborField !== '' && laborField != null ? parseFloat(laborField) : origLaborCost;
   const designFee = designField !== '' && designField != null ? parseFloat(designField) : origDesignFee;
-  const meleeCost = meleeField !== '' && meleeField != null ? parseFloat(meleeField) : (q.meleeCost || 0);
   const clientPrice = clientField !== '' && clientField != null ? parseFloat(clientField) || 0 : (q.clientPrice || 0);
 
   const castingCompany = document.getElementById('af-caster-' + id)?.value || q.castingCompany || '';
@@ -4706,7 +4696,6 @@ function saveActuals(id) {
   q.actualMetalCost = metalCost;
   q.actualLabor = laborCost;
   q.designFee = designFee;
-  q.actualMeleeCost = meleeCost;
   q.castingCompany = castingCompany;
   q.chainCost = chainCost;
   q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : (q.chainName || '');
