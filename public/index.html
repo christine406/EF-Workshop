@@ -1385,8 +1385,6 @@ const GOLD_PER_GRAM = {
 
 const PLAT_SPOT_APPROX = 32; // $/g fallback if no API
 
-function fmtCt(v) { const n = parseFloat(v); return isNaN(n) ? '' : n.toFixed(2); }
-
 const WEIGHT_CATEGORIES = {
   ring: [
     { label: 'Dainty solitaire band', min: 2, max: 4 },
@@ -3171,7 +3169,7 @@ function saveQuote(quoteType = 'client') {
     } else if (s.gia || s.carat || (s.color && s.clarity)) {
       // Stone has detail info — add to inventory only if explicitly flagged
       if (!s.addToInventory) return;
-      const desc = [s.carat ? fmtCt(s.carat) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
       const newInvStone = {
         id: Date.now() + Math.random(),
         category: 'owned-available',
@@ -3572,7 +3570,7 @@ function saveQuoteEdit(id) {
         cost: q.actualStoneCost || 0,
         antique: stoneDetail.antique,
         notes: 'Added from project: ' + q.client,
-        status: 'in-use',
+        status: 'unavailable',
         category: (q.consignment ? 'memo' : 'owned-reserved'),
         usedInProjectId: id,
         dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
@@ -5066,7 +5064,7 @@ function renderGroupedPicker(list, stones, onSelect) {
     if (!expanded) return;
 
     group.forEach(s => {
-      const desc = [s.carat ? fmtCt(s.carat) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
       const catLabel = s.category === 'memo' ? 'on memo' : s.category === 'viewed' ? 'viewed / not yet purchased' : s.category === 'owned-reserved' ? 'owned — reserved' : 'owned';
       const row = document.createElement('div');
       row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
@@ -5091,7 +5089,7 @@ function renderInventoryPicker() {
   renderGroupedPicker(list, available, (s) => addStoneFromInventory(s));
 }
 function addStoneFromInventory(s) {
-  const desc = [s.carat ? fmtCt(s.carat) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
+  const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
   const id = stoneIdCounter++;
   stones.push({ id, cost: s.cost || 0, desc, isSmall: false, inventoryId: s.id });
   renderStones();
@@ -5126,7 +5124,7 @@ async function lookupGIAByNumber() {
       return;
     }
     fillStoneFormFromGIA(data);
-    const filled = [data.carat ? fmtCt(data.carat) + ' ct' : '', data.color, data.clarity, data.cut].filter(Boolean);
+    const filled = [data.carat ? data.carat + 'ct' : '', data.color, data.clarity, data.cut].filter(Boolean);
     statusEl.textContent = '✓ ' + filled.join(' · ');
     statusEl.style.color = 'var(--green-bright)';
   } catch(e) {
@@ -5317,12 +5315,12 @@ function saveInventoryStone() {
     // Duplicate check — GIA match first, then specs match
     const giaMatch = gia && inv.find(s => s.gia && s.gia.trim() === gia);
     if (giaMatch) {
-      const msg = 'GIA ' + gia + ' is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded||'unknown') + '\n' + [giaMatch.carat?fmtCt(giaMatch.carat)+'ct':'', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+      const msg = 'GIA ' + gia + ' is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded||'unknown') + '\n' + [giaMatch.carat?giaMatch.carat+'ct':'', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
       if (!confirm(msg)) return;
     } else if (carat && color && clarity) {
       const specsMatch = inv.find(s => Math.abs((parseFloat(s.carat)||0) - carat) < 0.05 && (s.color||'').toUpperCase() === color.toUpperCase() && (s.clarity||'').toUpperCase() === clarity.toUpperCase());
       if (specsMatch) {
-        const msg = 'A similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded||'unknown') + '\n' + [specsMatch.carat?fmtCt(specsMatch.carat)+'ct':'', specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+        const msg = 'A similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded||'unknown') + '\n' + [specsMatch.carat?specsMatch.carat+'ct':'', specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
         if (!confirm(msg)) return;
       }
     }
@@ -5558,7 +5556,7 @@ function renderStoneInventory() {
     if (!expanded) return;
 
     // Stone cards in this group
-    group.forEach(s => {    const desc = [s.carat ? fmtCt(s.carat) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+    group.forEach(s => {    const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
         const giaLink = s.gia
       ? `<a href="https://www.gia.edu/report-check?reportno=${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
       : '';
@@ -5699,7 +5697,7 @@ function renderStoneInventory() {
 
     if (archiveExpanded) {
       archivedStones.forEach(s => {
-        const desc = [s.carat ? fmtCt(s.carat) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+        const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
         const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : s.status === 'archived-with-project' ? 'Project archived' : 'Sold by dealer';
         const soldColor = s.status === 'sold-by-ef' ? 'var(--teal-dim)' : s.status === 'archived-with-project' ? 'var(--text-dim)' : '#8B6914';
 
@@ -5740,7 +5738,7 @@ function toggleLoosePicker() {
 
 function selectLooseStone(s) {
   _looseSelectedStoneId = s.id;
-  const desc = [s.carat ? fmtCt(s.carat) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+  const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
   document.getElementById('looseSelectedDesc').textContent = desc + (s.gia ? ' · GIA ' + s.gia : '');
   document.getElementById('looseSelectedStone').style.display = 'block';
   document.getElementById('looseCost').value = s.cost || '';
@@ -5982,7 +5980,7 @@ function renderDataScreen() {
     const statusLabel = archivedStatuses.includes(s.status) ? 'archived' : s.status === 'unavailable' ? 'reserved' : s.status === 'in-use' ? 'in use' : s.status;
     html += '<tr style="border-bottom:1px solid var(--border)">'
       + '<td style="padding:7px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:var(--teal-dim)">✦</span>' : '') + '</td>'
-      + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + fmtCt(s.carat) + '</td>'
+      + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + s.carat + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
       + '<td style="padding:7px 4px;color:var(--text-dim)">' + (s.dealer || '—') + '</td>'
@@ -6292,13 +6290,10 @@ function renderFieldLog() {
       const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
       if (!linkedQ) return;
       const correctCategory = linkedQ.consignment ? 'memo' : 'owned-reserved';
-      if (s.category === 'owned-available' || (!s.category)) {
-        s.category = correctCategory;
-        changed = true;
-      }
-      if (s.status !== 'in-use') {
-        s.status = 'in-use';
-        changed = true;
+      if (s.category === 'owned-available' || (!s.category)) { 
+        s.category = correctCategory; 
+        s.status = correctCategory === 'memo' ? 'unavailable' : 'unavailable';
+        changed = true; 
       }
       const expectedNote = 'Added from project: ' + linkedQ.client;
       if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
