@@ -3825,6 +3825,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-overlay').remove()">Cancel</button>
     </div>`;
+  document.body.appendChild(overlay);
   // Auto-expand stone details if linked
   if (_linkedInv || q.stoneDetail?.gia || q.stoneDetail?.carat) {
     const stoneDiv = document.getElementById('ep-stone-details-' + id);
