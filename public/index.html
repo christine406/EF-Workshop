@@ -1098,16 +1098,6 @@
       </div>
     </div>
 
-    <!-- CATEGORY TABS -->
-    <div style="overflow-x:auto;scrollbar-width:none;padding:0 16px 0">
-      <div class="toggle-group" style="min-width:max-content;margin:12px 0">
-        <button class="toggle-btn active" onclick="setStoneFilter('all',this)">All</button>
-        <button class="toggle-btn" onclick="setStoneFilter('owned-available',this)">Owned</button>
-        <button class="toggle-btn" onclick="setStoneFilter('owned-reserved',this)">Reserved</button>
-        <button class="toggle-btn" onclick="setStoneFilter('memo',this)">On Memo</button>
-        <button class="toggle-btn" onclick="setStoneFilter('viewed',this)">Viewed</button>
-      </div>
-    </div>
 
     <div class="section" style="border-top:none">
       <button class="add-stone-btn" onclick="openAddStoneForm()" id="addStoneBtnLabel" style="margin-bottom:12px">+ Add stone</button>
@@ -6947,35 +6937,22 @@ function renderFieldLog() {
     // Fix stones stuck as 'unavailable' with owned-reserved category — these were picked from inventory
     // Match to a project by GIA (on the inventory stone itself) or by cost
     (window._inventory || []).forEach(s => {
-      if (s.usedInProjectId) return; // already linked
+      if (s.usedInProjectId) return;
       if (s.category !== 'owned-reserved') return;
       const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project','in-use'];
       if (dontTouch.includes(s.status)) return;
       const projects = allQuotes.filter(q => q.status === 'project' || q.status === 'completed' || q.status === 'collection');
-      let matched = false;
-      projects.forEach(q => {
-        if (matched) return;
+      for (const q of projects) {
         const giaMatch = s.gia && (q.stones || []).some(qs => qs.gia && qs.gia === s.gia);
         const invIdMatch = (q.stones || []).some(qs => qs.inventoryId === s.id);
-        const costMatch = s.cost && (q.stones || []).some(qs => qs.cost && Math.abs(qs.cost - s.cost) < 1);
-        if (giaMatch || invIdMatch || costMatch) {
+        if (giaMatch || invIdMatch) {
           s.status = 'in-use';
           s.usedInProjectId = q.id;
           s.usedInQuoteId = null;
           s.usedInQuoteClient = null;
           changed = true;
-          matched = true;
+          break;
         }
-      });
-      // No match found via stones array — stone is owned-reserved with no project link.
-      // Link to the most recent active project (sorted by id desc)
-      if (!matched && projects.length > 0) {
-        const recent = [...projects].sort((a,b) => b.id - a.id)[0];
-        s.status = 'in-use';
-        s.usedInProjectId = recent.id;
-        s.usedInQuoteId = null;
-        s.usedInQuoteClient = null;
-        changed = true;
       }
     });
     if (changed) persistInventory();
