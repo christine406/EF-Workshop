@@ -3858,7 +3858,7 @@ function saveQuoteEdit(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
 
-  const newClientName = document.getElementById('eq-client-' + id).value.trim() || q.client;
+  const newClientName = document.getElementById('eq-client-' + id)?.value?.trim() || q.client;
   const oldClientName = q.client;
   q.client = newClientName;
   // If name changed, update linked stone's notes
@@ -3871,13 +3871,13 @@ function saveQuoteEdit(id) {
       persistInventory();
     }
   }
-  q.pieceType = document.getElementById('eq-type-' + id).value;
+  q.pieceType = document.getElementById('eq-type-' + id)?.value || q.pieceType || '';
   const occasionEl = document.getElementById('eq-occasion-' + id);
   const occasionSel = occasionEl?.value || '';
   const occasionOther = document.getElementById('eq-occasion-other-' + id)?.value?.trim();
   if (occasionEl) q.occasion = occasionSel === 'Other' ? (occasionOther || 'Other') : occasionSel;
-  q.purity = document.getElementById('eq-purity-' + id).value;
-  q.notes = document.getElementById('eq-notes-' + id).value.trim();
+  q.purity = document.getElementById('eq-purity-' + id)?.value || q.purity || '18k';
+  q.notes = document.getElementById('eq-notes-' + id)?.value?.trim() || q.notes || '';
   // Collection type fields
   const rtsBtn = document.getElementById('eq-ctype-rts-' + id);
   if (rtsBtn) {
@@ -3910,13 +3910,16 @@ function saveQuoteEdit(id) {
   q.fingerSize = document.getElementById('eq-fingersize-' + id)?.value?.trim() || q.fingerSize || '';
   q.clientBudget = parseFloat(document.getElementById('eq-budget-' + id)?.value) || q.clientBudget || 0;
 
-  const newType = document.getElementById('eq-quotetype-' + id).value;
-  if (newType !== q.quoteType) {
-    q.quoteType = newType;
-    if (q.status === 'quote' && newType === 'collection') q.status = 'collection-quote';
-    else if (q.status === 'collection-quote' && newType === 'client') q.status = 'quote';
-    else if (q.status === 'project' && newType === 'collection') q.status = 'collection';
-    else if (q.status === 'collection' && newType === 'client') q.status = 'project';
+  const newTypeEl = document.getElementById('eq-quotetype-' + id);
+  if (newTypeEl) {
+    const newType = newTypeEl.value;
+    if (newType !== q.quoteType) {
+      q.quoteType = newType;
+      if (q.status === 'quote' && newType === 'collection') q.status = 'collection-quote';
+      else if (q.status === 'collection-quote' && newType === 'client') q.status = 'quote';
+      else if (q.status === 'project' && newType === 'collection') q.status = 'collection';
+      else if (q.status === 'collection' && newType === 'client') q.status = 'project';
+    }
   }
 
   // Save stone details
