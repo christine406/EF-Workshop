@@ -1222,7 +1222,13 @@
   <!-- =================== CHAINS SCREEN =================== -->
   <div class="screen" id="screen-chains">
     <div class="section">
-      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center"><span>⛓️ Chains — Downeast</span><button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">+ Add chain</button></div>
+      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>⛓️ Chains — Downeast</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="livePricingToggle" onclick="toggleLivePricing()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">Live pricing: off</button>
+          <button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">+ Add chain</button>
+        </div>
+      </div>
       <div style="margin-bottom:10px">
         <select id="chainJump" onchange="jumpToChain(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;appearance:none;box-sizing:border-box">
           <option value="">— Browse all chains</option>
@@ -1535,6 +1541,40 @@ function goldPerGram(purity) {
   const ozPerGram = 1 / 31.1035;
   if (purity === 'plat') return PLAT_SPOT_APPROX;
   return goldSpotOz * ozPerGram * GOLD_PER_GRAM[purity];
+}
+
+// =================== LIVE CHAIN PRICING ===================
+// Markup factors reverse-engineered from Downeast prices at current gold spot.
+// Formula: wholesale = grams × karat_purity × (spot/31.1035) × markup_factor
+const DOWNEAST_MARKUP = {
+  cablewire: 1.607,
+  box:       1.579,
+  paperclip: 1.549,
+  foxtail:   1.506,
+  omega:     1.477,
+  figaro:    1.460,
+  default:   1.442,
+};
+
+function getDowneastMarkupFactor(name) {
+  const n = name.toLowerCase();
+  if (/cablewire/.test(n))                                    return DOWNEAST_MARKUP.cablewire;
+  if (/box/.test(n))                                          return DOWNEAST_MARKUP.box;
+  if (/paperclip/.test(n))                                    return DOWNEAST_MARKUP.paperclip;
+  if (/foxtail|textured|handmade|figure eight|twist link/.test(n)) return DOWNEAST_MARKUP.foxtail;
+  if (/omega/.test(n))                                        return DOWNEAST_MARKUP.omega;
+  if (/figaro/.test(n))                                       return DOWNEAST_MARKUP.figaro;
+  return DOWNEAST_MARKUP.default;
+}
+
+const KARAT_PURITY = { '18k': 18/24, '14k': 14/24 };
+const TROY = 31.1035;
+
+function getLiveWholesale(chain) {
+  if (!goldSpotOz || goldSpotOz < 1000) return null;
+  if (!chain.grams || !KARAT_PURITY[chain.karat]) return null;
+  const factor = getDowneastMarkupFactor(chain.name);
+  return chain.grams * KARAT_PURITY[chain.karat] * (goldSpotOz / TROY) * factor;
 }
 
 // =================== PIECE TYPE ===================
@@ -1923,87 +1963,6 @@ function restoreAllChains() {
 }
 
 
-function editBuiltinChain(chain) {
-  const existing = document.getElementById('chainLinkModal');
-  if (existing) existing.remove();
-
-  const overlay = document.createElement('div');
-  overlay.id = 'chainLinkModal';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:420px';
-  modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px">Edit chain</div>'
-    + '<div style="font-size:11px;color:var(--text-dim);margin-bottom:12px">Saves as a custom entry, hides the original.</div>';
-
-  const fields = [
-    { id:'eb-name', label:'Chain name', placeholder:'e.g. Round Box 2.0mm', value: chain.name },
-    { id:'eb-karat', label:'Karat', placeholder:'e.g. 18k', value: chain.karat },
-    { id:'eb-length', label:'Length', placeholder:'e.g. 16"', value: chain.length || '' },
-    { id:'eb-grams', label:'Grams', placeholder:'e.g. 10.5', value: chain.grams || '' },
-    { id:'eb-wholesale', label:'Wholesale ($)', placeholder:'e.g. 1804', value: chain.wholesale || '' },
-  ];
-
-  fields.forEach(f => {
-    const row = document.createElement('div');
-    row.style.cssText = 'margin-bottom:10px';
-    row.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">' + f.label + '</div>';
-    const inp = document.createElement('input');
-    inp.id = f.id; inp.type = 'text'; inp.value = f.value; inp.placeholder = f.placeholder;
-    inp.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:3px;outline:none;box-sizing:border-box';
-    row.appendChild(inp);
-    modal.appendChild(row);
-  });
-
-  const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:4px';
-
-  const saveBtn = document.createElement('button');
-  saveBtn.textContent = 'Save changes';
-  saveBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
-  saveBtn.addEventListener('click', () => {
-    const name = document.getElementById('eb-name').value.trim();
-    const karat = document.getElementById('eb-karat').value.trim();
-    const length = document.getElementById('eb-length').value.trim();
-    const grams = parseFloat(document.getElementById('eb-grams').value) || 0;
-    const wholesale = parseFloat(document.getElementById('eb-wholesale').value) || 0;
-    if (!name || !karat) { showToast('Name and karat required'); return; }
-    // Hide the original builtin
-    if (!window._removedChains) window._removedChains = [];
-    if (!window._removedChains.some(r => r.name === chain.name && r.karat === chain.karat)) {
-      window._removedChains.push({ name: chain.name, karat: chain.karat });
-      persistRemovedChains();
-    }
-    // Save edited version as custom, replacing any prior override of the same original
-    if (!window._customChains) window._customChains = [];
-    const builtinKey = chain.name + '|' + chain.karat;
-    const overrideIdx = window._customChains.findIndex(c => c._builtinKey === builtinKey);
-    const updated = { name, karat, length, grams, wholesale, custom: true, _builtinKey: builtinKey };
-    if (overrideIdx >= 0) {
-      window._customChains[overrideIdx] = updated;
-    } else {
-      window._customChains.push(updated);
-    }
-    persistCustomChains();
-    overlay.remove();
-    renderChainList();
-    showToast('Chain updated');
-  });
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
-  cancelBtn.onclick = () => overlay.remove();
-
-  btnRow.appendChild(saveBtn);
-  btnRow.appendChild(cancelBtn);
-  modal.appendChild(btnRow);
-  overlay.appendChild(modal);
-  overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-  document.body.appendChild(overlay);
-  setTimeout(() => document.getElementById('eb-name')?.focus(), 50);
-}
-
 function getChainTypes() {
   // Extract unique type keywords from chain names
   const typeKeywords = ['Bead','Box','Cable','Cablewire','Curb','Figaro','Omega','Rope','Snake','Wheat','Venetian','Boa','Twist','Paperclip'];
@@ -2042,6 +2001,17 @@ function jumpToChain(type) {
       if (mm) window._chainState['mm_' + c.karat + '_' + mm] = true;
     }
   });
+  renderChainList();
+}
+
+function toggleLivePricing() {
+  window._livePricing = !window._livePricing;
+  const btn = document.getElementById('livePricingToggle');
+  if (btn) {
+    btn.textContent = 'Live pricing: ' + (window._livePricing ? 'on' : 'off');
+    btn.style.borderColor = window._livePricing ? 'var(--teal-dim)' : 'var(--border)';
+    btn.style.color = window._livePricing ? 'var(--teal-dim)' : 'var(--text-dim)';
+  }
   renderChainList();
 }
 
@@ -2118,10 +2088,27 @@ function renderChainList() {
 
         const row1 = document.createElement('div');
         row1.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start';
+
+        const livePricing = window._livePricing && !c.custom;
+        const liveWholesale = livePricing ? getLiveWholesale(c) : null;
+        const displayWholesale = liveWholesale ? Math.round(liveWholesale) : c.wholesale;
+        const displayRetail = Math.round(displayWholesale * 1.75);
+
+        let priceHtml = '<div style="font-size:14px;color:var(--text);font-weight:500">$' + displayWholesale.toLocaleString() + '</div>';
+        if (liveWholesale) {
+          const diff = Math.round(liveWholesale) - c.wholesale;
+          const diffColor = diff > 0 ? 'var(--green-bright)' : diff < 0 ? 'var(--red)' : 'var(--text-dim)';
+          const diffSign = diff > 0 ? '+' : '';
+          priceHtml += '<div style="font-size:12px;color:var(--text-dim)">retail $' + displayRetail.toLocaleString() + '</div>';
+          priceHtml += '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">stored $' + c.wholesale.toLocaleString()
+            + ' <span style="color:' + diffColor + '">' + diffSign + diff.toLocaleString() + '</span></div>';
+        } else {
+          priceHtml += '<div style="font-size:12px;color:var(--text-dim)">retail $' + displayRetail.toLocaleString() + '</div>';
+        }
+
         row1.innerHTML = '<div><div style="font-size:14px;color:var(--text)">' + c.name + (c.custom ? ' <span style="font-size:10px;color:var(--teal-dim);letter-spacing:0.06em">custom</span>' : '') + '</div>'
           + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + (c.length || '') + ' · ' + c.grams + 'g</div></div>'
-          + '<div style="text-align:right"><div style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</div>'
-          + '<div style="font-size:12px;color:var(--text-dim)">retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div></div>';
+          + '<div style="text-align:right">' + priceHtml + '</div>';
         item.appendChild(row1);
 
         const row2 = document.createElement('div');
@@ -2142,20 +2129,6 @@ function renderChainList() {
           return function(e) { e.stopPropagation(); showChainLinkModal(n, k, u); };
         })(c.name, c.karat, linkUrl));
         row2.appendChild(linkBtn);
-
-        const editBtn = document.createElement('button');
-        editBtn.textContent = 'Edit';
-        editBtn.style.cssText = 'background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer';
-        if (c.custom && customIdx >= 0) {
-          editBtn.addEventListener('click', (function(chain, idx) {
-            return function(e) { e.stopPropagation(); showAddChainModal(chain, idx); };
-          })(c, customIdx));
-        } else {
-          editBtn.addEventListener('click', (function(chain) {
-            return function(e) { e.stopPropagation(); editBuiltinChain(chain); };
-          })(c));
-        }
-        row2.appendChild(editBtn);
 
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Remove';
