@@ -5550,7 +5550,20 @@ function renderInventoryPicker() {
 function addStoneFromInventory(s) {
   const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
   const id = stoneIdCounter++;
-  stones.push({ id, cost: s.cost || 0, desc, isSmall: false, inventoryId: s.id });
+  stones.push({
+    id,
+    cost: s.cost || 0,
+    desc,
+    isSmall: false,
+    inventoryId: s.id,
+    gia: s.gia || '',
+    carat: s.carat || '',
+    color: s.color || '',
+    clarity: s.clarity || '',
+    cut: s.cut || '',
+    dealer: s.dealer || '',
+    antique: s.antique || false,
+  });
   // Stone will be properly linked when quote is saved
   renderStones();
   calculate();
@@ -6889,6 +6902,46 @@ function renderFieldLog() {
           }
         });
       });
+    });
+    // Last resort: fix any stone stuck as 'unavailable' — if it has notes linking it to a project, or if only one project exists, link it
+    (window._inventory || []).forEach(s => {
+      if (s.status !== 'unavailable') return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+      if (dontTouch.includes(s.status)) return;
+      // Try matching by notes field ("Added from project: X" or similar)
+      const projects = allQuotes.filter(q => q.status === 'project' || q.status === 'completed' || q.status === 'collection');
+      let matched = false;
+      projects.forEach(q => {
+        if (matched) return;
+        // Match by cost on any stone in the project
+        const stoneMatch = (q.stones || []).some(qs => qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1);
+        const giaMatch = (q.stones || []).some(qs => qs.gia && s.gia && qs.gia === s.gia);
+        const invIdMatch = (q.stones || []).some(qs => qs.inventoryId && qs.inventoryId === s.id);
+        const noteMatch = s.notes && q.client && s.notes.includes(q.client);
+        if (giaMatch || invIdMatch || (stoneMatch && noteMatch)) {
+          s.status = 'in-use';
+          s.usedInProjectId = q.id;
+          s.usedInQuoteId = null;
+          s.usedInQuoteClient = null;
+          changed = true;
+          matched = true;
+        }
+      });
+      // If still unavailable with owned-reserved category and a cost match to any project stone, link it
+      if (!matched && s.category === 'owned-reserved') {
+        projects.forEach(q => {
+          if (matched) return;
+          const stoneMatch = (q.stones || []).some(qs => qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1);
+          if (stoneMatch) {
+            s.status = 'in-use';
+            s.usedInProjectId = q.id;
+            s.usedInQuoteId = null;
+            s.usedInQuoteClient = null;
+            changed = true;
+            matched = true;
+          }
+        });
+      }
     });
     if (changed) persistInventory();
   }
