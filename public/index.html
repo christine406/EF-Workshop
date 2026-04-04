@@ -1308,10 +1308,6 @@
           <input type="text" id="fl-dealer-other" placeholder="Dealer name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
         </div>
 
-        <div class="field" style="margin-bottom:10px">
-          <div class="field-label">Client (optional)</div>
-          <input type="text" id="fl-client" placeholder="Client or project name..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-        </div>
 
         <div class="field" style="margin-bottom:12px">
           <div class="field-label">Type</div>
@@ -6565,7 +6561,6 @@ function saveFieldLogEntry() {
     description: desc,
     amount: parseFloat(document.getElementById('fl-amount').value) || 0,
     dealer: dealer,
-    client: document.getElementById('fl-client').value.trim(),
     date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
     time: new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'}),
     reconciled: false,
@@ -6585,7 +6580,6 @@ function saveFieldLogEntry() {
   // Clear form
   document.getElementById('fl-description').value = '';
   document.getElementById('fl-amount').value = '';
-  document.getElementById('fl-client').value = '';
   document.getElementById('fl-dealer').value = '';
   document.getElementById('fl-dealer-other-row').style.display = 'none';
   const projSel = document.getElementById('fl-project');
