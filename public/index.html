@@ -4824,7 +4824,7 @@ function renderSaved() {
         const div = document.createElement('div');
         div.className = 'quote-item';
         div.dataset.id = q.id;
-        div.innerHTML = (q.pieces && q.pieces.length > 1) ? buildMultiPieceCard(q) : buildQuoteCard(q);
+        div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
         body.appendChild(div);
       });
 
@@ -4841,7 +4841,7 @@ function renderSaved() {
       const div = document.createElement('div');
       div.className = 'quote-item';
       div.dataset.id = q.id;
-      div.innerHTML = (q.pieces && q.pieces.length > 1) ? buildMultiPieceCard(q) : buildQuoteCard(q);
+      div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
       list.appendChild(div);
     });
   }
