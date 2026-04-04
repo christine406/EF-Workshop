@@ -3170,45 +3170,6 @@ function clearPieceStaging() {
   showToast('Set discarded');
 }
 
-function saveMultiPieceSet(quoteType) {
-  if (!_stagedPieces.length) { showToast('No pieces staged'); return; }
-  const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
-  const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
-  const occasion = document.getElementById('projectOccasion')?.value || '';
-
-  const set = {
-    id: Date.now(),
-    client,
-    quoteType, // 'bespoke' | 'semi-custom' | 'collection'
-    collectionType: extras?.collectionType || null,
-    consignment: extras?.consignment || false,
-    consignmentDealer: extras?.consignmentDealer || '',
-    occasion,
-    status: quoteType === 'collection' ? 'collection-quote' : 'quote',
-    isMultiPiece: true,
-    pieces: _stagedPieces.map(p => ({ ...p })),
-    total: setTotal,
-    clientPrice: 0,
-    purity: _stagedPieces[0]?.purity || '',
-    grams: _stagedPieces.reduce((s, p) => s + (p.grams || 0), 0),
-    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
-    notes: '',
-    directEntry: false,
-    fingerSize: '',
-    clientBudget: 0,
-  };
-
-  // Remove any original standalone quotes that were staged into this set
-  let remaining = getSavedQuotes().filter(q => !_stagedPieces.some(p => p._savedQuoteId === q.id));
-  remaining = [set, ...remaining];
-  window._savedQuotes = remaining;
-  persistQuotes();
-  _stagedPieces = [];
-  renderPieceStaging();
-  clearQuote();
-  renderSaved();
-  showToast('Set saved');
-}
 
 
 function showCollectionModal() {
