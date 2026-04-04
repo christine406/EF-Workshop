@@ -3584,6 +3584,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   if (!q) return;
 
   const card = e.target.closest('.quote-item') || document.querySelector('.quote-item[data-id="' + id + '"]') || Array.from(document.querySelectorAll('.quote-item')).find(c => c.innerHTML.includes('editQuoteCard(' + id + ',') || c.innerHTML.includes('editSetHeader(' + id + ',') || c.innerHTML.includes('editPieceAsQuote(' + id + ','));
+  console.log('card found:', !!card, 'e.target:', e.target?.tagName, 'closest:', e.target?.closest('.quote-item')?.dataset?.id);
   if (!card) { console.warn('editQuoteCard: card not found for id', id); return; }
 
   // Expand card body if present
@@ -4188,10 +4189,13 @@ function editPieceActuals(setId, pieceIdx, e) {
 
 function editPieceAsQuote(setId, pieceIdx, e) {
   e.stopPropagation();
+  console.log('editPieceAsQuote called', setId, pieceIdx);
   const quotes = getSavedQuotes();
   const set = quotes.find(q => q.id === setId);
+  console.log('set found:', !!set, 'pieces:', set?.pieces?.length);
   if (!set || !set.pieces) return;
   const p = set.pieces[pieceIdx];
+  console.log('piece found:', !!p);
   if (!p) return;
 
   // Build a synthetic quote object from the piece, using set-level data where piece doesn't have it
