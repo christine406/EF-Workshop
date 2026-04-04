@@ -6832,6 +6832,38 @@ function renderFieldLog() {
         }
       });
     });
+    // Also: clear stale 'pending' usedInQuoteId on stones that are in a project
+    (window._inventory || []).forEach(s => {
+      if (s.usedInQuoteId !== 'pending') return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project','in-use'];
+      if (dontTouch.includes(s.status)) return;
+      // Try to find a matching project stone by cost + basic details
+      let matched = false;
+      allQuotes.forEach(q => {
+        if (matched) return;
+        const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+        if (!isProject || !q.stones) return;
+        q.stones.forEach(qs => {
+          if (matched) return;
+          const costMatch = qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1;
+          const caratMatch = !qs.carat || !s.carat || Math.abs(parseFloat(qs.carat) - parseFloat(s.carat)) < 0.01;
+          if (costMatch && caratMatch) {
+            s.status = 'in-use';
+            s.usedInProjectId = q.id;
+            s.usedInQuoteId = null;
+            s.usedInQuoteClient = null;
+            changed = true;
+            matched = true;
+          }
+        });
+      });
+      // If no project match found, just clear the pending tag
+      if (!matched) {
+        s.usedInQuoteId = null;
+        s.usedInQuoteClient = null;
+        changed = true;
+      }
+    });
     if (changed) persistInventory();
   }
 
