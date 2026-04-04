@@ -211,10 +211,19 @@ app.get('/api/gold-price', async (req, res) => {
     return res.json({ price: cachedGoldPrice, cached: true });
   }
 
-  // Try metals-api (no key needed for basic endpoint)
+  // Gold price sources — tried in order, first valid price wins
   const sources = [
+    // Yahoo Finance — returns COMEX front-month futures (GC=F), same as Google Finance
+    { host: 'query1.finance.yahoo.com',
+      path: '/v8/finance/chart/GC%3DF?interval=1m&range=1d',
+      parse: d => d.chart && d.chart.result && d.chart.result[0]
+        ? d.chart.result[0].meta.regularMarketPrice
+        : null },
+    // gold-api.com — spot fallback
     { host: 'api.gold-api.com', path: '/price/XAU', parse: d => d.price },
-    { host: 'metals-api.com', path: '/api/latest?access_key=&base=USD&symbols=XAU', parse: d => d.rates && d.rates.XAU ? 1/d.rates.XAU : null },
+    // metals-api — spot fallback
+    { host: 'metals-api.com', path: '/api/latest?access_key=&base=USD&symbols=XAU',
+      parse: d => d.rates && d.rates.XAU ? 1/d.rates.XAU : null },
   ];
 
   for (const source of sources) {
@@ -234,7 +243,7 @@ app.get('/api/gold-price', async (req, res) => {
             try {
               const parsed = JSON.parse(data);
               const price = source.parse(parsed);
-              if (price && price > 1000 && price < 10000) resolve(price);
+              if (price && price > 1000 && price < 20000) resolve(price);
               else reject(new Error('Invalid price: ' + price));
             } catch(e) { reject(e); }
           });
