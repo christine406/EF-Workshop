@@ -787,7 +787,7 @@
     </div>
 
     <!-- INCLUDE CHAIN -->
-    <div class="section" id="chainSection" style="display:none">
+    <div class="section" id="chainSection">
       <div class="section-label">⛓️ Chain</div>
       <div class="toggle-group">
         <button class="toggle-btn active" onclick="toggleChain(false, this)">No chain</button>
@@ -1626,7 +1626,7 @@ function updateWeightOptions() {
       opt.dataset.max = cat.max;
       sel.appendChild(opt);
     });
-    chainSec.style.display = (type === 'pendant') ? 'block' : 'none';
+    chainSec.style.display = 'block';
   }
   calculate();
 }
@@ -2378,10 +2378,10 @@ function renderStones() {
             oninput="updateStone(${s.id},'cost',parseFloat(this.value)||0)">
         </div>
         <div class="field">
-          <div class="field-label">Melee / small?</div>
+          <div class="field-label">Melee?</div>
           <select onchange="updateStone(${s.id},'isSmall',this.value==='true')">
             <option value="false" ${!s.isSmall?'selected':''}>No — tiered markup</option>
-            <option value="true" ${s.isSmall?'selected':''}>Yes — ×1.35</option>
+            <option value="true" ${s.isSmall?'selected':''}>Yes — ×1.75</option>
           </select>
         </div>
       </div>
