@@ -6782,12 +6782,30 @@ function renderFieldLog() {
   function fixInventoryStoneStatuses() {
     const quotes = window._savedQuotes || [];
     let changed = false;
+
+    // First: validate existing usedInProjectId links — clear any that aren't confirmed by the project
     (window._inventory || []).forEach(s => {
       if (!s.usedInProjectId) return;
       const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
-      if (!linkedQ) return;
-      // Only fix status — never overwrite category (memo should stay memo)
-      // Only mark in-use — never change category, never overwrite archived/sold statuses
+      if (!linkedQ) {
+        // Project no longer exists — clear link
+        s.usedInProjectId = null;
+        s.status = s.category === 'owned-reserved' ? 'unavailable' : 'available';
+        changed = true;
+        return;
+      }
+      // Check that the project actually references this stone by GIA or inventoryId
+      const confirmed = (linkedQ.stones || []).some(qs =>
+        (s.gia && qs.gia && qs.gia === s.gia) || qs.inventoryId === s.id
+      );
+      if (!confirmed) {
+        // Stone was wrongly linked — clear it
+        s.usedInProjectId = null;
+        s.status = s.category === 'owned-reserved' ? 'unavailable' : 'available';
+        changed = true;
+        return;
+      }
+      // Link is valid — ensure status is correct
       const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
       if (!dontTouch.includes(s.status) && s.status !== 'in-use') {
         s.status = 'in-use';
