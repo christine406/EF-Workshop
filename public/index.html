@@ -4920,8 +4920,14 @@ function convertToProject(id, e) {
     // Upgrade any tagged inventory stones from quote → in-use
     const inv = getInventory();
     let invChanged = false;
+
+    // Collect all inventoryIds referenced in this quote's stones
+    const inventoryIds = new Set((q.stones || []).map(s => s.inventoryId).filter(Boolean));
+
     inv.forEach(s => {
-      if (s.usedInQuoteId === id) {
+      const matchById = s.usedInQuoteId === id || s.usedInQuoteId === 'pending';
+      const matchByInvId = inventoryIds.has(s.id);
+      if (matchById || matchByInvId) {
         s.status = 'in-use';
         s.usedInProjectId = id;
         s.usedInQuoteId = null;
@@ -4929,20 +4935,6 @@ function convertToProject(id, e) {
         invChanged = true;
       }
     });
-    // Also check stones array
-    if (q.stones) {
-      q.stones.forEach(qs => {
-        if (!qs.inventoryId) return;
-        const invStone = inv.find(i => i.id === qs.inventoryId);
-        if (invStone && invStone.status !== 'in-use') {
-          invStone.status = 'in-use';
-          invStone.usedInProjectId = id;
-          invStone.usedInQuoteId = null;
-          invStone.usedInQuoteClient = null;
-          invChanged = true;
-        }
-      });
-    }
     if (invChanged) { window._inventory = inv; persistInventory(); }
 
     renderSaved();
@@ -5559,15 +5551,7 @@ function addStoneFromInventory(s) {
   const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
   const id = stoneIdCounter++;
   stones.push({ id, cost: s.cost || 0, desc, isSmall: false, inventoryId: s.id });
-  // Tag stone as referenced in a quote — will get client name when quote is saved
-  const inv = getInventory();
-  const invStone = inv.find(i => i.id === s.id);
-  if (invStone) {
-    invStone.usedInQuoteId = 'pending';
-    invStone.usedInQuoteClient = 'unsaved quote';
-    window._inventory = inv;
-    persistInventory();
-  }
+  // Stone will be properly linked when quote is saved
   renderStones();
   calculate();
   toggleInventoryPicker();
