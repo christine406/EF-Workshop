@@ -672,9 +672,17 @@
   <!-- =================== QUOTE SCREEN =================== -->
   <div class="screen active" id="screen-quote">
 
+    <!-- SINGLE / MULTI TOGGLE -->
+    <div style="padding:12px 16px 0">
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="modeToggleSingle" onclick="setQuoteMode('single',this)">Single piece</button>
+        <button class="toggle-btn" id="modeToggleMulti" onclick="setQuoteMode('multi',this)">Multi-piece set</button>
+      </div>
+    </div>
+
     <div class="client-input-wrap">
       <div class="field">
-        <div class="field-label">Client name</div>
+        <div class="field-label" id="clientNameLabel">Client name</div>
         <input type="text" id="clientName" placeholder="e.g. Sarah M.">
       </div>
       <div class="field-row" id="fingerSizeRow" style="margin-top:8px;display:none">
@@ -975,14 +983,32 @@
 
     <!-- ADDITIONAL PIECES (multi-piece sets) -->
     <div id="additionalPiecesContainer"></div>
-    <div style="padding:0 16px 8px">
-      <button onclick="addExtraPiece()" id="addExtraPieceBtn" style="width:100%;background:none;border:1px dashed var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px;cursor:pointer;border-radius:3px">+ Add another piece to this set</button>
+
+    <!-- PIECE STAGING (multi mode) -->
+    <div id="pieceStagingWrap" style="display:none;padding:0 16px 8px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:10px;margin-bottom:8px">
+        <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">✦ Staged pieces</div>
+        <div id="pieceList"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <button class="btn-primary" onclick="saveMultiPieceSet('bespoke')" style="font-size:11px;padding:10px 6px">Save set — Bespoke</button>
+        <button class="btn-primary" onclick="saveMultiPieceSet('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save set — Semi-custom</button>
+        <button class="btn-primary" onclick="saveMultiPieceSet('collection')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save set — Collection</button>
+      </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
-      <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
-      <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
-      <button class="btn-primary" onclick="showCollectionModal()" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
+    <!-- SINGLE MODE: save buttons -->
+    <div id="singleModeSaveButtons">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
+        <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
+        <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
+        <button class="btn-primary" onclick="showCollectionModal()" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
+      </div>
+    </div>
+
+    <!-- MULTI MODE: stage piece button -->
+    <div id="multiModeStagingButton" style="display:none;padding:0 16px 8px">
+      <button onclick="stagePiece()" style="width:100%;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:3px;cursor:pointer">➕ Stage this piece</button>
     </div>
 
     <div style="padding: 0 16px 8px">
@@ -2723,6 +2749,106 @@ async function _scanGIAAndFill(input, fields) {
 // =================== MULTI-PIECE SETS ===================
 let _stagedPieces = []; // pieces staged before saving as a set
 
+let _quoteMode = 'single'; // 'single' | 'multi'
+
+function setQuoteMode(mode, btn) {
+  _quoteMode = mode;
+  // Toggle button styles
+  document.getElementById('modeToggleSingle').className = 'toggle-btn' + (mode === 'single' ? ' active' : '');
+  document.getElementById('modeToggleMulti').className = 'toggle-btn' + (mode === 'multi' ? ' active' : '');
+  // Update client name label
+  document.getElementById('clientNameLabel').textContent = mode === 'multi' ? 'Project title' : 'Client name';
+  document.getElementById('clientName').placeholder = mode === 'multi' ? 'e.g. Madeleine & Paul wedding set' : 'e.g. Sarah M.';
+  // Show/hide save buttons
+  document.getElementById('singleModeSaveButtons').style.display = mode === 'single' ? 'block' : 'none';
+  document.getElementById('multiModeStagingButton').style.display = mode === 'multi' ? 'block' : 'none';
+  // Reset staging if switching modes
+  if (mode === 'single') {
+    _stagedPieces = [];
+    renderPieceStaging();
+  }
+}
+
+function stagePiece() {
+  const purity = document.getElementById('metalPurity').value;
+  const grams = parseFloat(document.getElementById('metalGrams').value) || 0;
+  const labor = parseFloat(document.getElementById('laborCost').value) || 0;
+  const designFee = parseFloat(document.getElementById('designFee').value) || 0;
+  const pieceType = document.getElementById('pieceType').value;
+  const fingerSize = document.getElementById('fingerSize')?.value?.trim() || '';
+  const notes = document.getElementById('quoteNotes').value;
+  const occasion = document.getElementById('projectOccasion')?.value || '';
+  const stoneCalc = calcStoneRetail();
+  const metalWithCasting = getMetalCost(grams, purity);
+  const laborRetail = labor * 1.4;
+  let chainWholesaleCost = 0, chainName = '';
+  if (includeChain) {
+    const chainIdx = document.getElementById('chainSelect').value;
+    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = getQuoteChainWholesale(c); chainName = c.name; }
+  }
+  const metalMarkup = Math.round(metalWithCasting);
+  const chainMarkup = Math.round(chainWholesaleCost * 1.35);
+  const rawTotal = Math.round(stoneCalc.total) + (metalMarkup + chainMarkup + Math.round(laborRetail) + designFee) * 1.13;
+  const total = Math.round(rawTotal / 50) * 50;
+  if (!total && !stoneCalc.total) { showToast('Add costs for this piece first'); return; }
+
+  const piece = {
+    id: Date.now(),
+    pieceType: pieceType || 'piece',
+    purity, grams, laborEst: labor, designFee,
+    stones: [...stones], meleeCost: parseFloat(document.getElementById('meleeCost')?.value) || 0,
+    chainName, chainCost: chainWholesaleCost,
+    fingerSize, notes, occasion, total,
+    stoneTotal: Math.round(stoneCalc.total),
+    metalTotal: metalMarkup,
+    laborTotal: Math.round(laborRetail),
+    stoneCost: stoneCalc.mainCost || 0,
+    metalCost: metalMarkup,
+  };
+
+  _stagedPieces.push(piece);
+  const projectTitle = document.getElementById('clientName').value;
+  clearQuote();
+  // Restore project title and multi mode after clear
+  document.getElementById('clientName').value = projectTitle;
+  setQuoteMode('multi', null);
+  renderPieceStaging();
+  showToast('Piece staged — build next piece or save set');
+}
+
+function saveMultiPieceSet(quoteType) {
+  if (!_stagedPieces.length) { showToast('Stage at least one piece first'); return; }
+  const client = document.getElementById('clientName').value.trim() || 'Unnamed set';
+  const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
+
+  const set = {
+    id: Date.now(),
+    client,
+    quoteType,
+    status: quoteType === 'collection' ? 'collection-quote' : 'quote',
+    isMultiPiece: true,
+    pieces: _stagedPieces.map(p => ({ ...p })),
+    total: setTotal,
+    clientPrice: 0,
+    purity: _stagedPieces[0]?.purity || '',
+    grams: _stagedPieces.reduce((s, p) => s + (p.grams || 0), 0),
+    date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    notes: '',
+    clientBudget: 0,
+  };
+
+  let remaining = getSavedQuotes().filter(q => !_stagedPieces.some(p => p._savedQuoteId === q.id));
+  remaining = [set, ...remaining];
+  window._savedQuotes = remaining;
+  persistQuotes();
+  _stagedPieces = [];
+  renderPieceStaging();
+  clearQuote();
+  setQuoteMode('single', null);
+  renderSaved();
+  showToast('Set saved');
+}
+
 function toggleAddAnotherPiece(checked) {
   document.getElementById('addAnotherPieceDetails').style.display = checked ? 'block' : 'none';
   if (checked) {
@@ -3416,59 +3542,14 @@ function editSetHeader(id, e) {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
   const form = document.createElement('div');
-  form.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;width:100%;max-width:520px;margin-top:40px';
+  form.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px;width:100%;max-width:420px;margin-top:40px';
   form.addEventListener('click', e => e.stopPropagation());
 
-  const discAmt = q.discountType === 'pct' ? Math.round(q.total * (q.discountValue||0) / 100) : (q.discountValue||0);
-
   form.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Edit set</div>
-    <div style="margin-bottom:10px">
-      <div class="field-label">Client name</div>
+    <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Edit set title</div>
+    <div style="margin-bottom:12px">
+      <div class="field-label">Project title</div>
       <input type="text" id="esh-client-${id}" value="${q.client || ''}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <div>
-        <div class="field-label">Client price ($)</div>
-        <input type="number" id="esh-clientprice-${id}" value="${q.clientPrice||''}" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
-      </div>
-      <div>
-        <div class="field-label">Client budget ($)</div>
-        <input type="number" id="esh-budget-${id}" value="${q.clientBudget||''}" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-      <div>
-        <div class="field-label">Discount type</div>
-        <select id="esh-disctype-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
-          <option value="none" ${!q.discountType||q.discountType==='none'?'selected':''}>None</option>
-          <option value="pct" ${q.discountType==='pct'?'selected':''}>Percent (%)</option>
-          <option value="flat" ${q.discountType==='flat'?'selected':''}>Flat ($)</option>
-        </select>
-      </div>
-      <div>
-        <div class="field-label">Discount value</div>
-        <input type="number" id="esh-discval-${id}" value="${q.discountValue||''}" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
-      </div>
-    </div>
-    <div style="margin-bottom:10px">
-      <div class="field-label">Occasion</div>
-      <select id="esh-occasion-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
-        <option value="">— Select occasion</option>
-        <option value="Engagement ring" ${q.occasion==='Engagement ring'?'selected':''}>💍 Engagement ring</option>
-        <option value="Wedding band" ${q.occasion==='Wedding band'?'selected':''}>⚭ Wedding band</option>
-        <option value="New baby" ${q.occasion==='New baby'?'selected':''}>🤰🏻 New baby</option>
-        <option value="Commemorative piece" ${q.occasion==='Commemorative piece'?'selected':''}>🕊️ Commemorative piece</option>
-        <option value="Just because" ${q.occasion==='Just because'?'selected':''}>✨ Just because</option>
-        <option value="Graduation" ${q.occasion==='Graduation'?'selected':''}>🎓 Graduation</option>
-        <option value="Birthday gift" ${q.occasion==='Birthday gift'?'selected':''}>🎂 Birthday gift</option>
-        <option value="Gift (other)" ${q.occasion==='Gift (other)'?'selected':''}>🎁 Gift (other)</option>
-        <option value="Other" ${q.occasion==='Other'?'selected':''}>💝 Other</option>
-      </select>
-    </div>
-    <div style="margin-bottom:10px">
-      <div class="field-label">Notes</div>
-      <textarea id="esh-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;resize:none;box-sizing:border-box">${q.notes||''}</textarea>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveSetHeader(${id})">Save</button>
@@ -3485,17 +3566,11 @@ function saveSetHeader(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
   q.client = document.getElementById('esh-client-' + id)?.value.trim() || q.client;
-  q.clientPrice = parseFloat(document.getElementById('esh-clientprice-' + id)?.value) || 0;
-  q.clientBudget = parseFloat(document.getElementById('esh-budget-' + id)?.value) || 0;
-  q.discountType = document.getElementById('esh-disctype-' + id)?.value || 'none';
-  q.discountValue = parseFloat(document.getElementById('esh-discval-' + id)?.value) || 0;
-  q.occasion = document.getElementById('esh-occasion-' + id)?.value || '';
-  q.notes = document.getElementById('esh-notes-' + id)?.value.trim() || '';
   window._savedQuotes = quotes;
   persistQuotes();
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
   renderSaved();
-  showToast('Set updated');
+  showToast('Title updated');
 }
 
 function editQuoteCard(id, e, _synthQ, _pieceIdx) {
