@@ -1752,13 +1752,14 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
       const legacyKey = c.name.replace(/[.#$\/\[\]]/g, '_');
       const pickerLink = photos[safeKey] || photos[legacyKey] || '';
 
+      const displayWholesale = (window._quoteLivePricing && !c.custom) ? (Math.round(getLiveWholesale(c)) || c.wholesale) : c.wholesale;
       const item = document.createElement('div');
       item.style.cssText = 'padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
       item.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline">'
         + '<span style="font-size:14px;color:var(--text)">' + (mm ? mm + 'mm' : c.name) + '</span>'
-        + '<span style="font-size:14px;color:var(--text);font-weight:500">$' + c.wholesale.toLocaleString() + '</span>'
+        + '<span style="font-size:14px;color:var(--text);font-weight:500">$' + displayWholesale.toLocaleString() + '</span>'
         + '</div>'
-        + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + (c.length||'') + ' · ' + c.grams + 'g · retail $' + Math.round(c.wholesale*1.75).toLocaleString() + '</div>'
+        + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + (c.length||'') + ' · ' + c.grams + 'g · retail $' + Math.round(displayWholesale*1.75).toLocaleString() + '</div>'
         + (pickerLink ? '<div style="margin-top:4px"><a href="' + pickerLink + '" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none">↗ Product page</a></div>' : '');
       item.onmouseover = () => item.style.background = 'var(--surface2)';
       item.onmouseout = () => item.style.background = '';
@@ -1813,6 +1814,13 @@ function toggleQuoteLivePricing() {
     btn.textContent = window._quoteLivePricing ? 'Live price' : 'Stored price';
     btn.style.borderColor = window._quoteLivePricing ? 'var(--teal-dim)' : 'var(--border)';
     btn.style.color = window._quoteLivePricing ? 'var(--teal-dim)' : 'var(--text-dim)';
+  }
+  // Warn if gold hasn't loaded yet
+  if (window._quoteLivePricing && (!goldSpotOz || goldSpotOz < 1000)) {
+    showToast('Gold price not loaded — refresh gold first');
+    window._quoteLivePricing = false;
+    if (btn) { btn.textContent = 'Stored price'; btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--text-dim)'; }
+    return;
   }
   // Refresh displayed wholesale/retail for currently selected chain
   const chainIdx = document.getElementById('chainSelect').value;
