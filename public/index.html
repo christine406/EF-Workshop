@@ -3584,7 +3584,6 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   if (!q) return;
 
   const card = e.target.closest('.quote-item') || document.querySelector('.quote-item[data-id="' + id + '"]') || Array.from(document.querySelectorAll('.quote-item')).find(c => c.innerHTML.includes('editQuoteCard(' + id + ',') || c.innerHTML.includes('editSetHeader(' + id + ',') || c.innerHTML.includes('editPieceAsQuote(' + id + ','));
-  console.log('card found:', !!card, 'e.target:', e.target?.tagName, 'closest:', e.target?.closest('.quote-item')?.dataset?.id);
   if (!card) { console.warn('editQuoteCard: card not found for id', id); return; }
 
   // Expand card body if present
@@ -4189,13 +4188,10 @@ function editPieceActuals(setId, pieceIdx, e) {
 
 function editPieceAsQuote(setId, pieceIdx, e) {
   e.stopPropagation();
-  console.log('editPieceAsQuote called', setId, pieceIdx);
   const quotes = getSavedQuotes();
   const set = quotes.find(q => q.id === setId);
-  console.log('set found:', !!set, 'pieces:', set?.pieces?.length);
   if (!set || !set.pieces) return;
   const p = set.pieces[pieceIdx];
-  console.log('piece found:', !!p);
   if (!p) return;
 
   // Build a synthetic quote object from the piece, using set-level data where piece doesn't have it
@@ -4373,7 +4369,7 @@ function buildMultiPieceCard(q) {
   const displayAmount = q.clientPrice > 0 ? q.clientPrice : q.total;
   const displayAmountColor = q.clientPrice > 0 ? 'color:var(--teal-dim)' : 'color:var(--gold)';
 
-  let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
+  let html = '<div class="quote-item-header" style="cursor:pointer;align-items:flex-start" onclick="toggleCard(this)">';
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + (q.consignment ? '<span style="font-size:10px;background:#7a5c3a;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:2px">Consignment' + (q.consignmentDealer ? ' · ' + q.consignmentDealer : '') + '</span>' : '') + '</div>'
     + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px;font-family:var(--font-mono)">Consignment</span>' : '') + '</div>'
