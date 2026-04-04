@@ -5819,7 +5819,7 @@ function saveInventoryStone() {
       s.category = category; s.cut = cut; s.carat = carat; s.color = color;
       s.clarity = clarity; s.gia = gia; s.dealer = dealer; s.cost = cost;
       s.notes = notes; s.returnBy = returnBy; s.antique = antique;
-      if (photoUrl) s.photoUrl = photoUrl;
+      if (s.photoUrl) s.photoUrl = s.photoUrl; // preserve existing photo
       if (category === 'owned-reserved') s.status = 'unavailable';
       else if (s.status === 'unavailable' && category !== 'owned-reserved') s.status = 'available';
     }
