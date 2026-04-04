@@ -3444,10 +3444,10 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   const _epAntique = _sd.antique || false;
   const _linkedLabel = _linkedInv ? '<div style="font-size:11px;color:var(--teal-dim);margin-bottom:6px">↗ Linked from inventory</div>' : '';
   form.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Edit entry</div>
+    <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">${_pieceIdx !== undefined ? 'Edit piece ' + (_pieceIdx + 1) : 'Edit entry'}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
-        <div class="field-label">Client name</div>
+        <div class="field-label">${_pieceIdx !== undefined ? 'Piece label' : 'Client name'}</div>
         <input type="text" id="eq-client-${id}" value="${q.client || ''}"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
@@ -3729,6 +3729,10 @@ function saveQuoteEdit(id) {
     const set = quotes.find(q2 => q2.id === id);
     if (set && set.pieces && set.pieces[pi]) {
       const p = set.pieces[pi];
+      // Save piece name separately — never overwrite the set's client name
+      p.name = newClientName;
+      // Revert set client to original (don't let piece edit rename the set)
+      set.client = oldClientName;
       p.purity = q.purity;
       p.grams = q.grams;
       p.pieceType = q.pieceType;
@@ -3736,6 +3740,7 @@ function saveQuoteEdit(id) {
       p.laborEst = q.laborEst;
       p.designFee = q.designFee;
       p.notes = q.notes;
+      p.stoneDetail = q.stoneDetail;
       p.actualStoneCost = q.actualStoneCost;
       p.actualMetalCost = q.actualMetalCost;
       p.actualLabor = q.actualLabor;
@@ -3945,7 +3950,7 @@ function editPieceAsQuote(setId, pieceIdx, e) {
     id: setId,
     _isPiece: true,
     _pieceIdx: pieceIdx,
-    client: set.client + ' — Piece ' + (pieceIdx + 1),
+    client: p.name || (set.client + ' — Piece ' + (pieceIdx + 1)),
     projectName: set.projectName,
     quoteType: set.quoteType,
     status: set.status,
@@ -3969,7 +3974,15 @@ function editPieceAsQuote(setId, pieceIdx, e) {
     actualDesignFee: p.actualDesignFee,
     actualChainCost: p.actualChainCost,
     actualTotal: p.actualTotal,
-    stoneDetail: p.stoneDetail,
+    stoneDetail: p.stoneDetail || (p.stones && p.stones.length ? {
+      gia: p.stones[0].gia || '',
+      carat: p.stones[0].carat || '',
+      color: p.stones[0].color || '',
+      clarity: p.stones[0].clarity || '',
+      cut: p.stones[0].cut || '',
+      dealer: p.stones[0].dealer || '',
+      antique: p.stones[0].antique || false,
+    } : null),
   };
 
   // Open the standard edit modal with the synthetic quote
