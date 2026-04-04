@@ -6079,12 +6079,12 @@ function renderStoneInventory() {
         ${s.antique ? '<span style="font-size:12px;background:var(--teal-dim);color:#fafaf7;padding:3px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : ''}
         ${hasPending ? '<span style="font-size:12px;background:#ccc07a;color:#3a2800;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">⏳ Pending · ' + pendingInquiries.length + '</span>' : ''}
         ${s.usedInQuoteId && !s.usedInProjectId ? '<span style="font-size:11px;background:#f0e8d0;color:#7a5a20;padding:2px 7px;border-radius:2px;letter-spacing:0.06em">In quote · ' + (s.usedInQuoteClient || 'unknown') + '</span>' : ''}
-        ${s.usedInProjectId && !(s.notes && s.notes.startsWith('Added from project:')) ? (function(){ const proj = getSavedQuotes().find(q => q.id === s.usedInProjectId); return proj ? '<span style="font-size:11px;background:var(--teal-faint);color:var(--teal-dim);padding:2px 7px;border-radius:2px;letter-spacing:0.06em">Used on project: ' + proj.client + '</span>' : ''; })() : ''}
+        ${s.usedInProjectId ? (function(){ const proj = getSavedQuotes().find(q => q.id === s.usedInProjectId); return proj ? '<span style="font-size:11px;background:var(--surface2);color:var(--teal-dim);border:1px solid var(--teal-dim);padding:2px 7px;border-radius:2px;letter-spacing:0.06em">project: ' + proj.client + '</span>' : ''; })() : ''}
         ${giaLink}
         ${s.returnBy ? '<span style="font-size:13px;color:var(--text-dim)">return by ' + s.returnBy + '</span>' : ''}
       </div>
       ${extraDetails ? '<div style="margin-top:4px;font-size:12px;color:var(--text-dim)">' + extraDetails + '</div>' : ''}
-      ${s.notes ? '<div style="margin-top:6px;font-size:13px;color:var(--text-dim);font-style:italic">' + s.notes + '</div>' : ''}`;
+      ${s.notes && !s.notes.startsWith('Added from project:') ? '<div style="margin-top:6px;font-size:13px;color:var(--text-dim);font-style:italic">' + s.notes + '</div>' : ''}`;
 
     // Show existing inquiries
     if ((s.inquiries || []).length > 0) {
