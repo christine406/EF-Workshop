@@ -1511,11 +1511,14 @@ window._inventory = [];
 function getSavedQuotes() { return window._savedQuotes || []; }
 function getInventory() { return window._inventory || []; }
 
+function stripUndefined(obj) {
+  return JSON.parse(JSON.stringify(obj, (k, v) => v === undefined ? null : v));
+}
 function persistQuotes() {
-  if (window._fb) window._fb.saveQuotes(getSavedQuotes());
+  if (window._fb) window._fb.saveQuotes(stripUndefined(getSavedQuotes()));
 }
 function persistInventory() {
-  if (window._fb) window._fb.saveInventory(getInventory());
+  if (window._fb) window._fb.saveInventory(stripUndefined(getInventory()));
 }
 
 // =================== GOLD ===================
