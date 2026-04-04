@@ -3583,7 +3583,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   const q = _synthQ || quotes.find(q => q.id === id);
   if (!q) return;
 
-  const card = e.target.closest('.quote-item') || document.querySelector('.quote-item[data-id="' + id + '"]') || Array.from(document.querySelectorAll('.quote-item')).find(c => c.innerHTML.includes('editQuoteCard(' + id + ','));
+  const card = e.target.closest('.quote-item') || document.querySelector('.quote-item[data-id="' + id + '"]') || Array.from(document.querySelectorAll('.quote-item')).find(c => c.innerHTML.includes('editQuoteCard(' + id + ',') || c.innerHTML.includes('editSetHeader(' + id + ',') || c.innerHTML.includes('editPieceAsQuote(' + id + ','));
   if (!card) { console.warn('editQuoteCard: card not found for id', id); return; }
 
   // Expand card body if present
