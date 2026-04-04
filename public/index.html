@@ -6079,6 +6079,7 @@ function renderStoneInventory() {
         ${s.antique ? '<span style="font-size:12px;background:var(--teal-dim);color:#fafaf7;padding:3px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : ''}
         ${hasPending ? '<span style="font-size:12px;background:#ccc07a;color:#3a2800;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">⏳ Pending · ' + pendingInquiries.length + '</span>' : ''}
         ${s.usedInQuoteId && !s.usedInProjectId ? '<span style="font-size:11px;background:#f0e8d0;color:#7a5a20;padding:2px 7px;border-radius:2px;letter-spacing:0.06em">In quote · ' + (s.usedInQuoteClient || 'unknown') + '</span>' : ''}
+        ${s.usedInProjectId ? (function(){ const proj = getSavedQuotes().find(q => q.id === s.usedInProjectId); return proj ? '<span style="font-size:11px;background:var(--teal-faint);color:var(--teal-dim);padding:2px 7px;border-radius:2px;letter-spacing:0.06em">Used on project: ' + proj.client + '</span>' : ''; })() : ''}
         ${giaLink}
         ${s.returnBy ? '<span style="font-size:13px;color:var(--text-dim)">return by ' + s.returnBy + '</span>' : ''}
       </div>
@@ -6942,6 +6943,33 @@ function renderFieldLog() {
           }
         });
       }
+    });
+    // Fix stones stuck as 'unavailable' with owned-reserved category — these were picked from inventory
+    // Match to a project by GIA (on the inventory stone itself) or by cost
+    (window._inventory || []).forEach(s => {
+      if (s.usedInProjectId) return; // already linked
+      if (s.category !== 'owned-reserved') return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project','in-use'];
+      if (dontTouch.includes(s.status)) return;
+      const projects = allQuotes.filter(q => q.status === 'project' || q.status === 'completed' || q.status === 'collection');
+      let matched = false;
+      projects.forEach(q => {
+        if (matched) return;
+        // Match by GIA on inventory stone against any stone in the project
+        const giaMatch = s.gia && (q.stones || []).some(qs => qs.gia && qs.gia === s.gia);
+        // Match by inventoryId
+        const invIdMatch = (q.stones || []).some(qs => qs.inventoryId === s.id);
+        // Match by cost within $1
+        const costMatch = s.cost && (q.stones || []).some(qs => qs.cost && Math.abs(qs.cost - s.cost) < 1);
+        if (giaMatch || invIdMatch || costMatch) {
+          s.status = 'in-use';
+          s.usedInProjectId = q.id;
+          s.usedInQuoteId = null;
+          s.usedInQuoteClient = null;
+          changed = true;
+          matched = true;
+        }
+      });
     });
     if (changed) persistInventory();
   }
