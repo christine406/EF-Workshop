@@ -6795,6 +6795,29 @@ function renderFieldLog() {
         }
       });
     });
+    // Also: link stones via inventoryId stored on quote stones
+    allQuotes.forEach(q => {
+      if (!q.stones) return;
+      const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+      q.stones.forEach(qs => {
+        if (!qs.inventoryId) return;
+        const invStone = (window._inventory || []).find(s => s.id === qs.inventoryId);
+        if (!invStone) return;
+        const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+        if (dontTouch.includes(invStone.status)) return;
+        if (isProject && invStone.status !== 'in-use') {
+          invStone.status = 'in-use';
+          invStone.usedInProjectId = q.id;
+          invStone.usedInQuoteId = null;
+          invStone.usedInQuoteClient = null;
+          changed = true;
+        } else if (!isProject && !invStone.usedInProjectId) {
+          invStone.usedInQuoteId = q.id;
+          invStone.usedInQuoteClient = q.client || 'quote';
+          changed = true;
+        }
+      });
+    });
     if (changed) persistInventory();
     if (typeof renderInventory === 'function') renderInventory();
   });
