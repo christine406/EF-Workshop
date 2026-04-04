@@ -1652,6 +1652,7 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
   clearRow.textContent = '✕ No chain';
   clearRow.onclick = () => {
     document.getElementById(hiddenInputId).value = '';
+    window._selectedQuoteChain = null;
     document.getElementById(selectedLabelId).textContent = 'None selected';
     document.getElementById(selectedLabelId).style.color = 'var(--text-mid)';
     onSelect('');
@@ -1766,6 +1767,7 @@ function buildChainTreePicker(containerId, hiddenInputId, selectedLabelId, onSel
       item.addEventListener('click', e => {
         e.stopPropagation();
         document.getElementById(hiddenInputId).value = c.idx;
+        window._selectedQuoteChain = c; // store for live pricing toggle
         document.getElementById(selectedLabelId).textContent = selectedKarat + ' ' + c.name + ' · ' + (c.length||'');
         document.getElementById(selectedLabelId).style.color = 'var(--gold)';
         onSelect(c.idx);
@@ -1823,14 +1825,11 @@ function toggleQuoteLivePricing() {
     return;
   }
   // Refresh displayed wholesale/retail for currently selected chain
-  const chainIdx = document.getElementById('chainSelect').value;
-  if (chainIdx !== '') {
-    const c = getAllChains()[parseInt(chainIdx)];
-    if (c) {
-      const w = getQuoteChainWholesale(c);
-      document.getElementById('chainWholesale').textContent = '$' + w.toLocaleString();
-      document.getElementById('chainRetail').textContent = '$' + Math.round(w * 1.35).toLocaleString();
-    }
+  const c = window._selectedQuoteChain;
+  if (c) {
+    const w = getQuoteChainWholesale(c);
+    document.getElementById('chainWholesale').textContent = '$' + w.toLocaleString();
+    document.getElementById('chainRetail').textContent = '$' + Math.round(w * 1.35).toLocaleString();
   }
   calculate();
 }
