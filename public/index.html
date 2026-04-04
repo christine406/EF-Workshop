@@ -1322,6 +1322,13 @@
           </div>
         </div>
 
+        <div class="field" style="margin-bottom:12px">
+          <div class="field-label">Push to project as note (optional)</div>
+          <select id="fl-project" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" onchange="renderFlProjectSelect()">
+            <option value="">— no project</option>
+          </select>
+        </div>
+
         <button onclick="saveFieldLogEntry()" style="width:100%;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:14px;border-radius:3px;cursor:pointer">+ Log it</button>
       </div>
 
@@ -4562,6 +4569,22 @@ function buildQuoteCard(q) {
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
   html += '</div>';
 
+  // Project notes / reminders
+  if (q.projectNotes && q.projectNotes.length) {
+    const open = q.projectNotes.filter(n => !n.done);
+    const done = q.projectNotes.filter(n => n.done);
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Notes & reminders</div>';
+    [...open, ...done].forEach(n => {
+      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;' + (n.done ? 'opacity:0.4;' : '') + '">'
+        + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:var(--teal-dim);cursor:pointer;flex-shrink:0">'
+        + '<div style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
+        + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
   html += '</div>'; // end card-body
   return html;
 }
@@ -6341,6 +6364,7 @@ function showScreen(name) {
   document.getElementById('goldBar').style.display = name === 'quote' ? 'flex' : 'none';
   if (name === 'data' && typeof renderDataScreen === 'function') renderDataScreen();
   if (name === 'field' && typeof renderFieldLog === 'function') renderFieldLog();
+  if (name === 'field' && typeof renderFlProjectSelect === 'function') renderFlProjectSelect();
 }
 
 // =================== TOAST ===================
@@ -6510,6 +6534,23 @@ function setFieldLogType(type, btn) {
   if (amountRow) amountRow.style.display = type === 'followup' ? 'none' : 'block';
 }
 
+function renderFlProjectSelect() {
+  const sel = document.getElementById('fl-project');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— no project</option>';
+  const projects = getSavedQuotes().filter(q =>
+    q.status === 'project' || q.status === 'collection'
+  ).sort((a,b) => b.id - a.id);
+  projects.forEach(q => {
+    const o = document.createElement('option');
+    o.value = q.id;
+    o.textContent = q.client + (q.projectName && q.projectName !== q.client ? ' — ' + q.projectName : '');
+    sel.appendChild(o);
+  });
+  if (current) sel.value = current;
+}
+
 function saveFieldLogEntry() {
   const desc = document.getElementById('fl-description').value.trim();
   if (!desc) { showToast('Add a description'); return; }
@@ -6517,6 +6558,7 @@ function saveFieldLogEntry() {
   const dealer = dealerSel === 'other'
     ? (document.getElementById('fl-dealer-other').value.trim() || 'Other')
     : dealerSel;
+  const projectId = parseInt(document.getElementById('fl-project')?.value) || null;
   const entry = {
     id: Date.now(),
     type: window._fieldLogType || 'purchase',
@@ -6527,17 +6569,67 @@ function saveFieldLogEntry() {
     date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
     time: new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'}),
     reconciled: false,
+    projectId: projectId || null,
   };
   window._fieldLog = [entry, ...(window._fieldLog || [])];
   persistFieldLog();
+  // If project selected, push as note immediately
+  if (projectId) {
+    pushNoteToProject(projectId, desc, entry.id);
+    entry.reconciled = true;
+    entry.reconciledTo = getSavedQuotes().find(q => q.id === projectId)?.client || 'project';
+    entry.reconciledAsNote = true;
+    window._fieldLog[0] = entry;
+    persistFieldLog();
+  }
   // Clear form
   document.getElementById('fl-description').value = '';
   document.getElementById('fl-amount').value = '';
   document.getElementById('fl-client').value = '';
   document.getElementById('fl-dealer').value = '';
   document.getElementById('fl-dealer-other-row').style.display = 'none';
-  showToast('Logged ✓');
+  const projSel = document.getElementById('fl-project');
+  if (projSel) projSel.value = '';
+  showToast(projectId ? 'Logged + pushed to project ✓' : 'Logged ✓');
   renderFieldLog();
+}
+
+function pushNoteToProject(projectId, text, fieldLogId) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === projectId);
+  if (!q) return;
+  if (!q.projectNotes) q.projectNotes = [];
+  q.projectNotes.unshift({
+    id: Date.now(),
+    text,
+    date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+    done: false,
+    fieldLogId: fieldLogId || null,
+  });
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+}
+
+function checkOffProjectNote(quoteId, noteId) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === quoteId);
+  if (!q || !q.projectNotes) return;
+  const note = q.projectNotes.find(n => n.id === noteId);
+  if (note) { note.done = !note.done; }
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+}
+
+function deleteProjectNote(quoteId, noteId) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === quoteId);
+  if (!q || !q.projectNotes) return;
+  q.projectNotes = q.projectNotes.filter(n => n.id !== noteId);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
 }
 
 function reconcileFieldEntry(id) {
@@ -6630,6 +6722,24 @@ function reconcileFieldEntry(id) {
   cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
   cancelBtn.addEventListener('click', () => overlay.remove());
 
+  const noteBtn = document.createElement('button');
+  noteBtn.textContent = 'Push as note only';
+  noteBtn.style.cssText = 'width:100%;background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer;margin-bottom:10px';
+  noteBtn.addEventListener('click', () => {
+    const projId = parseInt(projSel.value);
+    if (!projId) { showToast('Select a project'); return; }
+    pushNoteToProject(projId, entry.description, entry.id);
+    const log = getFieldLog();
+    const e = log.find(e => e.id === id);
+    if (e) { e.reconciled = true; e.reconciledTo = getSavedQuotes().find(q => q.id === projId)?.client; e.reconciledAsNote = true; }
+    window._fieldLog = log;
+    persistFieldLog();
+    overlay.remove();
+    renderFieldLog();
+    showToast('Pushed as note ✓');
+  });
+  modal.appendChild(noteBtn);
+
   btnRow.appendChild(pushBtn); btnRow.appendChild(cancelBtn);
   modal.appendChild(btnRow);
   overlay.appendChild(modal);
@@ -6670,7 +6780,7 @@ function renderFieldLog() {
       + (e.dealer ? ' · ' + e.dealer : '')
       + (e.client ? ' · <span style="color:var(--teal-dim)">' + e.client + '</span>' : '')
       + '</div>'
-      + (e.reconciled ? '<div style="font-size:11px;color:var(--green-bright);margin-top:3px">✓ Pushed to ' + (e.reconciledTo || 'project') + ' — ' + (e.reconciledField||'').replace('actual','').replace('Cost','') + ' $' + (e.reconciledAmt||'').toLocaleString() + '</div>' : '')
+      + (e.reconciled ? '<div style="font-size:11px;color:var(--green-bright);margin-top:3px">✓ ' + (e.reconciledAsNote ? 'Note pushed to ' + (e.reconciledTo || 'project') : 'Pushed to ' + (e.reconciledTo || 'project') + ' — ' + (e.reconciledField||'').replace('actual','').replace('Cost','') + ' $' + (e.reconciledAmt||'').toLocaleString()) + '</div>' : '')
       + '</div>'
       + '<div style="text-align:right;flex-shrink:0">'
       + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + typeColor + ';margin-bottom:4px">' + typeLabel + '</div>'
