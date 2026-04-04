@@ -1324,7 +1324,7 @@
 
         <div class="field" style="margin-bottom:12px">
           <div class="field-label">Push to project as note (optional)</div>
-          <select id="fl-project" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" onchange="renderFlProjectSelect()">
+          <select id="fl-project" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
             <option value="">— no project</option>
           </select>
         </div>
@@ -6652,79 +6652,24 @@ function reconcileFieldEntry(id) {
   modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px">Push to project</div>'
     + '<div style="font-size:14px;color:var(--text);margin-bottom:12px">' + entry.description + (entry.amount ? ' · $' + entry.amount.toLocaleString() : '') + '</div>';
 
+  // Project picker (shared)
   const projSel = document.createElement('select');
-  projSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
+  projSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
   const blank = document.createElement('option'); blank.value = ''; blank.textContent = '— Select project'; projSel.appendChild(blank);
   clientProjects.forEach(q => {
     const o = document.createElement('option'); o.value = q.id; o.textContent = q.client + (q.projectName && q.projectName !== q.client ? ' — ' + q.projectName : '');
     projSel.appendChild(o);
   });
-  // Pre-select if client name matches
   if (entry.client) {
     const match = clientProjects.find(q => q.client?.toLowerCase().includes(entry.client.toLowerCase()) || entry.client.toLowerCase().includes(q.client?.toLowerCase()));
     if (match) projSel.value = match.id;
   }
   modal.appendChild(projSel);
 
-  const amtLabel = document.createElement('div');
-  amtLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';
-  amtLabel.textContent = 'Amount to push ($)';
-  modal.appendChild(amtLabel);
-
-  const amtInput = document.createElement('input');
-  amtInput.type = 'number'; amtInput.value = entry.amount || '';
-  amtInput.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;margin-bottom:14px';
-  modal.appendChild(amtInput);
-
-  const noteLabel = document.createElement('div');
-  noteLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';
-  noteLabel.textContent = 'Push to which cost field?';
-  modal.appendChild(noteLabel);
-
-  const fieldSel = document.createElement('select');
-  fieldSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
-  [['actualStoneCost','Stone cost'],['actualMetalCost','Metal cost'],['actualLabor','Labor'],['actualDesignFee','Design fee'],['actualChainCost','Chain / materials']].forEach(([val,label]) => {
-    const o = document.createElement('option'); o.value = val; o.textContent = label; fieldSel.appendChild(o);
-  });
-  modal.appendChild(fieldSel);
-
-  const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex;gap:8px';
-
-  const pushBtn = document.createElement('button');
-  pushBtn.textContent = 'Push to project';
-  pushBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
-  pushBtn.addEventListener('click', () => {
-    const projId = parseInt(projSel.value);
-    if (!projId) { showToast('Select a project'); return; }
-    const amt = parseFloat(amtInput.value) || 0;
-    const field = fieldSel.value;
-    const quotes = getSavedQuotes();
-    const q = quotes.find(q => q.id === projId);
-    if (q) {
-      q[field] = (q[field] || 0) + amt;
-      window._savedQuotes = quotes;
-      persistQuotes();
-    }
-    // Mark entry reconciled
-    const log = getFieldLog();
-    const e = log.find(e => e.id === id);
-    if (e) { e.reconciled = true; e.reconciledTo = q?.client; e.reconciledField = field; e.reconciledAmt = amt; }
-    window._fieldLog = log;
-    persistFieldLog();
-    overlay.remove();
-    renderFieldLog();
-    showToast('Pushed to ' + (q?.client || 'project'));
-  });
-
-  const cancelBtn = document.createElement('button');
-  cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
-  cancelBtn.addEventListener('click', () => overlay.remove());
-
+  // Push as note button
   const noteBtn = document.createElement('button');
-  noteBtn.textContent = 'Push as note only';
-  noteBtn.style.cssText = 'width:100%;background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer;margin-bottom:10px';
+  noteBtn.textContent = 'Push as note';
+  noteBtn.style.cssText = 'width:100%;background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer;margin-bottom:14px';
   noteBtn.addEventListener('click', () => {
     const projId = parseInt(projSel.value);
     if (!projId) { showToast('Select a project'); return; }
@@ -6739,6 +6684,68 @@ function reconcileFieldEntry(id) {
     showToast('Pushed as note ✓');
   });
   modal.appendChild(noteBtn);
+
+  // Divider
+  const divider = document.createElement('div');
+  divider.style.cssText = 'border-top:1px solid var(--border);margin-bottom:14px;position:relative';
+  divider.innerHTML = '<span style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--surface);padding:0 8px;font-size:11px;color:var(--text-dim);letter-spacing:0.08em">or push as cost</span>';
+  modal.appendChild(divider);
+
+  // Amount input
+  const amtLabel = document.createElement('div');
+  amtLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';
+  amtLabel.textContent = 'Amount ($)';
+  modal.appendChild(amtLabel);
+
+  const amtInput = document.createElement('input');
+  amtInput.type = 'number'; amtInput.value = entry.amount || '';
+  amtInput.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;margin-bottom:10px';
+  modal.appendChild(amtInput);
+
+  const noteLabel = document.createElement('div');
+  noteLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';
+  noteLabel.textContent = 'Which cost field?';
+  modal.appendChild(noteLabel);
+
+  const fieldSel = document.createElement('select');
+  fieldSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
+  [['actualStoneCost','Stone cost'],['actualMetalCost','Metal cost'],['actualLabor','Labor'],['actualDesignFee','Design fee'],['actualChainCost','Chain / materials']].forEach(([val,label]) => {
+    const o = document.createElement('option'); o.value = val; o.textContent = label; fieldSel.appendChild(o);
+  });
+  modal.appendChild(fieldSel);
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+
+  const pushBtn = document.createElement('button');
+  pushBtn.textContent = 'Push amount';
+  pushBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  pushBtn.addEventListener('click', () => {
+    const projId = parseInt(projSel.value);
+    if (!projId) { showToast('Select a project'); return; }
+    const amt = parseFloat(amtInput.value) || 0;
+    const field = fieldSel.value;
+    const quotes = getSavedQuotes();
+    const q = quotes.find(q => q.id === projId);
+    if (q) {
+      q[field] = (q[field] || 0) + amt;
+      window._savedQuotes = quotes;
+      persistQuotes();
+    }
+    const log = getFieldLog();
+    const e = log.find(e => e.id === id);
+    if (e) { e.reconciled = true; e.reconciledTo = q?.client; e.reconciledField = field; e.reconciledAmt = amt; }
+    window._fieldLog = log;
+    persistFieldLog();
+    overlay.remove();
+    renderFieldLog();
+    showToast('Pushed to ' + (q?.client || 'project'));
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:3px;cursor:pointer';
+  cancelBtn.addEventListener('click', () => overlay.remove());
 
   btnRow.appendChild(pushBtn); btnRow.appendChild(cancelBtn);
   modal.appendChild(btnRow);
@@ -6757,6 +6764,7 @@ function deleteFieldEntry(id) {
 function renderFieldLog() {
   const list = document.getElementById('fieldLogList');
   if (!list) return;
+  renderFlProjectSelect();
   const log = getFieldLog();
   if (!log.length) {
     list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:16px 0;text-align:center">No entries yet. Log your first purchase above.</div>';
