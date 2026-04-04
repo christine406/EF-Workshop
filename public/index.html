@@ -4351,7 +4351,7 @@ function renderPL() {
   const all = getSavedQuotes();
   // Only include projects/collection with a client price filled in
   const completed = all.filter(q =>
-    ((q.status === 'project' || q.status === 'collection' || q.status === 'completed' || q.status === 'loose-sale')) && q.clientPrice > 0
+    ((q.status === 'project' || q.status === 'collection' || q.status === 'completed' || q.status === 'loose-sale')) && q.clientPrice > 0 && !q.excludeFromPL
   );
 
   if (!completed.length) { el.innerHTML = ''; return; }
@@ -4413,17 +4413,41 @@ function renderPL() {
     </div>`;
 
   if (isExpanded) {
+    const allEligible = all.filter(q =>
+      (q.status === 'project' || q.status === 'collection' || q.status === 'completed' || q.status === 'loose-sale') && q.clientPrice > 0
+    );
     html += `<div style="border-top:1px solid var(--border);padding:0 14px 12px">`;
-    rows.forEach(({q, revenue, cost, profit}) => {
+    allEligible.forEach(q => {
+      const excluded = !!q.excludeFromPL;
       const hasFinal = q.actualMetalCost != null || q.actualLabor != null;
-      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)">
-        <div>
-          <div style="font-size:13px;color:var(--text)">${q.client}</div>
-          <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.looseSale ? '💎 loose sale' : q.isMultiPiece ? '✦ ' + (q.pieces?.length||0) + '-piece set' : (q.pieceType||'')}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal && !q.looseSale?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
+      let stoneCost, metalCost, laborCost, chainCost, designFee;
+      if (q.isMultiPiece) {
+        stoneCost = (q.pieces||[]).some(p => p.actualStoneCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualStoneCost ?? p.stoneCost ?? 0), 0) : (q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0), 0));
+        metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0) : (q.actualMetalCost ?? 0);
+        laborCost = (q.pieces||[]).some(p => p.actualLabor != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0) : (q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0));
+        chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
+        designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
+      } else {
+        stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0) ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0) + (q.meleeCost || 0);
+        metalCost = (q.actualMetalCost != null && q.actualMetalCost > 0) ? q.actualMetalCost : (q.metalEstimate ? q.metalEstimate / 1.35 : 0);
+        laborCost = (q.actualLabor != null && q.actualLabor > 0) ? q.actualLabor : (q.laborEst || 0);
+        chainCost = q.chainCost || 0;
+        designFee = q.designFee || 0;
+      }
+      const rowCost = stoneCost + metalCost + laborCost + chainCost + designFee;
+      const revenue = q.clientPrice;
+      const profit = revenue - rowCost;
+      html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);opacity:${excluded?0.4:1}">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <input type="checkbox" ${excluded?'':'checked'} onclick="togglePLExclusion(${q.id},event)" style="margin-top:3px;cursor:pointer;accent-color:var(--teal-dim)">
+          <div>
+            <div style="font-size:13px;color:var(--text)">${q.client}</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.looseSale ? '💎 loose sale' : q.isMultiPiece ? '✦ ' + (q.pieces?.length||0) + '-piece set' : (q.pieceType||'')}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal && !q.looseSale?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
+          </div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:13px;color:${profit>=0?'var(--green-bright)':'var(--red)'}">$${profit.toLocaleString()}</div>
-          <div style="font-size:12px;color:var(--text-dim)">$${revenue.toLocaleString()} − $${cost.toLocaleString()}</div>
+          <div style="font-size:13px;color:${excluded?'var(--text-dim)':(profit>=0?'var(--green-bright)':'var(--red)')}">$${profit.toLocaleString()}</div>
+          <div style="font-size:12px;color:var(--text-dim)">$${revenue.toLocaleString()} − $${rowCost.toLocaleString()}</div>
         </div>
       </div>`;
     });
@@ -4441,6 +4465,17 @@ function togglePL() {
   const el = document.getElementById('plSummary');
   el.dataset.expanded = el.dataset.expanded === '1' ? '0' : '1';
   renderPL();
+}
+
+function togglePLExclusion(id, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+  q.excludeFromPL = !q.excludeFromPL;
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
 }
 
 function renderSaved() {
