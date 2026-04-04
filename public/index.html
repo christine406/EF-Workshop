@@ -6864,6 +6864,32 @@ function renderFieldLog() {
         changed = true;
       }
     });
+    // Also: fix stones stuck as 'unavailable' with no project link
+    (window._inventory || []).forEach(s => {
+      if (s.status !== 'unavailable' || s.usedInProjectId) return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+      if (dontTouch.includes(s.status)) return;
+      let matched = false;
+      allQuotes.forEach(q => {
+        if (matched) return;
+        const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+        if (!isProject || !q.stones) return;
+        q.stones.forEach(qs => {
+          if (matched) return;
+          const costMatch = qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1;
+          const caratMatch = !qs.carat || !s.carat || Math.abs(parseFloat(qs.carat) - parseFloat(s.carat)) < 0.01;
+          const giaMatch = qs.gia && s.gia && qs.gia === s.gia;
+          if (giaMatch || (costMatch && caratMatch)) {
+            s.status = 'in-use';
+            s.usedInProjectId = q.id;
+            s.usedInQuoteId = null;
+            s.usedInQuoteClient = null;
+            changed = true;
+            matched = true;
+          }
+        });
+      });
+    });
     if (changed) persistInventory();
   }
 
