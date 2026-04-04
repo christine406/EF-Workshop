@@ -6206,8 +6206,17 @@ function toggleLoosePicker() {
   const list = document.getElementById('loosePickerList');
   const isOpen = list.style.display !== 'none';
   if (isOpen) { list.style.display = 'none'; return; }
-  const available = getInventory().filter(s => !s.status || s.status === 'available' || s.status === 'unavailable');
-  window._pickerExpanded = {}; // reset section state on open
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  const available = getInventory().filter(s =>
+    !archivedStatuses.includes(s.status) &&
+    s.category !== 'owned-reserved'
+  );
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">🚫 No available stones in inventory</div>';
+    list.style.display = 'block';
+    return;
+  }
+  window._pickerExpanded = {};
   renderGroupedPicker(list, available, (s) => {
     selectLooseStone(s);
     list.style.display = 'none';
@@ -6749,6 +6758,7 @@ function renderFieldLog() {
   onValue(ref(db, 'quotes'), snap => {
     const val = snap.val();
     window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof fixInventoryStoneStatuses === 'function') fixInventoryStoneStatuses();
     if (typeof renderSaved === 'function') renderSaved();
   });
 
@@ -6761,7 +6771,11 @@ function renderFieldLog() {
   onValue(ref(db, 'inventory'), snap => {
     const val = snap.val();
     window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    // Fix stone status based on linked quote
+    fixInventoryStoneStatuses();
+    if (typeof renderInventory === 'function') renderInventory();
+  });
+
+  function fixInventoryStoneStatuses() {
     const quotes = window._savedQuotes || [];
     let changed = false;
     (window._inventory || []).forEach(s => {
@@ -6819,8 +6833,7 @@ function renderFieldLog() {
       });
     });
     if (changed) persistInventory();
-    if (typeof renderInventory === 'function') renderInventory();
-  });
+  }
 
 </script>
 </body>
