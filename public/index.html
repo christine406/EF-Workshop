@@ -5544,7 +5544,15 @@ function renderGroupedPicker(list, stones, onSelect) {
 
 function renderInventoryPicker() {
   const list = document.getElementById('inventoryPickerList');
-  const available = getInventory().filter(s => !s.status || s.status === 'available' || s.status === 'unavailable');
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  const available = getInventory().filter(s =>
+    !archivedStatuses.includes(s.status) &&
+    s.category !== 'owned-reserved'
+  );
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">🚫 No available stones in inventory</div>';
+    return;
+  }
   renderGroupedPicker(list, available, (s) => addStoneFromInventory(s));
 }
 function addStoneFromInventory(s) {
