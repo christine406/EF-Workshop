@@ -1824,7 +1824,9 @@ function toggleQuoteLivePricing() {
     if (btn) { btn.textContent = 'Stored price'; btn.style.borderColor = 'var(--border)'; btn.style.color = 'var(--text-dim)'; }
     return;
   }
-  // Refresh displayed wholesale/retail for currently selected chain
+  // Rebuild the picker so all visible prices update immediately
+  populateChainSelect();
+  // Also refresh the selected chain display if one is picked
   const c = window._selectedQuoteChain;
   if (c) {
     const w = getQuoteChainWholesale(c);
