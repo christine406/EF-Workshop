@@ -7681,10 +7681,7 @@ function pushLineItemToProject(invoiceId, lineItemId) {
     if (changed) persistInventory();
   }
 
-</script>
-</body>
-</html>
- + (li.amount || 0).toLocaleString();
++ (li.amount || 0).toLocaleString();
   modal.appendChild(descDiv);
 
   const projSel = document.createElement('select');
@@ -8730,6 +8727,10 @@ function renderInvoices() {
     });
     if (changed) persistInventory();
   }
+
+</script>
+</body>
+</html>
 
 </script>
 </body>
