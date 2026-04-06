@@ -7086,19 +7086,12 @@ function buildVendorOptions(selectedValue, includeBlank) {
 }
 
 function handleVendorChange(selectEl, otherInputEl) {
-  const isNew = selectEl.value === '__new__';
-  if (!otherInputEl) return;
-  // Try to find the wrapping row div — check parent and grandparent
-  const row = otherInputEl.parentElement?.id?.includes('row') || otherInputEl.parentElement?.id?.includes('field')
-    ? otherInputEl.parentElement
-    : (otherInputEl.parentElement?.parentElement || otherInputEl.parentElement);
-  // For fl-dealer-other: the row is fl-dealer-other-row which is the direct parent
-  // For si-other-dealer: the row is si-other-dealer-field which is the direct parent
-  const directParent = otherInputEl.parentElement;
-  if (directParent && (directParent.id.includes('row') || directParent.id.includes('field'))) {
-    directParent.style.display = isNew ? 'block' : 'none';
+  if (selectEl.value === '__new__') {
+    otherInputEl.style.display = 'block';
+    otherInputEl.focus();
+  } else {
+    otherInputEl.style.display = 'none';
   }
-  if (isNew) otherInputEl.focus();
 }
 
 function commitNewVendor(selectEl, otherInputEl) {
