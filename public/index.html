@@ -7029,7 +7029,8 @@ function renderFieldLog() {
       // Check that the project actually references this stone by GIA or inventoryId
       const confirmed = (linkedQ.stones || []).some(qs =>
         (s.gia && qs.gia && qs.gia === s.gia) || qs.inventoryId === s.id
-      ) || (s.gia && linkedQ.stoneDetail?.gia === s.gia);
+      ) || (s.gia && linkedQ.stoneDetail?.gia === s.gia)
+        || (s.gia && (linkedQ.pieces || []).some(p => p.stoneDetail?.gia === s.gia || (p.stones || []).some(ps => ps.gia === s.gia)));
       if (!confirmed) {
         // Stone was wrongly linked — clear it
         s.usedInProjectId = null;
@@ -7078,6 +7079,20 @@ function renderFieldLog() {
           }
         }
       }
+      // Also check pieces[].stoneDetail.gia for multi-piece sets
+      (q.pieces || []).forEach(p => {
+        const gia = p.stoneDetail?.gia || (p.stones || [])[0]?.gia;
+        if (!gia) return;
+        const invStone = (window._inventory || []).find(s => s.gia === gia && !s.usedInProjectId);
+        if (invStone) {
+          const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+          if (!dontTouch.includes(invStone.status)) {
+            invStone.usedInProjectId = q.id;
+            invStone.status = 'in-use';
+            changed = true;
+          }
+        }
+      });
     });
     // Also: link stones via inventoryId stored on quote stones
     allQuotes.forEach(q => {
