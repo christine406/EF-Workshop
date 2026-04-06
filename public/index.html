@@ -1200,7 +1200,7 @@
         </div>
         <div class="field-row">
           <div class="field">
-            <div class="field-label">Dealer</div>
+            <div class="field-label">Vendor</div>
             <select id="si-dealer" onchange="toggleOtherDealer()">
               <option>American Gem Corp</option>
               <option>Virat</option>
@@ -1210,7 +1210,7 @@
             </select>
           </div>
           <div class="field" id="si-other-dealer-field" style="display:none">
-            <div class="field-label">Dealer name</div>
+            <div class="field-label">Vendor name</div>
             <input type="text" id="si-other-dealer" placeholder="Enter dealer">
           </div>
         </div>
@@ -1335,29 +1335,28 @@
             <input type="number" id="fl-amount" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
           </div>
           <div class="field">
-            <div class="field-label">Dealer</div>
-            <select id="fl-dealer" onchange="document.getElementById('fl-dealer-other-row').style.display=this.value==='other'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-              <option value="">— select</option>
-              <option>American Gem Corp</option>
-              <option>Virat</option>
-              <option>Galapo</option>
-              <option>Julius Klein</option>
-              <option value="other">Other</option>
+            <div class="field-label">Vendor</div>
+            <select id="fl-dealer" onchange="handleVendorChange(this, document.getElementById('fl-dealer-other'))" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+              <option value="">-- select</option>
             </select>
           </div>
         </div>
 
         <div id="fl-dealer-other-row" style="display:none;margin-bottom:10px">
-          <input type="text" id="fl-dealer-other" placeholder="Dealer name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+          <input type="text" id="fl-dealer-other" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('fl-dealer'), this)">
         </div>
 
 
         <div class="field" style="margin-bottom:12px">
           <div class="field-label">Type</div>
-          <div style="display:flex;gap:8px" id="fl-type-btns">
-            <button onclick="setFieldLogType('purchase',this)" style="flex:1;padding:9px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--teal-dim);background:var(--teal-dim);color:#fafaf7">Purchase</button>
-            <button onclick="setFieldLogType('memo',this)" style="flex:1;padding:9px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Memo</button>
-            <button onclick="setFieldLogType('followup',this)" style="flex:1;padding:9px;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Follow up</button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="fl-type-btns">
+            <button onclick="setFieldLogType('dealer',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--teal-dim);background:var(--teal-dim);color:#fafaf7">Dealer purchase</button>
+            <button onclick="setFieldLogType('casting',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Casting</button>
+            <button onclick="setFieldLogType('setting',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Setting</button>
+            <button onclick="setFieldLogType('findings',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Findings</button>
+            <button onclick="setFieldLogType('cad',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">CAD</button>
+            <button onclick="setFieldLogType('reminder',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Reminder</button>
+            <button onclick="setFieldLogType('task',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Task</button>
           </div>
         </div>
 
@@ -6711,9 +6710,12 @@ function setFieldLogType(type, btn) {
   btn.style.background = 'var(--teal-dim)';
   btn.style.color = '#fafaf7';
   btn.style.borderColor = 'var(--teal-dim)';
-  // Show/hide amount for follow-up
+  // Hide amount for reminder/task
   const amountRow = document.getElementById('fl-amount')?.closest('.field');
-  if (amountRow) amountRow.style.display = type === 'followup' ? 'none' : 'block';
+  if (amountRow) amountRow.style.display = ['reminder','task'].includes(type) ? 'none' : 'block';
+  // Hide vendor for reminder/task
+  const dealerRow = document.getElementById('fl-dealer')?.closest('.field-row');
+  if (dealerRow) dealerRow.style.display = ['reminder','task'].includes(type) ? 'none' : '';
 }
 
 function renderFlProjectSelect() {
@@ -6737,13 +6739,14 @@ function saveFieldLogEntry() {
   const desc = document.getElementById('fl-description').value.trim();
   if (!desc) { showToast('Add a description'); return; }
   const dealerSel = document.getElementById('fl-dealer').value;
-  const dealer = dealerSel === 'other'
-    ? (document.getElementById('fl-dealer-other').value.trim() || 'Other')
+  const dealer = dealerSel === '__new__'
+    ? (document.getElementById('fl-dealer-other').value.trim() || '')
     : dealerSel;
+  if (dealerSel === '__new__' && dealer) addVendor(dealer);
   const projectId = parseInt(document.getElementById('fl-project')?.value) || null;
   const entry = {
     id: Date.now(),
-    type: window._fieldLogType || 'purchase',
+    type: window._fieldLogType || 'dealer',
     description: desc,
     amount: parseFloat(document.getElementById('fl-amount').value) || 0,
     dealer: dealer,
@@ -6754,7 +6757,6 @@ function saveFieldLogEntry() {
   };
   window._fieldLog = [entry, ...(window._fieldLog || [])];
   persistFieldLog();
-  // If project selected, push as note immediately
   if (projectId) {
     pushNoteToProject(projectId, desc, entry.id);
     entry.reconciled = true;
@@ -6763,14 +6765,13 @@ function saveFieldLogEntry() {
     window._fieldLog[0] = entry;
     persistFieldLog();
   }
-  // Clear form
   document.getElementById('fl-description').value = '';
   document.getElementById('fl-amount').value = '';
   document.getElementById('fl-dealer').value = '';
   document.getElementById('fl-dealer-other-row').style.display = 'none';
   const projSel = document.getElementById('fl-project');
   if (projSel) projSel.value = '';
-  showToast(projectId ? 'Logged + pushed to project ✓' : 'Logged ✓');
+  showToast(projectId ? 'Logged + pushed ✓' : 'Logged ✓');
   renderFieldLog();
 }
 
@@ -6944,70 +6945,82 @@ function deleteFieldEntry(id) {
 function renderFieldLog() {
   const list = document.getElementById('fieldLogList');
   if (!list) return;
+  // Refresh vendor dropdown
+  const flDealer = document.getElementById('fl-dealer');
+  if (flDealer && flDealer.options.length <= 1) flDealer.innerHTML = buildVendorOptions(flDealer.value, true);
   renderFlProjectSelect();
   const log = getFieldLog();
   if (!log.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:16px 0;text-align:center">No entries yet. Log your first purchase above.</div>';
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:16px 0;text-align:center">No entries yet.</div>';
     return;
   }
-  const unreconciled = log.filter(e => !e.reconciled);
-  const reconciled = log.filter(e => e.reconciled);
-
-  const typeColors = { purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5' };
-  const typeLabels = { purchase: 'Purchase', memo: 'Memo', followup: 'Follow up' };
-
+  const active = log.filter(e => !e.done && !e.reconciled);
+  const done = log.filter(e => e.done || e.reconciled);
+  const typeColors = {
+    dealer: 'var(--gold)', casting: '#a07cc5', setting: 'var(--teal-dim)',
+    findings: '#7aaa8a', cad: '#6a9ab0', reminder: 'var(--text-dim)', task: '#ccc07a',
+    purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5'
+  };
+  const typeLabels = {
+    dealer: 'Dealer purchase', casting: 'Casting', setting: 'Setting',
+    findings: 'Findings', cad: 'CAD', reminder: 'Reminder', task: 'Task',
+    purchase: 'Purchase', memo: 'Memo', followup: 'Follow up'
+  };
   function renderEntry(e) {
     const div = document.createElement('div');
-    div.style.cssText = 'padding:12px 0;border-bottom:1px solid var(--border)' + (e.reconciled ? ';opacity:0.55' : '');
+    div.id = 'fl-entry-' + e.id;
+    const isDone = e.done || e.reconciled;
+    div.style.cssText = 'padding:12px 0;border-bottom:1px solid var(--border)' + (isDone ? ';opacity:0.5' : '');
     const typeColor = typeColors[e.type] || 'var(--text-dim)';
     const typeLabel = typeLabels[e.type] || e.type;
     div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
       + '<div style="flex:1;padding-right:10px">'
-      + '<div style="font-size:14px;color:var(--text);margin-bottom:3px">' + e.description + '</div>'
-      + '<div style="font-size:12px;color:var(--text-dim)">' + e.date + ' · ' + e.time
-      + (e.dealer ? ' · ' + e.dealer : '')
-      + (e.client ? ' · <span style="color:var(--teal-dim)">' + e.client + '</span>' : '')
-      + '</div>'
-      + (e.reconciled ? '<div style="font-size:11px;color:var(--green-bright);margin-top:3px">✓ ' + (e.reconciledAsNote ? 'Note pushed to ' + (e.reconciledTo || 'project') : 'Pushed to ' + (e.reconciledTo || 'project') + ' — ' + (e.reconciledField||'').replace('actual','').replace('Cost','') + ' $' + (e.reconciledAmt||'').toLocaleString()) + '</div>' : '')
+      + '<div style="font-size:14px;color:var(--text);margin-bottom:3px' + (e.done?';text-decoration:line-through':'') + '">' + e.description + '</div>'
+      + '<div style="font-size:12px;color:var(--text-dim)">' + e.date + ' ' + e.time + (e.dealer ? ' · ' + e.dealer : '') + '</div>'
+      + (e.reconciled ? '<div style="font-size:11px;color:var(--green-bright);margin-top:3px">' + (e.reconciledAsNote ? 'Note pushed to ' + (e.reconciledTo||'project') : 'Pushed to ' + (e.reconciledTo||'project')) + '</div>' : '')
+      + (e.done && !e.reconciled ? '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">Done</div>' : '')
       + '</div>'
       + '<div style="text-align:right;flex-shrink:0">'
       + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + typeColor + ';margin-bottom:4px">' + typeLabel + '</div>'
       + (e.amount ? '<div style="font-size:16px;color:var(--text);font-weight:500">$' + e.amount.toLocaleString() + '</div>' : '')
       + '</div></div>';
-
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:6px;margin-top:6px;flex-wrap:wrap';
     if (!e.reconciled) {
-      const btnRow = document.createElement('div');
-      btnRow.style.cssText = 'display:flex;gap:8px;margin-top:8px';
-      const pushBtn = document.createElement('button');
-      pushBtn.textContent = '→ Push to project';
-      pushBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
-      pushBtn.addEventListener('click', () => reconcileFieldEntry(e.id));
-      const delBtn = document.createElement('button');
-      delBtn.textContent = 'Delete';
-      delBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 10px;border-radius:2px;cursor:pointer';
-      delBtn.addEventListener('click', () => deleteFieldEntry(e.id));
-      btnRow.appendChild(pushBtn); btnRow.appendChild(delBtn);
-      div.appendChild(btnRow);
+      const doneBtn = document.createElement('button');
+      doneBtn.textContent = e.done ? 'Undo' : 'Done';
+      doneBtn.style.cssText = 'background:none;border:1px solid ' + (e.done?'var(--border)':'var(--green-bright)') + ';color:' + (e.done?'var(--text-dim)':'var(--green-bright)') + ';font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer';
+      doneBtn.addEventListener('click', () => markFieldEntryDone(e.id));
+      btnRow.appendChild(doneBtn);
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer';
+      editBtn.addEventListener('click', () => editFieldEntry(e.id));
+      btnRow.appendChild(editBtn);
+      if (!e.done) {
+        const pushBtn = document.createElement('button');
+        pushBtn.textContent = 'Push to project';
+        pushBtn.style.cssText = 'background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer';
+        pushBtn.addEventListener('click', () => reconcileFieldEntry(e.id));
+        btnRow.appendChild(pushBtn);
+      }
     }
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer';
+    delBtn.addEventListener('click', () => deleteFieldEntry(e.id));
+    btnRow.appendChild(delBtn);
+    div.appendChild(btnRow);
     return div;
   }
-
   list.innerHTML = '';
-
-  if (unreconciled.length) {
-    const header = document.createElement('div');
-    header.style.cssText = 'font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';
-    header.textContent = 'Unreconciled (' + unreconciled.length + ')';
-    list.appendChild(header);
-    unreconciled.forEach(e => list.appendChild(renderEntry(e)));
+  if (active.length) {
+    const h = document.createElement('div'); h.style.cssText='font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px'; h.textContent='Active (' + active.length + ')'; list.appendChild(h);
+    active.forEach(e => list.appendChild(renderEntry(e)));
   }
-
-  if (reconciled.length) {
-    const header = document.createElement('div');
-    header.style.cssText = 'font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-top:16px;margin-bottom:8px';
-    header.textContent = 'Done (' + reconciled.length + ')';
-    list.appendChild(header);
-    reconciled.forEach(e => list.appendChild(renderEntry(e)));
+  if (done.length) {
+    const h = document.createElement('div'); h.style.cssText='font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-top:16px;margin-bottom:8px'; h.textContent='Done (' + done.length + ')'; list.appendChild(h);
+    done.forEach(e => list.appendChild(renderEntry(e)));
   }
 }
 
