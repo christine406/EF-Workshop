@@ -4386,7 +4386,7 @@ function buildMultiPieceCard(q) {
     const editId = 'piece-edit-' + q.id + '-' + i;
     const costsId = 'piece-costs-' + q.id + '-' + i;
     // Cost breakdown rows
-    const hasActuals = p.actualStoneCost || p.actualMetalCost || p.actualLabor || p.actualDesignFee || p.actualChainCost;
+    const hasActuals = p.actualStoneCost || p.actualMetalCost || p.actualLabor || p.actualDesignFee || p.actualChainCost || p.actualMeleeCost;
     const stoneLine = hasActuals && p.actualStoneCost ? 'Stones: $' + Number(p.actualStoneCost).toLocaleString() : (p.stoneCost ? 'Stones (est): $' + Number(p.stoneCost).toLocaleString() : '');
     const metalLine = hasActuals && p.actualMetalCost ? 'Metal: $' + Number(p.actualMetalCost).toLocaleString() : (p.metalCost ? 'Metal (est): $' + Number(p.metalCost).toLocaleString() : '');
     const laborLine = hasActuals && p.actualLabor ? 'Labor: $' + Number(p.actualLabor).toLocaleString() : (p.laborEst ? 'Labor (est): $' + Number(p.laborEst).toLocaleString() : '');
@@ -4557,7 +4557,7 @@ function buildQuoteCard(q) {
   if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
 
   // Cost summary — show actuals if entered, estimates if not
-  const hasActuals = q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null;
+  const hasActuals = q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null || q.actualMeleeCost != null || q.actualChainCost != null;
   const showStoneCost = hasActuals ? (q.actualStoneCost || 0) : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const showMetalCost = hasActuals ? (q.actualMetalCost || 0) : (q.metalEstimate || 0);
   const showLaborCost = hasActuals ? (q.actualLabor || 0) : (q.laborEst || 0);
