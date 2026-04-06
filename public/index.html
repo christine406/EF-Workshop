@@ -4617,7 +4617,7 @@ function buildQuoteCard(q) {
       html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">'
         + '<div style="flex:1;padding-right:10px">'
         + '<div style="font-size:13px;color:var(--text)">' + (p.description || '') + '</div>'
-        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (fieldLabels[p.field] || p.field || '') + ' · ' + p.date + (p.source==='invoice' && p.invoiceVendor ? ' · ' + p.invoiceVendor : '') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (fieldLabels[p.field] || p.field || '') + ' · ' + (p.mode === 'replace' ? 'replaced' : 'added') + ' · ' + p.date + (p.source==='invoice' && p.invoiceVendor ? ' · ' + p.invoiceVendor : '') + '</div>'
         + '</div>'
         + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
         + '<div style="font-size:13px;color:var(--gold);font-weight:500">$' + (p.amount||0).toLocaleString() + '</div>'
@@ -6951,6 +6951,20 @@ function reconcileFieldEntry(id) {
   });
   modal.appendChild(fieldSel);
 
+  // Add / Replace toggle
+  const modeWrap = document.createElement('div');
+  modeWrap.style.cssText = 'display:flex;gap:6px;margin-bottom:14px';
+  const modeAdd = document.createElement('button');
+  const modeReplace = document.createElement('button');
+  const modeStyle = 'flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
+  modeAdd.textContent = 'Add to existing'; modeAdd.style.cssText = modeStyle + ';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
+  modeReplace.textContent = 'Replace'; modeReplace.style.cssText = modeStyle + ';background:var(--surface2);color:var(--text);border:1px solid var(--border)';
+  let pushMode = 'add';
+  modeAdd.addEventListener('click', () => { pushMode='add'; modeAdd.style.background='var(--teal-dim)'; modeAdd.style.color='#fafaf7'; modeAdd.style.borderColor='var(--teal-dim)'; modeReplace.style.background='var(--surface2)'; modeReplace.style.color='var(--text)'; modeReplace.style.borderColor='var(--border)'; });
+  modeReplace.addEventListener('click', () => { pushMode='replace'; modeReplace.style.background='var(--teal-dim)'; modeReplace.style.color='#fafaf7'; modeReplace.style.borderColor='var(--teal-dim)'; modeAdd.style.background='var(--surface2)'; modeAdd.style.color='var(--text)'; modeAdd.style.borderColor='var(--border)'; });
+  modeWrap.appendChild(modeAdd); modeWrap.appendChild(modeReplace);
+  modal.appendChild(modeWrap);
+
   const btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:8px';
 
@@ -6965,13 +6979,14 @@ function reconcileFieldEntry(id) {
     const quotes = getSavedQuotes();
     const q = quotes.find(q => q.id === projId);
     if (q) {
-      q[field] = (q[field] || 0) + amt;
+      q[field] = pushMode === 'replace' ? amt : (q[field] || 0) + amt;
       if (!q.costPushes) q.costPushes = [];
       q.costPushes.unshift({
         id: Date.now(),
         amount: amt,
         field: field,
         description: entry.description,
+        mode: pushMode,
         source: 'field-log',
         date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
       });
@@ -7393,6 +7408,17 @@ function pushLineItemToProject(invoiceId, lineItemId) {
   });
   modal.appendChild(fieldSel);
 
+  var invModeWrap=document.createElement('div');invModeWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
+  var invModeAdd=document.createElement('button');var invModeReplace=document.createElement('button');
+  var invModeStyle='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
+  invModeAdd.textContent='Add to existing';invModeAdd.style.cssText=invModeStyle+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
+  invModeReplace.textContent='Replace';invModeReplace.style.cssText=invModeStyle+';background:var(--surface2);color:var(--text);border:1px solid var(--border)';
+  var invPushMode='add';
+  invModeAdd.addEventListener('click',function(){invPushMode='add';invModeAdd.style.background='var(--teal-dim)';invModeAdd.style.color='#fafaf7';invModeAdd.style.borderColor='var(--teal-dim)';invModeReplace.style.background='var(--surface2)';invModeReplace.style.color='var(--text)';invModeReplace.style.borderColor='var(--border)';});
+  invModeReplace.addEventListener('click',function(){invPushMode='replace';invModeReplace.style.background='var(--teal-dim)';invModeReplace.style.color='#fafaf7';invModeReplace.style.borderColor='var(--teal-dim)';invModeAdd.style.background='var(--surface2)';invModeAdd.style.color='var(--text)';invModeAdd.style.borderColor='var(--border)';});
+  invModeWrap.appendChild(invModeAdd);invModeWrap.appendChild(invModeReplace);
+  modal.appendChild(invModeWrap);
+
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
   var pushBtn=document.createElement('button');
   pushBtn.textContent='Push';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
@@ -7401,9 +7427,9 @@ function pushLineItemToProject(invoiceId, lineItemId) {
     var field=fieldSel.value;
     var q=quotes.find(function(q){return q.id===projId;});
     if(q){
-      q[field]=(q[field]||0)+li.amount;
+      q[field]=invPushMode==='replace' ? li.amount : (q[field]||0)+li.amount;
       if(!q.costPushes) q.costPushes=[];
-      q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+      q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:invPushMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
       window._savedQuotes=quotes;persistQuotes();renderSaved();
     }
     li.pushed=true;li.pushedTo=q?q.client:null;li.pushedField=field;
