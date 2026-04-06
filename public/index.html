@@ -5063,14 +5063,15 @@ function convertToProject(id, e) {
 
 function updateActuals(id, e, pieceIdx) {
   e.stopPropagation();
-  const existing = document.getElementById('actuals-form-' + id);
-  if (existing && pieceIdx === undefined) { existing.remove(); return; }
+
+  // Remove any existing overlay
+  const existingOverlay = document.getElementById('actuals-overlay-' + id);
+  if (existingOverlay) { existingOverlay.remove(); return; }
 
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === id);
   if (!q) return;
 
-  // If pieceIdx provided, use piece-level data
   const src = (pieceIdx !== undefined && q.pieces?.[pieceIdx]) ? q.pieces[pieceIdx] : q;
   const effectiveQ = pieceIdx !== undefined ? {
     ...q,
@@ -5078,34 +5079,28 @@ function updateActuals(id, e, pieceIdx) {
     metalEstimate: src.metalCost, stones: src.stones || [],
     actualStoneCost: src.actualStoneCost, actualMetalCost: src.actualMetalCost,
     actualLabor: src.actualLabor, actualDesignFee: src.actualDesignFee,
-    actualChainCost: src.actualChainCost, actualTotal: src.actualTotal,
+    actualChainCost: src.actualChainCost, actualMeleeCost: src.actualMeleeCost,
+    actualTotal: src.actualTotal,
+    meleeCost: src.meleeCost,
     _pieceIdx: pieceIdx,
   } : q;
-  // Use effectiveQ as q for the template below
   if (pieceIdx !== undefined) Object.assign(q, effectiveQ);
 
-  // Find the card body to append the form into
-  let card = e?.target?.closest('.quote-item');
-  if (!card) {
-    // fallback: find by scanning saved list
-    const items = document.querySelectorAll('.quote-item');
-    items.forEach(el => { if (el.innerHTML.includes('actuals-form-' + id) || el.querySelector('[onclick*="' + id + '"]')) card = el; });
-  }
-  // Append into card-body if it exists, else directly to card
-  const cardBody = card?.querySelector('.card-body') || card;
+  const overlay = document.createElement('div');
+  overlay.id = 'actuals-overlay-' + id;
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
 
-  const form = document.createElement('div');
-  form.id = 'actuals-form-' + id;
-  form.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:12px;margin-top:10px';
-  form.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px">Actual costs</div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:12px">
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:480px;margin:auto';
+
+  modal.innerHTML = `
+    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">Actual costs${pieceIdx !== undefined ? ' — piece ' + (pieceIdx+1) : ''}</div>
+    <div style="background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:14px">
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
         <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
         <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : '—'}${q.purity ? ' · ' + q.purity : ''}</div>
         <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim)">Design fee</div><div style="color:var(--text)">${(q.designFee||0).toLocaleString()}</div>
         <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
       </div>
     </div>
@@ -5136,6 +5131,11 @@ function updateActuals(id, e, pieceIdx) {
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
+        <div class="field-label">Additional materials / melee ($)</div>
+        <input type="number" id="af-melee-${id}" value="${q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
+      <div>
         <div class="field-label">Design fee ($)</div>
         <input type="number" id="af-design-${id}" value="${q.designFee || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
@@ -5150,25 +5150,20 @@ function updateActuals(id, e, pieceIdx) {
       </div>
       <div id="af-chain-tree-${id}" style="border:1px solid var(--border);border-radius:3px;overflow:hidden;display:none;max-height:200px;overflow-y:auto"></div>
     </div>
-    <div id="af-live-${id}" style="background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:10px;display:none"></div>
-    <div style="margin-bottom:10px">
-      <div class="field-label">Additional materials / melee ($)</div>
-      <input type="number" id="af-melee-${id}" value="${q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
-        style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
-    </div>
-    <div style="margin-bottom:10px">
+    <div id="af-live-${id}" style="background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:10px;display:none"></div>
+    <div style="margin-bottom:12px">
       <div class="field-label">Client price ($) — what you're actually charging</div>
       <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcActualsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:3px;outline:none">
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="saveActuals(${id})" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Save</button>
-      <button onclick="document.getElementById('actuals-form-${id}').remove()" style="flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Cancel</button>
+      <button onclick="document.getElementById('actuals-overlay-${id}').remove()" style="flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer">Cancel</button>
     </div>`;
 
-  (cardBody || card).appendChild(form);
-
-  // Build chain tree for actuals form
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
   buildChainTreePicker('af-chain-tree-' + id, 'af-chain-' + id, 'af-chain-label-' + id, () => {});
 }
 
@@ -5305,7 +5300,7 @@ function saveActuals(id) {
 
   window._savedQuotes = quotes;
   persistQuotes();
-  const form = document.getElementById('actuals-form-' + id);
+  const form = document.getElementById('actuals-overlay-' + id);
   if (form) form.remove();
   renderSaved();
   showToast('Actuals saved');
