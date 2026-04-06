@@ -1043,8 +1043,10 @@
           </div>
         </div>
       </div>
-      <!-- P&L SUMMARY -->
-      <div id="plSummary" style="margin-bottom:16px"></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <button id="sortDateBtn" onclick="setSavedSort('date')" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:2px 0 0 2px;cursor:pointer">Date</button>
+        <button id="sortAlphaBtn" onclick="setSavedSort('alpha')" style="background:var(--surface2);color:var(--text-dim);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 2px 2px 0;cursor:pointer;border-left:1px solid var(--border)">A–Z</button>
+      </div>
 
       <div id="savedList"></div>
     </div>
@@ -4763,6 +4765,12 @@ function renderSaved() {
     list.innerHTML = '<div class="empty-state">' + (emptyMsgs[savedFilter] || 'Nothing here.') + '</div>';
     return;
   }
+
+  // Apply sort
+  if (savedSort === 'alpha') {
+    filtered = [...filtered].sort((a,b) => (a.client||'').localeCompare(b.client||''));
+  }
+  // date order is already default (newest first by id)
   list.innerHTML = '';
   if (savedFilter === 'collection') {
     // Split into MTO and RTS groups
@@ -4817,6 +4825,22 @@ function renderSaved() {
 
 
 let savedFilter = 'all';
+let savedSort = 'date';
+
+function setSavedSort(sort) {
+  savedSort = sort;
+  const dateBtn = document.getElementById('sortDateBtn');
+  const alphaBtn = document.getElementById('sortAlphaBtn');
+  if (dateBtn) {
+    dateBtn.style.background = sort === 'date' ? 'var(--teal-dim)' : 'var(--surface2)';
+    dateBtn.style.color = sort === 'date' ? '#fafaf7' : 'var(--text-dim)';
+  }
+  if (alphaBtn) {
+    alphaBtn.style.background = sort === 'alpha' ? 'var(--teal-dim)' : 'var(--surface2)';
+    alphaBtn.style.color = sort === 'alpha' ? '#fafaf7' : 'var(--text-dim)';
+  }
+  renderSaved();
+}
 
 function toggleArchivePanel(btn) {
   const panel = document.getElementById('archivePanel');
