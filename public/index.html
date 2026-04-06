@@ -4607,6 +4607,25 @@ function buildQuoteCard(q) {
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
   html += '</div>';
 
+  // Cost pushes from field log / invoices
+  if (q.costPushes && q.costPushes.length) {
+    const fieldLabels = { actualStoneCost:'Stone cost', actualMetalCost:'Metal / casting', actualLabor:'Labor / setting', actualDesignFee:'Design / CAD', actualChainCost:'Findings / chain' };
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Cost pushes</div>';
+    q.costPushes.forEach(p => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">'
+        + '<div style="flex:1;padding-right:10px">'
+        + '<div style="font-size:13px;color:var(--text)">' + (p.description || '') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (fieldLabels[p.field] || p.field || '') + ' · ' + p.date + (p.source==='invoice' && p.invoiceVendor ? ' · ' + p.invoiceVendor : '') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+        + '<div style="font-size:13px;color:var(--gold);font-weight:500">$' + (p.amount||0).toLocaleString() + '</div>'
+        + '<span onclick="event.stopPropagation();deleteCostPush(' + q.id + ',' + p.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;padding:2px 4px">✕</span>'
+        + '</div></div>';
+    });
+    html += '</div>';
+  }
+
   // Project notes / reminders
   if (q.projectNotes && q.projectNotes.length) {
     const open = q.projectNotes.filter(n => !n.done);
@@ -6792,6 +6811,16 @@ function pushNoteToProject(projectId, text, fieldLogId) {
   renderSaved();
 }
 
+function deleteCostPush(quoteId, pushId) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === quoteId);
+  if (!q || !q.costPushes) return;
+  q.costPushes = q.costPushes.filter(p => p.id !== pushId);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+}
+
 function checkOffProjectNote(quoteId, noteId) {
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === quoteId);
@@ -6910,8 +6939,18 @@ function reconcileFieldEntry(id) {
     const q = quotes.find(q => q.id === projId);
     if (q) {
       q[field] = (q[field] || 0) + amt;
+      if (!q.costPushes) q.costPushes = [];
+      q.costPushes.unshift({
+        id: Date.now(),
+        amount: amt,
+        field: field,
+        description: entry.description,
+        source: 'field-log',
+        date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+      });
       window._savedQuotes = quotes;
       persistQuotes();
+      renderSaved();
     }
     const log = getFieldLog();
     const e = log.find(e => e.id === id);
@@ -7334,7 +7373,12 @@ function pushLineItemToProject(invoiceId, lineItemId) {
     var projId=parseInt(projSel.value);if(!projId){showToast('Select a project');return;}
     var field=fieldSel.value;
     var q=quotes.find(function(q){return q.id===projId;});
-    if(q){q[field]=(q[field]||0)+li.amount;window._savedQuotes=quotes;persistQuotes();renderSaved();}
+    if(q){
+      q[field]=(q[field]||0)+li.amount;
+      if(!q.costPushes) q.costPushes=[];
+      q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+      window._savedQuotes=quotes;persistQuotes();renderSaved();
+    }
     li.pushed=true;li.pushedTo=q?q.client:null;li.pushedField=field;
     window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();
     showToast('Pushed to '+(q?q.client:'project'));
