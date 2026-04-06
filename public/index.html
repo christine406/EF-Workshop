@@ -4651,17 +4651,20 @@ function renderPL() {
   if (!el) return;
 
   const all = getSavedQuotes();
-  // Only include projects/collection with a client price filled in
-  const completed = all.filter(q =>
-    ((q.status === 'project' || q.status === 'collection' || q.status === 'completed' || q.status === 'loose-sale')) && q.clientPrice > 0 && !q.excludeFromPL
+  // Include all active bespoke/semi-custom projects — exclude collection and loose sale
+  const eligible = all.filter(q =>
+    (q.status === 'project' || q.status === 'completed') &&
+    q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts' &&
+    !q.looseSale &&
+    !q.excludeFromPL
   );
 
-  if (!completed.length) { el.innerHTML = ''; return; }
+  if (!eligible.length) { el.innerHTML = ''; return; }
 
   let totalRevenue = 0, totalCost = 0, totalProfit = 0;
-  const rows = completed.map(q => {
-    const revenue = q.clientPrice;
-    let stoneCost, metalCost, laborCost, chainCost, designFee;
+  const rows = eligible.map(q => {
+    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
+    let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
     if (q.isMultiPiece) {
       // Sum costs across all pieces
       stoneCost = (q.pieces||[]).some(p => p.actualStoneCost != null)
@@ -4675,22 +4678,22 @@ function renderPL() {
         : (q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0));
       chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
       designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
+      meleeCost = 0;
     } else {
-      // Use actuals if explicitly set (non-null), otherwise fall back to estimates
-      // Note: use != null (not || 0) so that a real 0 doesn't incorrectly trigger fallback
       stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0)
         ? q.actualStoneCost
-        : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0) + (q.meleeCost || 0);
+        : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
+      meleeCost = (q.actualMeleeCost != null) ? q.actualMeleeCost : (q.meleeCost || 0);
       metalCost = (q.actualMetalCost != null && q.actualMetalCost > 0)
         ? q.actualMetalCost
-        : (q.metalEstimate ? q.metalEstimate / 1.35 : 0); // back-calculate from estimate
+        : (q.metalEstimate ? q.metalEstimate / 1.35 : 0);
       laborCost = (q.actualLabor != null && q.actualLabor > 0)
         ? q.actualLabor
         : (q.laborEst || 0);
-      chainCost = q.chainCost || 0;
-      designFee = q.designFee || 0;
+      chainCost = q.actualChainCost != null ? q.actualChainCost : (q.chainCost || 0);
+      designFee = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
     }
-    const cost = stoneCost + metalCost + laborCost + chainCost + designFee;
+    const cost = stoneCost + meleeCost + metalCost + laborCost + chainCost + designFee;
     const profit = revenue - cost;
     totalRevenue += revenue;
     totalCost += cost;
@@ -4710,41 +4713,46 @@ function renderPL() {
       <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">P&amp;L Summary ▴</div>
       <div style="text-align:right">
         <div style="font-size:16px;color:${totalProfit>=0?'var(--green-bright)':'var(--red)'}">$${totalProfit.toLocaleString()} profit</div>
-        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">$${totalRevenue.toLocaleString()} revenue · $${totalCost.toLocaleString()} costs · ${completed.length} project${completed.length!==1?'s':''}</div>
+        <div style="font-size:12px;color:var(--text-dim);margin-top:2px">$${totalRevenue.toLocaleString()} revenue · $${totalCost.toLocaleString()} costs · ${eligible.length} project${eligible.length!==1?'s':''}</div>
       </div>
     </div>`;
 
   if (isExpanded) {
     const allEligible = all.filter(q =>
-      (q.status === 'project' || q.status === 'collection' || q.status === 'completed' || q.status === 'loose-sale') && q.clientPrice > 0
+      (q.status === 'project' || q.status === 'completed') &&
+      q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts' &&
+      !q.looseSale
     );
     html += `<div style="border-top:1px solid var(--border);padding:0 14px 12px">`;
     allEligible.forEach(q => {
       const excluded = !!q.excludeFromPL;
       const hasFinal = q.actualMetalCost != null || q.actualLabor != null;
-      let stoneCost, metalCost, laborCost, chainCost, designFee;
+      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
+      const usingQuotedRetail = !(q.clientPrice > 0);
+      let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
       if (q.isMultiPiece) {
         stoneCost = (q.pieces||[]).some(p => p.actualStoneCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualStoneCost ?? p.stoneCost ?? 0), 0) : (q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0), 0));
         metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0) : (q.actualMetalCost ?? 0);
         laborCost = (q.pieces||[]).some(p => p.actualLabor != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0) : (q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0));
         chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
         designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
+        meleeCost = 0;
       } else {
-        stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0) ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0) + (q.meleeCost || 0);
+        stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0) ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
+        meleeCost = (q.actualMeleeCost != null) ? q.actualMeleeCost : (q.meleeCost || 0);
         metalCost = (q.actualMetalCost != null && q.actualMetalCost > 0) ? q.actualMetalCost : (q.metalEstimate ? q.metalEstimate / 1.35 : 0);
         laborCost = (q.actualLabor != null && q.actualLabor > 0) ? q.actualLabor : (q.laborEst || 0);
-        chainCost = q.chainCost || 0;
-        designFee = q.designFee || 0;
+        chainCost = q.actualChainCost != null ? q.actualChainCost : (q.chainCost || 0);
+        designFee = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
       }
-      const rowCost = stoneCost + metalCost + laborCost + chainCost + designFee;
-      const revenue = q.clientPrice;
+      const rowCost = stoneCost + meleeCost + metalCost + laborCost + chainCost + designFee;
       const profit = revenue - rowCost;
       html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);opacity:${excluded?0.4:1}">
         <div style="display:flex;align-items:flex-start;gap:8px">
           <input type="checkbox" ${excluded?'':'checked'} onclick="togglePLExclusion(${q.id},event)" style="margin-top:3px;cursor:pointer;accent-color:var(--teal-dim)">
           <div>
             <div style="font-size:13px;color:var(--text)">${q.client}</div>
-            <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.looseSale ? '💎 loose sale' : q.isMultiPiece ? '✦ ' + (q.pieces?.length||0) + '-piece set' : (q.pieceType||'')}${q.castingCompany?' · '+q.castingCompany:''}${!hasFinal && !q.looseSale?' · <span style="color:#ccc07a">est. costs</span>':''}</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-top:2px">${q.isMultiPiece ? '✦ ' + (q.pieces?.length||0) + '-piece set' : (q.pieceType||'')}${!hasFinal?' · <span style="color:#ccc07a">est. costs</span>':''}${usingQuotedRetail?' · <span style="color:#ccc07a">quoted retail</span>':''}</div>
           </div>
         </div>
         <div style="text-align:right">
