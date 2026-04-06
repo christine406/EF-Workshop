@@ -2342,6 +2342,56 @@ function toggleStoneDetails(id) {
 function renderStones() {
   const list = document.getElementById('stoneList');
   list.innerHTML = '';
+  // All stones flat table
+  const allStonesKey = 'all-stones';
+  const allStonesExpanded = window._stoneSecExpanded?.[allStonesKey] ?? false;
+  const allStones = getInventory();
+
+  const allHeader = document.createElement('div');
+  allHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface);cursor:pointer;user-select:none';
+  allHeader.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">All stones <span style="color:var(--text-dim);font-size:10px">(' + allStones.length + ')</span></span><span style="font-size:13px;color:var(--text-dim)">' + (allStonesExpanded ? '▴' : '▾') + '</span>';
+  allHeader.onclick = () => {
+    window._stoneSecExpanded = window._stoneSecExpanded || {};
+    window._stoneSecExpanded[allStonesKey] = !window._stoneSecExpanded[allStonesKey];
+    renderStoneInventory();
+  };
+  list.appendChild(allHeader);
+
+  if (allStonesExpanded) {
+    const tableWrap = document.createElement('div');
+    tableWrap.style.cssText = 'overflow-x:auto;padding:0 4px';
+    const sorted = [...allStones].sort((a,b) => (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0));
+    const allCatLabels = { 'owned-available':'Owned','owned-reserved':'Reserved','memo':'Memo','viewed':'Viewed','archived-stone':'Archived' };
+    let thtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">'
+      + '<thead><tr style="border-bottom:1px solid var(--border)">'
+      + '<th style="text-align:left;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase;white-space:nowrap">Cut</th>'
+      + '<th style="text-align:center;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Ct</th>'
+      + '<th style="text-align:center;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Clr</th>'
+      + '<th style="text-align:center;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Cla</th>'
+      + '<th style="text-align:right;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Cost</th>'
+      + '<th style="text-align:left;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Cat</th>'
+      + '<th style="text-align:left;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Status</th>'
+      + '</tr></thead><tbody>';
+    sorted.forEach(s => {
+      const isArch = archivedStatuses.includes(s.status);
+      const stLabel = isArch ? 'archived' : s.status === 'in-use' ? 'in use' : s.status === 'unavailable' ? 'reserved' : s.status || 'available';
+      const stColor = s.status === 'in-use' ? 'var(--teal-dim)' : isArch ? 'var(--text-dim)' : s.status === 'available' ? 'var(--green-bright)' : 'var(--text-dim)';
+      const linkedProj = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
+      thtml += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArch ? '0.45' : '1') + '">'
+        + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:var(--teal-dim)">✦</span>' : '') + '</td>'
+        + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
+        + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
+        + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
+        + '<td style="padding:7px 4px;text-align:right;color:var(--text)">' + (s.cost ? '$' + Number(s.cost).toLocaleString() : '—') + '</td>'
+        + '<td style="padding:7px 4px;color:var(--text-dim);font-size:11px">' + (allCatLabels[s.category] || '—') + '</td>'
+        + '<td style="padding:7px 4px;font-size:11px;color:' + stColor + '">' + stLabel + (linkedProj ? ' · <span style="color:var(--teal-dim)">' + linkedProj.client + '</span>' : '') + '</td>'
+        + '</tr>';
+    });
+    thtml += '</tbody></table>';
+    tableWrap.innerHTML = thtml;
+    list.appendChild(tableWrap);
+  }
+
   stones.forEach((s, idx) => {
     const card = document.createElement('div');
     card.className = 'stone-card';
@@ -6288,55 +6338,6 @@ function renderStoneInventory() {
         list.appendChild(card);
       });
     }
-  }
-  // All stones flat table
-  const allStonesKey = 'all-stones';
-  const allStonesExpanded = window._stoneSecExpanded?.[allStonesKey] ?? false;
-  const allStones = getInventory();
-
-  const allHeader = document.createElement('div');
-  allHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface);border-top:2px solid var(--border);margin-top:8px;cursor:pointer;user-select:none';
-  allHeader.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">All stones <span style="color:var(--text-dim);font-size:10px">(' + allStones.length + ')</span></span><span style="font-size:13px;color:var(--text-dim)">' + (allStonesExpanded ? '▴' : '▾') + '</span>';
-  allHeader.onclick = () => {
-    window._stoneSecExpanded = window._stoneSecExpanded || {};
-    window._stoneSecExpanded[allStonesKey] = !window._stoneSecExpanded[allStonesKey];
-    renderStoneInventory();
-  };
-  list.appendChild(allHeader);
-
-  if (allStonesExpanded) {
-    const tableWrap = document.createElement('div');
-    tableWrap.style.cssText = 'overflow-x:auto;padding:0 4px';
-    const sorted = [...allStones].sort((a,b) => (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0));
-    const allCatLabels = { 'owned-available':'Owned','owned-reserved':'Reserved','memo':'Memo','viewed':'Viewed','archived-stone':'Archived' };
-    let thtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">'
-      + '<thead><tr style="border-bottom:1px solid var(--border)">'
-      + '<th style="text-align:left;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase;white-space:nowrap">Cut</th>'
-      + '<th style="text-align:center;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Ct</th>'
-      + '<th style="text-align:center;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Clr</th>'
-      + '<th style="text-align:center;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Cla</th>'
-      + '<th style="text-align:right;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Cost</th>'
-      + '<th style="text-align:left;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Cat</th>'
-      + '<th style="text-align:left;padding:6px 4px;color:var(--text-dim);font-weight:normal;letter-spacing:0.07em;text-transform:uppercase">Status</th>'
-      + '</tr></thead><tbody>';
-    sorted.forEach(s => {
-      const isArch = archivedStatuses.includes(s.status);
-      const stLabel = isArch ? 'archived' : s.status === 'in-use' ? 'in use' : s.status === 'unavailable' ? 'reserved' : s.status || 'available';
-      const stColor = s.status === 'in-use' ? 'var(--teal-dim)' : isArch ? 'var(--text-dim)' : s.status === 'available' ? 'var(--green-bright)' : 'var(--text-dim)';
-      const linkedProj = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
-      thtml += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArch ? '0.45' : '1') + '">'
-        + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:var(--teal-dim)">✦</span>' : '') + '</td>'
-        + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
-        + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
-        + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
-        + '<td style="padding:7px 4px;text-align:right;color:var(--text)">' + (s.cost ? '$' + Number(s.cost).toLocaleString() : '—') + '</td>'
-        + '<td style="padding:7px 4px;color:var(--text-dim);font-size:11px">' + (allCatLabels[s.category] || '—') + '</td>'
-        + '<td style="padding:7px 4px;font-size:11px;color:' + stColor + '">' + stLabel + (linkedProj ? ' · <span style="color:var(--teal-dim)">' + linkedProj.client + '</span>' : '') + '</td>'
-        + '</tr>';
-    });
-    thtml += '</tbody></table>';
-    tableWrap.innerHTML = thtml;
-    list.appendChild(tableWrap);
   }
 }
 function renderInventory() { renderStoneInventory(); }
