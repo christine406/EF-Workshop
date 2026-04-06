@@ -1350,7 +1350,8 @@
         <div class="field" style="margin-bottom:12px">
           <div class="field-label">Type</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="fl-type-btns">
-            <button onclick="setFieldLogType('dealer',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--teal-dim);background:var(--teal-dim);color:#fafaf7">Dealer purchase</button>
+            <button onclick="setFieldLogType('main-stone',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--teal-dim);background:var(--teal-dim);color:#fafaf7">Dealer — Main stone</button>
+            <button onclick="setFieldLogType('melee',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Dealer — Melee</button>
             <button onclick="setFieldLogType('casting',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Casting</button>
             <button onclick="setFieldLogType('setting',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Setting</button>
             <button onclick="setFieldLogType('findings',this)" style="padding:9px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:var(--surface2);color:var(--text)">Findings</button>
@@ -4609,7 +4610,7 @@ function buildQuoteCard(q) {
 
   // Cost pushes from field log / invoices
   if (q.costPushes && q.costPushes.length) {
-    const fieldLabels = { actualStoneCost:'Stone cost', actualMetalCost:'Metal / casting', actualLabor:'Labor / setting', actualDesignFee:'Design / CAD', actualChainCost:'Findings / chain' };
+    const fieldLabels = { actualStoneCost:'Stone cost', actualMeleeCost:'Melee / materials', actualMetalCost:'Casting / metal', actualLabor:'Labor / setting / CAD', actualDesignFee:'Design fee', actualChainCost:'Findings / chain' };
     html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
     html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Cost pushes</div>';
     q.costPushes.forEach(p => {
@@ -5007,16 +5008,34 @@ function convertToProject(id, e) {
   const q = quotes.find(q => q.id === id);
   if (q) {
     q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
+
+    // Auto pre-fill actuals from quoted costs if not already set
+    if (q.actualStoneCost == null) q.actualStoneCost = q.stoneCost || 0;
+    if (q.actualMeleeCost == null) q.actualMeleeCost = q.meleeCost || 0;
+    if (q.actualMetalCost == null) q.actualMetalCost = q.metalEstimate ? Math.round(q.metalEstimate / 1.35) : 0;
+    if (q.actualLabor == null) q.actualLabor = q.laborEst || 0;
+    if (q.actualDesignFee == null) q.actualDesignFee = q.designFee || 0;
+    if (q.actualChainCost == null) q.actualChainCost = q.chainCost || 0;
+
+    // For multi-piece sets, pre-fill each piece
+    if (q.isMultiPiece && q.pieces) {
+      q.pieces.forEach(p => {
+        if (p.actualStoneCost == null) p.actualStoneCost = p.stoneCost || 0;
+        if (p.actualMeleeCost == null) p.actualMeleeCost = p.meleeCost || 0;
+        if (p.actualMetalCost == null) p.actualMetalCost = p.metalCost || 0;
+        if (p.actualLabor == null) p.actualLabor = p.laborEst || 0;
+        if (p.actualDesignFee == null) p.actualDesignFee = p.designFee || 0;
+        if (p.actualChainCost == null) p.actualChainCost = p.chainCost || 0;
+      });
+    }
+
     window._savedQuotes = quotes;
     persistQuotes();
 
     // Upgrade any tagged inventory stones from quote → in-use
     const inv = getInventory();
     let invChanged = false;
-
-    // Collect all inventoryIds referenced in this quote's stones
     const inventoryIds = new Set((q.stones || []).map(s => s.inventoryId).filter(Boolean));
-
     inv.forEach(s => {
       const matchById = s.usedInQuoteId === id || s.usedInQuoteId === 'pending';
       const matchByInvId = inventoryIds.has(s.id);
@@ -6714,7 +6733,7 @@ function renderDataScreen() {
 
 // =================== FIELD LOG ===================
 if (!window._fieldLog) window._fieldLog = [];
-if (!window._fieldLogType) window._fieldLogType = 'purchase';
+if (!window._fieldLogType) window._fieldLogType = 'main-stone';
 
 function getFieldLog() { return window._fieldLog || []; }
 function persistFieldLog() { if (window._fb) window._fb.saveFieldLog(window._fieldLog); }
@@ -6919,8 +6938,16 @@ function reconcileFieldEntry(id) {
 
   const fieldSel = document.createElement('select');
   fieldSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
-  [['actualStoneCost','Stone cost'],['actualMetalCost','Metal cost'],['actualLabor','Labor'],['actualDesignFee','Design fee'],['actualChainCost','Chain / materials']].forEach(([val,label]) => {
-    const o = document.createElement('option'); o.value = val; o.textContent = label; fieldSel.appendChild(o);
+  const typeToField = {
+    'main-stone': 'actualStoneCost', melee: 'actualMeleeCost',
+    casting: 'actualMetalCost', setting: 'actualLabor', findings: 'actualChainCost',
+    cad: 'actualLabor', dealer: 'actualStoneCost'
+  };
+  const autoField = typeToField[entry.type] || 'actualStoneCost';
+  [['actualStoneCost','Stone cost'],['actualMeleeCost','Melee / materials'],['actualMetalCost','Casting / metal'],['actualLabor','Labor / setting / CAD'],['actualChainCost','Findings / chain'],['actualDesignFee','Design fee']].forEach(([val,label]) => {
+    const o = document.createElement('option'); o.value = val; o.textContent = label;
+    if (val === autoField) o.selected = true;
+    fieldSel.appendChild(o);
   });
   modal.appendChild(fieldSel);
 
@@ -6996,14 +7023,14 @@ function renderFieldLog() {
   const active = log.filter(e => !e.done && !e.reconciled);
   const done = log.filter(e => e.done || e.reconciled);
   const typeColors = {
-    dealer: 'var(--gold)', casting: '#a07cc5', setting: 'var(--teal-dim)',
+    'main-stone': 'var(--gold)', melee: '#ccc07a', casting: '#a07cc5', setting: 'var(--teal-dim)',
     findings: '#7aaa8a', cad: '#6a9ab0', reminder: 'var(--text-dim)', task: '#ccc07a',
-    purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5'
+    dealer: 'var(--gold)', purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5'
   };
   const typeLabels = {
-    dealer: 'Dealer purchase', casting: 'Casting', setting: 'Setting',
+    'main-stone': 'Main stone', melee: 'Melee', casting: 'Casting', setting: 'Setting',
     findings: 'Findings', cad: 'CAD', reminder: 'Reminder', task: 'Task',
-    purchase: 'Purchase', memo: 'Memo', followup: 'Follow up'
+    dealer: 'Dealer', purchase: 'Purchase', memo: 'Memo', followup: 'Follow up'
   };
   function renderEntry(e) {
     const div = document.createElement('div');
@@ -7358,7 +7385,7 @@ function pushLineItemToProject(invoiceId, lineItemId) {
   modal.appendChild(projSel);
 
   var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Which cost field?';modal.appendChild(fl);
-  var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost',cad:'actualDesignFee',other:'actualLabor'};
+  var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
   var fieldSel=document.createElement('select');
   fieldSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
   [['actualStoneCost','Stone cost'],['actualMetalCost','Metal / casting'],['actualLabor','Labor / setting'],['actualDesignFee','Design / CAD'],['actualChainCost','Findings / chain']].forEach(function(pair){
