@@ -1362,7 +1362,7 @@
         </div>
 
         <div class="field" style="margin-bottom:12px">
-          <div class="field-label">Push to project as note (optional)</div>
+          <div class="field-label">Tag to project (optional)</div>
           <select id="fl-project" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
             <option value="">— no project</option>
           </select>
@@ -6782,34 +6782,29 @@ function saveFieldLogEntry() {
     : dealerSel;
   if (dealerSel === '__new__' && dealer) addVendor(dealer);
   const projectId = parseInt(document.getElementById('fl-project')?.value) || null;
+  const projectClient = projectId ? (getSavedQuotes().find(q => q.id === projectId)?.client || null) : null;
   const entry = {
     id: Date.now(),
-    type: window._fieldLogType || 'dealer',
+    type: window._fieldLogType || 'main-stone',
     description: desc,
     amount: parseFloat(document.getElementById('fl-amount').value) || 0,
     dealer: dealer,
     date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
     time: new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'}),
     reconciled: false,
+    done: false,
     projectId: projectId || null,
+    client: projectClient,
   };
   window._fieldLog = [entry, ...(window._fieldLog || [])];
   persistFieldLog();
-  if (projectId) {
-    pushNoteToProject(projectId, desc, entry.id);
-    entry.reconciled = true;
-    entry.reconciledTo = getSavedQuotes().find(q => q.id === projectId)?.client || 'project';
-    entry.reconciledAsNote = true;
-    window._fieldLog[0] = entry;
-    persistFieldLog();
-  }
   document.getElementById('fl-description').value = '';
   document.getElementById('fl-amount').value = '';
   document.getElementById('fl-dealer').value = '';
   document.getElementById('fl-dealer-other-row').style.display = 'none';
   const projSel = document.getElementById('fl-project');
   if (projSel) projSel.value = '';
-  showToast(projectId ? 'Logged + pushed ✓' : 'Logged ✓');
+  showToast('Logged ✓');
   renderFieldLog();
 }
 
@@ -6889,7 +6884,10 @@ function reconcileFieldEntry(id) {
     const o = document.createElement('option'); o.value = q.id; o.textContent = q.client + (q.projectName && q.projectName !== q.client ? ' — ' + q.projectName : '');
     projSel.appendChild(o);
   });
-  if (entry.client) {
+  if (entry.projectId) {
+    const match = clientProjects.find(q => q.id === entry.projectId);
+    if (match) projSel.value = match.id;
+  } else if (entry.client) {
     const match = clientProjects.find(q => q.client?.toLowerCase().includes(entry.client.toLowerCase()) || entry.client.toLowerCase().includes(q.client?.toLowerCase()));
     if (match) projSel.value = match.id;
   }
@@ -7057,8 +7055,8 @@ function renderFieldLog() {
     div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">'
       + '<div style="flex:1;padding-right:10px">'
       + '<div style="font-size:14px;color:var(--text);margin-bottom:3px' + (e.done?';text-decoration:line-through':'') + '">' + e.description + '</div>'
-      + '<div style="font-size:12px;color:var(--text-dim)">' + e.date + ' ' + e.time + (e.dealer ? ' · ' + e.dealer : '') + '</div>'
-      + (e.reconciled ? '<div style="font-size:11px;color:var(--green-bright);margin-top:3px">' + (e.reconciledAsNote ? 'Note pushed to ' + (e.reconciledTo||'project') : 'Pushed to ' + (e.reconciledTo||'project')) + '</div>' : '')
+      + '<div style="font-size:12px;color:var(--text-dim)">' + e.date + ' ' + e.time + (e.dealer ? ' · ' + e.dealer : '') + (e.client ? ' · <span style="color:var(--teal-dim)">' + e.client + '</span>' : '') + '</div>'
+      + (e.reconciled ? '<div style="font-size:11px;color:var(--green-bright);margin-top:3px">Pushed to ' + (e.reconciledTo||'project') + '</div>' : '')
       + (e.done && !e.reconciled ? '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">Done</div>' : '')
       + '</div>'
       + '<div style="text-align:right;flex-shrink:0">'
