@@ -4768,7 +4768,7 @@ function renderSaved() {
 
   // Apply sort
   if (savedSort === 'alpha') {
-    const stripEmoji = s => (s||'').replace(/^[\p{Emoji}\s]+/u, '').trim().toLowerCase();
+    const stripEmoji = s => (s||'').replace(/^[^a-zA-Z]+/, '').trim().toLowerCase();
     filtered = [...filtered].sort((a,b) => stripEmoji(a.client).localeCompare(stripEmoji(b.client)));
   }
   // date order is already default (newest first by id)
