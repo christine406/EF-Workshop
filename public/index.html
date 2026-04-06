@@ -7681,7 +7681,10 @@ function pushLineItemToProject(invoiceId, lineItemId) {
     if (changed) persistInventory();
   }
 
-+ (li.amount || 0).toLocaleString();
+</script>
+</body>
+</html>
+ + (li.amount || 0).toLocaleString();
   modal.appendChild(descDiv);
 
   const projSel = document.createElement('select');
@@ -8067,6 +8070,355 @@ function renderInvoices() {
     });
     if (changed) persistInventory();
   }
+
+</script>
+</body>
+</html>
+ + total.toLocaleString() + '</div>'
+      + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + (isPaid ? 'var(--green-bright)' : 'var(--gold)') + ';margin-top:2px">' + (isPaid ? '✓ Paid' : 'Outstanding') + '</div>'
+      + '</div>';
+
+    const body = document.createElement('div');
+    (inv.lineItems || []).forEach(function(li) {
+      const liDiv = document.createElement('div');
+      liDiv.style.cssText = 'display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-top:1px solid var(--border)';
+      liDiv.innerHTML = '<div style="flex:1;padding-right:10px">'
+        + '<div style="font-size:13px;color:var(--text)">' + (li.description || '—') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:0.07em">' + li.category + '</div>'
+        + (li.pushed ? '<div style="font-size:11px;color:var(--green-bright);margin-top:2px">✓ Pushed to ' + (li.pushedTo || 'project') + '</div>' : '')
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+        + '<div style="font-size:14px;color:var(--text)">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
+    authDomain: "ef-workshop-ff6cf.firebaseapp.com",
+    databaseURL: "https://ef-workshop-ff6cf-default-rtdb.firebaseio.com",
+    projectId: "ef-workshop-ff6cf",
+    storageBucket: "ef-workshop-ff6cf.firebasestorage.app",
+    messagingSenderId: "624210833780",
+    appId: "1:624210833780:web:31492a409e36607d30fc21"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window._fb = {
+    saveQuotes: (data) => set(ref(db, 'quotes'), data),
+    saveInventory: (data) => set(ref(db, 'inventory'), data),
+    saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
+    saveCustomChains: (data) => set(ref(db, 'customChains'), data),
+    saveRemovedChains: (data) => set(ref(db, 'removedChains'), data),
+    saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
+    saveVendors: (data) => set(ref(db, 'vendors'), data),
+    saveInvoices: (data) => set(ref(db, 'invoices'), data),
+  };
+  window._chainPhotos = {};
+
+  onValue(ref(db, 'removedChains'), snap => {
+    window._removedChains = snap.val() ? Object.values(snap.val()) : [];
+    if (typeof renderChainList === 'function') renderChainList();
+  });
+
+  onValue(ref(db, 'customChains'), snap => {
+    window._customChains = snap.val() ? Object.values(snap.val()) : [];
+    if (typeof renderChainList === 'function') renderChainList();
+  });
+
+  onValue(ref(db, 'chainPhotos'), snap => {
+    window._chainPhotos = snap.val() || {};
+    if (typeof renderChainList === 'function') renderChainList();
+  });
+
+  onValue(ref(db, 'quotes'), snap => {
+    const val = snap.val();
+    window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof fixInventoryStoneStatuses === 'function') fixInventoryStoneStatuses();
+    if (typeof renderSaved === 'function') renderSaved();
+  });
+
+  onValue(ref(db, 'fieldLog'), snap => {
+    const val = snap.val();
+    window._fieldLog = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderFieldLog === 'function') renderFieldLog();
+  });
+
+  onValue(ref(db, 'vendors'), snap => {
+    const val = snap.val();
+    const defaults = ['American Gem Corp', 'Virat', 'Galapo', 'Julius Klein'];
+    const saved = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    // Merge defaults with saved, deduplicate
+    const all = [...new Set([...defaults, ...saved])].sort((a,b) => a.localeCompare(b));
+    window._vendors = all;
+    if (typeof refreshAllVendorDropdowns === 'function') refreshAllVendorDropdowns();
+  });
+
+  onValue(ref(db, 'invoices'), snap => {
+    const val = snap.val();
+    window._invoices = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderInvoices === 'function') renderInvoices();
+  });
+
+  onValue(ref(db, 'inventory'), snap => {
+    const val = snap.val();
+    window._inventory = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    fixInventoryStoneStatuses();
+    if (typeof renderInventory === 'function') renderInventory();
+  });
+
+  function fixInventoryStoneStatuses() {
+    const quotes = window._savedQuotes || [];
+    let changed = false;
+
+    // First: validate existing usedInProjectId links — clear any that aren't confirmed by the project
+    (window._inventory || []).forEach(s => {
+      if (!s.usedInProjectId) return;
+      const linkedQ = quotes.find(q => q.id === s.usedInProjectId);
+      if (!linkedQ) {
+        // Project no longer exists — clear link
+        s.usedInProjectId = null;
+        s.status = s.category === 'owned-reserved' ? 'unavailable' : 'available';
+        changed = true;
+        return;
+      }
+      // Check that the project actually references this stone by GIA or inventoryId
+      const confirmed = (linkedQ.stones || []).some(qs =>
+        (s.gia && qs.gia && qs.gia === s.gia) || qs.inventoryId === s.id
+      ) || (s.gia && linkedQ.stoneDetail?.gia === s.gia)
+        || (s.gia && (linkedQ.pieces || []).some(p => p.stoneDetail?.gia === s.gia || (p.stones || []).some(ps => ps.gia === s.gia)));
+      if (!confirmed) {
+        // Stone was wrongly linked — clear it
+        s.usedInProjectId = null;
+        s.status = s.category === 'owned-reserved' ? 'unavailable' : 'available';
+        changed = true;
+        return;
+      }
+      // Link is valid — ensure status is correct
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+      if (!dontTouch.includes(s.status) && s.status !== 'in-use') {
+        s.status = 'in-use';
+        changed = true;
+      }
+      const expectedNote = 'Added from project: ' + linkedQ.client;
+      if (s.notes !== expectedNote && (s.notes?.startsWith('Added from project:') || s.notes?.includes('quote'))) { s.notes = expectedNote; changed = true; }
+    });
+    // Also: link stones via GIA number if usedInProjectId missing
+    const allQuotes = window._savedQuotes || [];
+    allQuotes.forEach(q => {
+      const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+      if (!isProject) return;
+      // Check q.stones[].gia
+      if (q.stones) {
+        q.stones.forEach(qs => {
+          if (!qs.gia) return;
+          const invStone = (window._inventory || []).find(s => s.gia === qs.gia && !s.usedInProjectId);
+          if (invStone) {
+            const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+            if (!dontTouch.includes(invStone.status)) {
+              invStone.usedInProjectId = q.id;
+              invStone.status = 'in-use';
+              changed = true;
+            }
+          }
+        });
+      }
+      // Also check q.stoneDetail.gia (set when editing a project quote)
+      if (q.stoneDetail?.gia) {
+        const invStone = (window._inventory || []).find(s => s.gia === q.stoneDetail.gia && !s.usedInProjectId);
+        if (invStone) {
+          const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+          if (!dontTouch.includes(invStone.status)) {
+            invStone.usedInProjectId = q.id;
+            invStone.status = 'in-use';
+            changed = true;
+          }
+        }
+      }
+      // Also check pieces[].stoneDetail.gia for multi-piece sets
+      (q.pieces || []).forEach(p => {
+        const gia = p.stoneDetail?.gia || (p.stones || [])[0]?.gia;
+        if (!gia) return;
+        const invStone = (window._inventory || []).find(s => s.gia === gia && !s.usedInProjectId);
+        if (invStone) {
+          const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+          if (!dontTouch.includes(invStone.status)) {
+            invStone.usedInProjectId = q.id;
+            invStone.status = 'in-use';
+            changed = true;
+          }
+        }
+      });
+    });
+    // Also: link stones via inventoryId stored on quote stones
+    allQuotes.forEach(q => {
+      if (!q.stones) return;
+      const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+      q.stones.forEach(qs => {
+        if (!qs.inventoryId) return;
+        const invStone = (window._inventory || []).find(s => s.id === qs.inventoryId);
+        if (!invStone) return;
+        const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+        if (dontTouch.includes(invStone.status)) return;
+        if (isProject && invStone.status !== 'in-use') {
+          invStone.status = 'in-use';
+          invStone.usedInProjectId = q.id;
+          invStone.usedInQuoteId = null;
+          invStone.usedInQuoteClient = null;
+          changed = true;
+        } else if (!isProject && !invStone.usedInProjectId) {
+          invStone.usedInQuoteId = q.id;
+          invStone.usedInQuoteClient = q.client || 'quote';
+          changed = true;
+        }
+      });
+    });
+    // Also: clear stale 'pending' usedInQuoteId on stones that are in a project
+    (window._inventory || []).forEach(s => {
+      if (s.usedInQuoteId !== 'pending') return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project','in-use'];
+      if (dontTouch.includes(s.status)) return;
+      // Try to find a matching project stone by cost + basic details
+      let matched = false;
+      allQuotes.forEach(q => {
+        if (matched) return;
+        const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+        if (!isProject || !q.stones) return;
+        q.stones.forEach(qs => {
+          if (matched) return;
+          const costMatch = qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1;
+          const caratMatch = !qs.carat || !s.carat || Math.abs(parseFloat(qs.carat) - parseFloat(s.carat)) < 0.01;
+          if (costMatch && caratMatch) {
+            s.status = 'in-use';
+            s.usedInProjectId = q.id;
+            s.usedInQuoteId = null;
+            s.usedInQuoteClient = null;
+            changed = true;
+            matched = true;
+          }
+        });
+      });
+      // If no project match found, just clear the pending tag
+      if (!matched) {
+        s.usedInQuoteId = null;
+        s.usedInQuoteClient = null;
+        changed = true;
+      }
+    });
+    // Also: fix stones stuck as 'unavailable' with no project link
+    (window._inventory || []).forEach(s => {
+      if (s.status !== 'unavailable' || s.usedInProjectId) return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+      if (dontTouch.includes(s.status)) return;
+      let matched = false;
+      allQuotes.forEach(q => {
+        if (matched) return;
+        const isProject = q.status === 'project' || q.status === 'collection' || q.status === 'completed';
+        if (!isProject || !q.stones) return;
+        q.stones.forEach(qs => {
+          if (matched) return;
+          const costMatch = qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1;
+          const caratMatch = !qs.carat || !s.carat || Math.abs(parseFloat(qs.carat) - parseFloat(s.carat)) < 0.01;
+          const giaMatch = qs.gia && s.gia && qs.gia === s.gia;
+          if (giaMatch || (costMatch && caratMatch)) {
+            s.status = 'in-use';
+            s.usedInProjectId = q.id;
+            s.usedInQuoteId = null;
+            s.usedInQuoteClient = null;
+            changed = true;
+            matched = true;
+          }
+        });
+      });
+    });
+    // Last resort: fix any stone stuck as 'unavailable' — if it has notes linking it to a project, or if only one project exists, link it
+    (window._inventory || []).forEach(s => {
+      if (s.status !== 'unavailable') return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+      if (dontTouch.includes(s.status)) return;
+      // Try matching by notes field ("Added from project: X" or similar)
+      const projects = allQuotes.filter(q => q.status === 'project' || q.status === 'completed' || q.status === 'collection');
+      let matched = false;
+      projects.forEach(q => {
+        if (matched) return;
+        // Match by cost on any stone in the project
+        const stoneMatch = (q.stones || []).some(qs => qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1);
+        const giaMatch = (q.stones || []).some(qs => qs.gia && s.gia && qs.gia === s.gia);
+        const invIdMatch = (q.stones || []).some(qs => qs.inventoryId && qs.inventoryId === s.id);
+        const noteMatch = s.notes && q.client && s.notes.includes(q.client);
+        if (giaMatch || invIdMatch || (stoneMatch && noteMatch)) {
+          s.status = 'in-use';
+          s.usedInProjectId = q.id;
+          s.usedInQuoteId = null;
+          s.usedInQuoteClient = null;
+          changed = true;
+          matched = true;
+        }
+      });
+      // If still unavailable with owned-reserved category and a cost match to any project stone, link it
+      if (!matched && s.category === 'owned-reserved') {
+        projects.forEach(q => {
+          if (matched) return;
+          const stoneMatch = (q.stones || []).some(qs => qs.cost && s.cost && Math.abs(qs.cost - s.cost) < 1);
+          if (stoneMatch) {
+            s.status = 'in-use';
+            s.usedInProjectId = q.id;
+            s.usedInQuoteId = null;
+            s.usedInQuoteClient = null;
+            changed = true;
+            matched = true;
+          }
+        });
+      }
+    });
+    // Fix stones stuck as 'unavailable' with owned-reserved category — these were picked from inventory
+    // Match to a project by GIA (on the inventory stone itself) or by cost
+    (window._inventory || []).forEach(s => {
+      if (s.usedInProjectId) return;
+      if (s.category !== 'owned-reserved') return;
+      const dontTouch = ['sold-by-dealer','sold-by-ef','archived-with-project','in-use'];
+      if (dontTouch.includes(s.status)) return;
+      const projects = allQuotes.filter(q => q.status === 'project' || q.status === 'completed' || q.status === 'collection');
+      for (const q of projects) {
+        const giaMatch = s.gia && (q.stones || []).some(qs => qs.gia && qs.gia === s.gia);
+        const invIdMatch = (q.stones || []).some(qs => qs.inventoryId === s.id);
+        if (giaMatch || invIdMatch) {
+          s.status = 'in-use';
+          s.usedInProjectId = q.id;
+          s.usedInQuoteId = null;
+          s.usedInQuoteClient = null;
+          changed = true;
+          break;
+        }
+      }
+    });
+    if (changed) persistInventory();
+  }
+
+</script>
+</body>
+</html>
+ + (li.amount || 0).toLocaleString() + '</div>'
+        + (!li.pushed ? '<button onclick="pushLineItemToProject(' + inv.id + ',' + li.id + ')" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer;white-space:nowrap">→ Push</button>' : '')
+        + '</div>';
+      body.appendChild(liDiv);
+    });
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap';
+    actions.innerHTML = '<button onclick="toggleInvoiceStatus(' + inv.id + ')" style="background:none;border:1px solid ' + (isPaid ? 'var(--border)' : 'var(--green-bright)') + ';color:' + (isPaid ? 'var(--text-dim)' : 'var(--green-bright)') + ';font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer">' + (isPaid ? '↩ Mark outstanding' : '✓ Mark paid') + '</button>'
+      + '<button onclick="openInvoiceForm(' + inv.id + ')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer">Edit</button>'
+      + '<button onclick="deleteInvoice(' + inv.id + ')" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer">Delete</button>';
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(actions);
+    list.appendChild(card);
+  });
+}
+
+
 
 </script>
 
