@@ -648,9 +648,8 @@
   <button class="nav-btn" onclick="showScreen('field')" id="tab-field">Field Log</button>
   <button class="nav-btn" onclick="showScreen('stones')">Stones</button>
   <button class="nav-btn" onclick="showScreen('loose')">Loose Sale</button>
-  <button class="nav-btn" onclick="showScreen('chains')">Findings</button>
+  <button class="nav-btn" onclick="showScreen('chains')">Chains</button>
   <button class="nav-btn" onclick="showScreen('invoices')" id="tab-invoices">Invoices</button>
-  <button class="nav-btn" onclick="showScreen('production')" id="tab-production">Production</button>
   <button class="nav-btn" onclick="showScreen('data')" id="tab-data">Data</button>
 </nav>
 
@@ -1246,7 +1245,7 @@
   <div class="screen" id="screen-chains">
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
-        <span>⛓️ Findings — Chains (Downeast)</span>
+        <span>⛓️ Chains — Downeast</span>
         <div style="display:flex;gap:8px;align-items:center">
           <button id="livePricingToggle" onclick="toggleLivePricing()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">Live pricing: off</button>
           <button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:2px;cursor:pointer">+ Add chain</button>
@@ -1276,11 +1275,8 @@
           <button class="toggle-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
           <button class="toggle-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
         </div>
-        <button onclick="document.getElementById('inv-scan-input').click()" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:3px;cursor:pointer;white-space:nowrap">📷 Scan</button>
-        <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New</button>
+        <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New invoice</button>
       </div>
-      <input type="file" id="inv-scan-input" accept="image/*" capture="environment" style="display:none" onchange="scanInvoicePhoto(this)">
-      <div id="inv-scan-status" style="display:none;background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--teal-dim);text-align:center">Reading invoice...</div>
       <div id="invoiceForm" style="display:none;background:var(--surface2);border-radius:4px;padding:14px;margin-bottom:16px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -1291,16 +1287,6 @@
           <div class="field-label">Vendor</div>
           <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'))" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></select>
           <div id="inv-vendor-other-row" style="display:none;margin-top:6px"><input type="text" id="inv-vendor-other" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('inv-vendor'),this)"></div>
-        </div>
-        <div style="margin-bottom:10px">
-          <div class="field-label">Type</div>
-          <select id="inv-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-            <option value="casting">Casting</option>
-            <option value="setting">Setting</option>
-            <option value="dealer">Dealer</option>
-            <option value="findings">Findings</option>
-            <option value="other">Other</option>
-          </select>
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -1315,87 +1301,6 @@
         </div>
       </div>
       <div id="invoiceList"></div>
-    </div>
-  </div>
-
-<!-- =================== PRODUCTION SCREEN =================== -->
-  <div class="screen" id="screen-production">
-    <div class="section">
-      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
-        🔧 Production specs
-        <button onclick="openProductionForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;border-radius:3px;cursor:pointer">+ New spec</button>
-      </div>
-
-      <!-- Form -->
-      <div id="productionForm" style="display:none;background:var(--surface2);border-radius:4px;padding:14px;margin-top:14px;margin-bottom:16px">
-        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px" id="productionFormTitle">New production spec</div>
-
-        <div style="margin-bottom:10px">
-          <div class="field-label">Piece</div>
-          <select id="prod-piece-sel" onchange="handleProdPieceSel()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;margin-bottom:6px">
-            <option value="">— Select existing collection piece or type a name</option>
-          </select>
-          <input type="text" id="prod-name" placeholder="Or type a custom name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-          <input type="hidden" id="prod-linked">
-        </div>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div>
-            <div class="field-label">Mold name / number</div>
-            <input type="text" id="prod-mold" placeholder="e.g. M-042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Casting vendor</div>
-            <select id="prod-caster" onchange="document.getElementById('prod-caster-new').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-              <option value="">— Select</option>
-              <option value="Carrera">Carrera</option>
-              <option value="Omega">Omega</option>
-              <option value="Pafco">Pafco</option>
-              <option value="JM">JM</option>
-              <option value="__new__">+ Add new...</option>
-            </select>
-            <input type="text" id="prod-caster-new" placeholder="New casting vendor" style="display:none;width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Metal</div>
-            <input type="text" id="prod-metal" placeholder="e.g. 18k yellow" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Est. grams</div>
-            <input type="number" id="prod-grams" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-          </div>
-        </div>
-
-        <!-- Stones -->
-        <div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div class="field-label" style="margin-bottom:0">Stones</div>
-            <button onclick="addProdStoneRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer">+ Add</button>
-          </div>
-          <div id="prod-stones"></div>
-        </div>
-
-        <!-- Findings -->
-        <div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div class="field-label" style="margin-bottom:0">Findings & chain</div>
-            <button onclick="addProdFindingRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer">+ Add</button>
-          </div>
-          <div id="prod-findings"></div>
-        </div>
-
-        <div style="margin-bottom:12px">
-          <div class="field-label">Notes</div>
-          <textarea id="prod-notes" rows="2" placeholder="e.g. Always order 3 extra melee. Check sizing before casting." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;resize:none;box-sizing:border-box"></textarea>
-        </div>
-
-        <div style="display:flex;gap:8px">
-          <button onclick="saveProdSpec()" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:3px;cursor:pointer">Save</button>
-          <button onclick="closeProdForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:12px 16px;border-radius:3px;cursor:pointer">Cancel</button>
-        </div>
-      </div>
-
-      <div id="productionList"></div>
     </div>
   </div>
 
@@ -4762,7 +4667,7 @@ function renderPL() {
 
   let totalRevenue = 0, totalCost = 0, totalProfit = 0;
   const rows = eligible.map(q => {
-    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.total || 0);
+    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
     let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
     if (q.isMultiPiece) {
       // Sum costs across all pieces — use piece's stones array as fallback for stone cost
@@ -4829,7 +4734,7 @@ function renderPL() {
     allEligible.forEach(q => {
       const excluded = !!q.excludeFromPL;
       const hasFinal = q.actualMetalCost != null || q.actualLabor != null;
-      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.total || 0);
+      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
       const usingQuotedRetail = !(q.clientPrice > 0);
       let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
       if (q.isMultiPiece) {
@@ -6688,7 +6593,6 @@ function showScreen(name) {
   document.getElementById('goldBar').style.display = name === 'quote' ? 'flex' : 'none';
   if (name === 'data' && typeof renderDataScreen === 'function') renderDataScreen();
   if (name === 'invoices' && typeof renderInvoices === 'function') { renderInvoices(); refreshAllVendorDropdowns(); }
-  if (name === 'production' && typeof renderProduction === 'function') renderProduction();
   if (name === 'field' && typeof renderFieldLog === 'function') renderFieldLog();
   if (name === 'field' && typeof renderFlProjectSelect === 'function') renderFlProjectSelect();
 }
@@ -7367,651 +7271,462 @@ function clearFlStone() {
   if (btn) btn.textContent = 'Link a stone from inventory';
 }
 
-// =================== INVOICES ===================
-if (!window._invoices) window._invoices = [];
-var _invoiceFilter = 'all';
-var _invoiceLineCounter = 0;
-var _editingInvoiceId = null;
+// =================== CURRENCY HELPER ===================
+function fmt(n){return '$'+(Math.round(n)||0).toLocaleString();}
 
-function getInvoices() { return window._invoices || []; }
-function persistInvoices() { if (window._fb) window._fb.saveInvoices(window._invoices); }
-
-function setInvoiceFilter(filter, btn) {
-  _invoiceFilter = filter;
-  document.querySelectorAll('#screen-invoices .toggle-group .toggle-btn').forEach(function(b) {
-    b.style.background = 'var(--surface2)'; b.style.color = 'var(--text)'; b.style.borderColor = 'var(--border)';
-  });
-  btn.style.background = 'var(--teal-dim)'; btn.style.color = '#fafaf7'; btn.style.borderColor = 'var(--teal-dim)';
-  renderInvoices();
+// =================== VENDORS ===================
+if(!window._vendors)window._vendors=['American Gem Corp','Virat','Galapo','Julius Klein'];
+function getVendors(){return window._vendors||['American Gem Corp','Virat','Galapo','Julius Klein'];}
+function persistVendors(){var defaults=['American Gem Corp','Virat','Galapo','Julius Klein'];var custom=(window._vendors||[]).filter(function(v){return defaults.indexOf(v)===-1;});if(window._fb)window._fb.saveVendors(custom);}
+function addVendor(name){var t=(name||'').trim();if(!t)return;if((window._vendors||[]).indexOf(t)===-1){window._vendors=[...(window._vendors||[]),t].sort(function(a,b){return a.localeCompare(b);});persistVendors();refreshAllVendorDropdowns();}}
+function buildVendorOptions(sel,blank){var v=getVendors();var h=blank?'<option value="">-- select</option>':'';v.forEach(function(x){h+='<option value="'+x+'"'+(sel===x?' selected':'')+'>'+x+'</option>';});h+='<option value="__new__"'+(sel==='__new__'?' selected':'')+'>+ Add new vendor...</option>';return h;}
+function handleVendorChange(el,other){var isNew=el.value==='__new__';var row=other?other.parentElement:null;if(row)row.style.display=isNew?'block':'none';if(isNew&&other)other.focus();}
+function commitNewVendor(sel,other){var name=other?other.value.trim():'';if(!name)return;addVendor(name);sel.innerHTML=buildVendorOptions(name,true);sel.value=name;var p=other.parentElement;if(p)p.style.display='none';other.value='';}
+function refreshAllVendorDropdowns(){
+  var siDealer=document.getElementById('si-dealer');if(siDealer){var c=siDealer.value;siDealer.innerHTML=buildVendorOptions(c,true);siDealer.value=c;}
+  var flDealer=document.getElementById('fl-dealer');if(flDealer){var c=flDealer.value;flDealer.innerHTML=buildVendorOptions(c,true);flDealer.value=c;}
+  var sfDealer=document.getElementById('stoneFilterDealer');if(sfDealer){var c=sfDealer.value;sfDealer.innerHTML='<option value="">All dealers</option>'+getVendors().map(function(v){return'<option value="'+v+'"'+(c===v?' selected':'')+'>'+v+'</option>';}).join('');sfDealer.value=c;}
+  var inv=document.getElementById('inv-vendor');if(inv){var c=inv.value;inv.innerHTML=buildVendorOptions(c,true);inv.value=c;}
 }
 
-function openInvoiceForm(editId) {
-  _editingInvoiceId = editId || null;
-  var form = document.getElementById('invoiceForm');
-  if (!form) return;
-  form.style.display = 'block';
-  var invVendor = document.getElementById('inv-vendor');
-  if (invVendor) invVendor.innerHTML = buildVendorOptions('', true);
-  _invoiceLineCounter = 0;
-  document.getElementById('inv-number').value = '';
-  document.getElementById('inv-date').value = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-  document.getElementById('inv-line-items').innerHTML = '';
-  if (editId) {
-    var inv = getInvoices().find(function(i) { return i.id === editId; });
-    if (inv) {
-      document.getElementById('inv-number').value = inv.invoiceNumber || '';
-      document.getElementById('inv-date').value = inv.date || '';
-      if (document.getElementById('inv-type')) document.getElementById('inv-type').value = inv.type || 'other';
-      if (invVendor) invVendor.value = inv.vendor || '';
-      (inv.lineItems || []).forEach(function(li) { addInvoiceLineItem(li); });
-    }
-  } else { addInvoiceLineItem(); }
-  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function closeInvoiceForm() {
-  var form = document.getElementById('invoiceForm');
-  if (form) form.style.display = 'none';
-  _editingInvoiceId = null;
-}
-
-function addInvoiceLineItem(prefill) {
-  var id = ++_invoiceLineCounter;
-  var container = document.getElementById('inv-line-items');
-  if (!container) return;
-  var div = document.createElement('div');
-  div.id = 'inv-li-' + id;
-  div.style.cssText = 'background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:8px';
-  var cats = ['casting','setting','findings','dealer','cad','other'];
-  var catOpts = cats.map(function(c) {
-    return '<option value="'+c+'"'+(prefill&&prefill.category===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';
-  }).join('');
-  div.innerHTML = ''
-    + '<div style="display:flex;gap:8px;margin-bottom:8px;align-items:start">'
-    + '<input type="text" id="inv-li-desc-'+id+'" value="'+(prefill&&prefill.description||'')+'" placeholder="Description" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">'
-    + '<button onclick="document.getElementById(\'inv-li-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 0">x</button>'
-    + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-    + '<div><div class="field-label">Category</div><select id="inv-li-cat-'+id+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+catOpts+'</select></div>'
-    + '<div><div class="field-label">Amount ($)</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div>'
-    + '</div>';
-  container.appendChild(div);
-}
-
-function saveInvoice() {
-  var num = document.getElementById('inv-number').value.trim();
-  var date = document.getElementById('inv-date').value.trim();
-  var vendorSel = document.getElementById('inv-vendor').value;
-  var vendor = vendorSel === '__new__' ? (document.getElementById('inv-vendor-other').value.trim()||'') : vendorSel;
-  if (!vendor || vendor === '__new__') { showToast('Select a vendor'); return; }
-  if (vendorSel === '__new__' && vendor) addVendor(vendor);
-  var lineItems = [];
-  document.querySelectorAll('#inv-line-items > div[id^="inv-li-"]').forEach(function(div) {
-    var liId = div.id.replace('inv-li-','');
-    var descEl = document.getElementById('inv-li-desc-'+liId);
-    var catEl = document.getElementById('inv-li-cat-'+liId);
-    var amtEl = document.getElementById('inv-li-amt-'+liId);
-    var desc = descEl ? descEl.value.trim() : '';
-    var cat = catEl ? catEl.value : 'other';
-    var amt = amtEl ? (parseFloat(amtEl.value)||0) : 0;
-    if (desc||amt) lineItems.push({id:Date.now()+Math.random(), description:desc, category:cat, amount:amt, pushed:false, pushedTo:null, pushedField:null});
-  });
-  if (!lineItems.length) { showToast('Add at least one line item'); return; }
-  var invoices = getInvoices();
-  if (_editingInvoiceId) {
-    var inv = invoices.find(function(i){return i.id===_editingInvoiceId;});
-    if (inv) { inv.invoiceNumber=num; inv.date=date; inv.vendor=vendor; inv.lineItems=lineItems; }
-  } else {
-    var invType = document.getElementById('inv-type') ? document.getElementById('inv-type').value : 'other';
-    invoices.unshift({id:Date.now(), invoiceNumber:num, vendor:vendor, date:date, type:invType, status:'outstanding', lineItems:lineItems});
-  }
-  window._invoices = invoices; persistInvoices(); closeInvoiceForm(); renderInvoices(); showToast('Invoice saved');
-}
-
-function toggleInvoiceStatus(id) {
-  var invoices = getInvoices();
-  var inv = invoices.find(function(i){return i.id===id;});
-  if (!inv) return;
-  inv.status = inv.status==='paid' ? 'outstanding' : 'paid';
-  window._invoices=invoices; persistInvoices(); renderInvoices();
-}
-
-function deleteInvoice(id) {
-  if (!confirm('Delete this invoice?')) return;
-  window._invoices = getInvoices().filter(function(i){return i.id!==id;});
-  persistInvoices(); renderInvoices();
-}
-
-function pushLineItemToProject(invoiceId, lineItemId) {
-  var invoices = getInvoices();
-  var inv = invoices.find(function(i){return i.id===invoiceId;});
-  if (!inv) return;
-  var li = (inv.lineItems||[]).find(function(l){return l.id===lineItemId;});
-  if (!li) return;
-  var quotes = getSavedQuotes();
-  var projects = quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed';}).sort(function(a,b){return b.id-a.id;});
-  if (!projects.length) { showToast('No active projects'); return; }
-
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  var modal = document.createElement('div');
-  modal.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:400px';
-
-  var t = document.createElement('div'); t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px'; t.textContent='Push to project'; modal.appendChild(t);
-  var d = document.createElement('div'); d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px'; d.textContent=(li.description||li.category)+' - $'+(li.amount||0).toLocaleString(); modal.appendChild(d);
-
-  var projSel = document.createElement('select');
-  projSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
-  projSel.innerHTML = '<option value="">-- Select project</option>';
-  projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;projSel.appendChild(o);});
-  modal.appendChild(projSel);
-
-  var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Which cost field?';modal.appendChild(fl);
-  var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
-  var fieldSel=document.createElement('select');
-  fieldSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
-  [['actualStoneCost','Stone cost'],['actualMetalCost','Metal / casting'],['actualLabor','Labor / setting'],['actualDesignFee','Design / CAD'],['actualChainCost','Findings / chain']].forEach(function(pair){
-    var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];if(catToField[li.category]===pair[0])o.selected=true;fieldSel.appendChild(o);
-  });
-  modal.appendChild(fieldSel);
-
-  var invModeWrap=document.createElement('div');invModeWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
-  var invModeAdd=document.createElement('button');var invModeReplace=document.createElement('button');
-  var invModeStyle='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
-  invModeAdd.textContent='Add to existing';invModeAdd.style.cssText=invModeStyle+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
-  invModeReplace.textContent='Replace';invModeReplace.style.cssText=invModeStyle+';background:var(--surface2);color:var(--text);border:1px solid var(--border)';
-  var invPushMode='add';
-  invModeAdd.addEventListener('click',function(){invPushMode='add';invModeAdd.style.background='var(--teal-dim)';invModeAdd.style.color='#fafaf7';invModeAdd.style.borderColor='var(--teal-dim)';invModeReplace.style.background='var(--surface2)';invModeReplace.style.color='var(--text)';invModeReplace.style.borderColor='var(--border)';});
-  invModeReplace.addEventListener('click',function(){invPushMode='replace';invModeReplace.style.background='var(--teal-dim)';invModeReplace.style.color='#fafaf7';invModeReplace.style.borderColor='var(--teal-dim)';invModeAdd.style.background='var(--surface2)';invModeAdd.style.color='var(--text)';invModeAdd.style.borderColor='var(--border)';});
-  invModeWrap.appendChild(invModeAdd);invModeWrap.appendChild(invModeReplace);
-  modal.appendChild(invModeWrap);
-
+// =================== FIELD LOG EXTRAS ===================
+var _flLinkedStoneId=null;
+function markFieldEntryDone(id){var log=getFieldLog();var e=log.find(function(e){return e.id===id;});if(!e)return;e.done=!e.done;window._fieldLog=log;persistFieldLog();renderFieldLog();}
+function editFieldEntry(id){
+  var log=getFieldLog();var e=log.find(function(e){return e.id===id;});if(!e)return;
+  var existing=document.getElementById('fl-edit-'+id);if(existing){existing.remove();return;}
+  var wrap=document.createElement('div');wrap.id='fl-edit-'+id;wrap.style.cssText='margin-top:8px;padding:10px;background:var(--surface2);border-radius:3px';
+  var ta=document.createElement('textarea');ta.value=e.description;ta.rows=2;ta.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:3px;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
+  var amtRow=document.createElement('div');amtRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center';amtRow.innerHTML='<span style="font-size:11px;color:var(--text-dim)">Amount</span>';
+  var amtIn=document.createElement('input');amtIn.type='number';amtIn.value=e.amount||'';amtIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none';amtRow.appendChild(amtIn);
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
-  var pushBtn=document.createElement('button');
-  pushBtn.textContent='Push';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
-  pushBtn.addEventListener('click',function(){
-    var projId=parseInt(projSel.value);if(!projId){showToast('Select a project');return;}
-    var field=fieldSel.value;
-    var q=quotes.find(function(q){return q.id===projId;});
-    if(q){
-      q[field]=invPushMode==='replace' ? li.amount : (q[field]||0)+li.amount;
-      if(!q.costPushes) q.costPushes=[];
-      q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:invPushMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
-      window._savedQuotes=quotes;persistQuotes();renderSaved();
+  var saveBtn=document.createElement('button');saveBtn.textContent='Save';saveBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px;border-radius:2px;cursor:pointer';
+  saveBtn.addEventListener('click',function(){var l=getFieldLog();var e2=l.find(function(e){return e.id===id;});if(e2){e2.description=ta.value.trim()||e2.description;e2.amount=parseFloat(amtIn.value)||0;}window._fieldLog=l;persistFieldLog();renderFieldLog();});
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;padding:8px 12px;border-radius:2px;cursor:pointer';
+  cancelBtn.addEventListener('click',function(){wrap.remove();});
+  btnRow.appendChild(saveBtn);btnRow.appendChild(cancelBtn);wrap.appendChild(ta);wrap.appendChild(amtRow);wrap.appendChild(btnRow);
+  var entryDiv=document.getElementById('fl-entry-'+id);if(entryDiv)entryDiv.after(wrap);
+}
+function deleteCostPush(quoteId,pushId){var quotes=getSavedQuotes();var q=quotes.find(function(q){return q.id===quoteId;});if(!q||!q.costPushes)return;q.costPushes=q.costPushes.filter(function(p){return p.id!==pushId;});window._savedQuotes=quotes;persistQuotes();renderSaved();}
+
+// =================== INVOICES ===================
+if(!window._invoices)window._invoices=[];
+var _invoiceFilter='all';var _invoiceLineCounter=0;var _editingInvoiceId=null;
+function getInvoices(){return window._invoices||[];}
+function persistInvoices(){if(window._fb)window._fb.saveInvoices(window._invoices);}
+function setInvoiceFilter(filter,btn){
+  _invoiceFilter=filter;
+  document.querySelectorAll('#screen-invoices .toggle-group .toggle-btn').forEach(function(b){b.style.background='var(--surface2)';b.style.color='var(--text)';b.style.borderColor='var(--border)';});
+  btn.style.background='var(--teal-dim)';btn.style.color='#fafaf7';btn.style.borderColor='var(--teal-dim)';renderInvoices();
+}
+function openInvoiceForm(editId){
+  _editingInvoiceId=editId||null;var form=document.getElementById('invoiceForm');if(!form)return;form.style.display='block';
+  var invVendor=document.getElementById('inv-vendor');if(invVendor)invVendor.innerHTML=buildVendorOptions('',true);
+  _invoiceLineCounter=0;
+  document.getElementById('inv-number').value='';
+  document.getElementById('inv-date').value=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('inv-line-items').innerHTML='';
+  if(document.getElementById('inv-type'))document.getElementById('inv-type').value='casting';
+  if(editId){
+    var inv=getInvoices().find(function(i){return i.id===editId;});
+    if(inv){
+      document.getElementById('inv-number').value=inv.invoiceNumber||'';
+      document.getElementById('inv-date').value=inv.date||'';
+      if(invVendor)invVendor.value=inv.vendor||'';
+      if(document.getElementById('inv-type'))document.getElementById('inv-type').value=inv.type||'other';
+      (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
     }
-    li.pushed=true;li.pushedTo=q?q.client:null;li.pushedField=field;
-    window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();
-    showToast('Pushed to '+(q?q.client:'project'));
-  });
-  var cancelBtn=document.createElement('button');
-  cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:3px;cursor:pointer';
-  cancelBtn.addEventListener('click',function(){overlay.remove();});
-  btnRow.appendChild(pushBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);
-  overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});
-  document.body.appendChild(overlay);
+  }else{addInvoiceLineItem();}
+  form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeInvoiceForm(){var form=document.getElementById('invoiceForm');if(form)form.style.display='none';_editingInvoiceId=null;}
+
+function addInvoiceLineItem(prefill){
+  var id=++_invoiceLineCounter;
+  var container=document.getElementById('inv-line-items');if(!container)return;
+  var div=document.createElement('div');div.id='inv-li-'+id;div.style.cssText='background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:8px';
+  
+  var topRow=document.createElement('div');topRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:start';
+  var descIn=document.createElement('input');descIn.type='text';descIn.id='inv-li-desc-'+id;descIn.value=prefill&&prefill.description||'';descIn.placeholder='Description';
+  descIn.style.cssText='flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';
+  var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 0';
+  remBtn.addEventListener('click',function(){div.remove();});
+  topRow.appendChild(descIn);topRow.appendChild(remBtn);
+  
+  var botRow=document.createElement('div');botRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
+  var cats=['casting','setting','findings','dealer','cad','other'];
+  var catOpts=cats.map(function(c){return'<option value="'+c+'"'+(prefill&&prefill.category===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
+  var catWrap=document.createElement('div');catWrap.innerHTML='<div class="field-label">Category</div><select id="inv-li-cat-'+id+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+catOpts+'</select>';
+  var amtWrap=document.createElement('div');amtWrap.innerHTML='<div class="field-label">Amount</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
+  botRow.appendChild(catWrap);botRow.appendChild(amtWrap);
+  
+  div.appendChild(topRow);div.appendChild(botRow);container.appendChild(div);
 }
 
-function renderInvoices() {
-  var list = document.getElementById('invoiceList');
-  if (!list) return;
-  var invoices = getInvoices();
-  if (_invoiceFilter==='outstanding') invoices=invoices.filter(function(i){return i.status!=='paid';});
-  else if (_invoiceFilter==='paid') invoices=invoices.filter(function(i){return i.status==='paid';});
-  if (!invoices.length) { list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No invoices yet.</div>'; return; }
-  list.innerHTML='';
-
-  // Group by type then vendor
-  var typeOrder = ['casting','setting','dealer','findings','other'];
-  var typeLabels = { casting:'Casting', setting:'Setting', dealer:'Dealers', findings:'Findings', other:'Other' };
-  var typeColors = { casting:'#a07cc5', setting:'var(--teal-dim)', dealer:'var(--gold)', findings:'#7aaa8a', other:'var(--text-dim)' };
-
-  var byType = {};
-  typeOrder.forEach(function(t) { byType[t] = {}; });
-  invoices.forEach(function(inv) {
-    var t = inv.type || 'other';
-    if (!byType[t]) byType[t] = {};
-    var v = inv.vendor || 'Unknown';
-    if (!byType[t][v]) byType[t][v] = [];
-    byType[t][v].push(inv);
+function saveInvoice(){
+  var num=document.getElementById('inv-number').value.trim();
+  var date=document.getElementById('inv-date').value.trim();
+  var vendorSel=document.getElementById('inv-vendor').value;
+  var vendor=vendorSel==='__new__'?(document.getElementById('inv-vendor-other').value.trim()||''):vendorSel;
+  if(!vendor||vendor==='__new__'){showToast('Select a vendor');return;}
+  if(vendorSel==='__new__'&&vendor)addVendor(vendor);
+  var invType=document.getElementById('inv-type')?document.getElementById('inv-type').value:'other';
+  var lineItems=[];
+  document.querySelectorAll('#inv-line-items > div[id^="inv-li-"]').forEach(function(div){
+    var liId=div.id.replace('inv-li-','');
+    var descEl=document.getElementById('inv-li-desc-'+liId);var catEl=document.getElementById('inv-li-cat-'+liId);var amtEl=document.getElementById('inv-li-amt-'+liId);
+    var desc=descEl?descEl.value.trim():'';var cat=catEl?catEl.value:'other';var amt=amtEl?(parseFloat(amtEl.value)||0):0;
+    if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:cat,amount:amt,pushed:false,pushedTo:null,pushedField:null});
   });
+  if(!lineItems.length){showToast('Add at least one line item');return;}
+  var invoices=getInvoices();
+  if(_editingInvoiceId){var inv=invoices.find(function(i){return i.id===_editingInvoiceId;});if(inv){inv.invoiceNumber=num;inv.date=date;inv.vendor=vendor;inv.type=invType;inv.lineItems=lineItems;}}
+  else{invoices.unshift({id:Date.now(),invoiceNumber:num,vendor:vendor,date:date,type:invType,status:'outstanding',lineItems:lineItems});}
+  window._invoices=invoices;persistInvoices();closeInvoiceForm();renderInvoices();showToast('Invoice saved');
+}
+function toggleInvoiceStatus(id){var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;inv.status=inv.status==='paid'?'outstanding':'paid';window._invoices=invoices;persistInvoices();renderInvoices();}
+function deleteInvoice(id){if(!confirm('Delete this invoice?'))return;window._invoices=getInvoices().filter(function(i){return i.id!==id;});persistInvoices();renderInvoices();}
 
-  typeOrder.forEach(function(type) {
-    var vendors = byType[type];
-    if (!vendors || !Object.keys(vendors).length) return;
+function pushLineItemToProject(invoiceId,lineItemId){
+  var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===invoiceId;});if(!inv)return;
+  var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;});if(!li)return;
+  var quotes=getSavedQuotes();var projects=quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed';}).sort(function(a,b){return b.id-a.id;});
+  if(!projects.length){showToast('No active projects');return;}
+  var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var modal=document.createElement('div');modal.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:400px';
+  var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Push to project';modal.appendChild(t);
+  var d=document.createElement('div');d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';d.textContent=(li.description||li.category)+' - '+fmt(li.amount);modal.appendChild(d);
+  var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';projSel.innerHTML='<option value="">-- Select project</option>';
+  projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;projSel.appendChild(o);});modal.appendChild(projSel);
+  var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Cost field?';modal.appendChild(fl);
+  var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
+  var fieldSel=document.createElement('select');fieldSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
+  [['actualStoneCost','Stone cost'],['actualMeleeCost','Melee / materials'],['actualMetalCost','Casting / metal'],['actualLabor','Labor / setting / CAD'],['actualChainCost','Findings / chain'],['actualDesignFee','Design fee']].forEach(function(pair){var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];if(catToField[li.category]===pair[0])o.selected=true;fieldSel.appendChild(o);});modal.appendChild(fieldSel);
+  var modeWrap=document.createElement('div');modeWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
+  var modeAdd=document.createElement('button');var modeRepl=document.createElement('button');var ms='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
+  modeAdd.textContent='Add to existing';modeAdd.style.cssText=ms+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
+  modeRepl.textContent='Replace';modeRepl.style.cssText=ms+';background:var(--surface2);color:var(--text);border:1px solid var(--border)';
+  var pushMode='add';
+  modeAdd.addEventListener('click',function(){pushMode='add';modeAdd.style.background='var(--teal-dim)';modeAdd.style.color='#fafaf7';modeAdd.style.borderColor='var(--teal-dim)';modeRepl.style.background='var(--surface2)';modeRepl.style.color='var(--text)';modeRepl.style.borderColor='var(--border)';});
+  modeRepl.addEventListener('click',function(){pushMode='replace';modeRepl.style.background='var(--teal-dim)';modeRepl.style.color='#fafaf7';modeRepl.style.borderColor='var(--teal-dim)';modeAdd.style.background='var(--surface2)';modeAdd.style.color='var(--text)';modeAdd.style.borderColor='var(--border)';});
+  modeWrap.appendChild(modeAdd);modeWrap.appendChild(modeRepl);modal.appendChild(modeWrap);
+  var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
+  var pushBtn=document.createElement('button');pushBtn.textContent='Push';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  pushBtn.addEventListener('click',function(){
+    var projId=parseInt(projSel.value);if(!projId){showToast('Select a project');return;}var field=fieldSel.value;
+    var q=quotes.find(function(q){return q.id===projId;});
+    if(q){q[field]=pushMode==='replace'?li.amount:(q[field]||0)+li.amount;if(!q.costPushes)q.costPushes=[];q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:pushMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});window._savedQuotes=quotes;persistQuotes();renderSaved();}
+    li.pushed=true;li.pushedTo=q?q.client:null;li.pushedField=field;window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();showToast('Pushed to '+(q?q.client:'project'));
+  });
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:3px;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
+  btnRow.appendChild(pushBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
+}
 
-    // Type section header
-    var typeHeader = document.createElement('div');
-    typeHeader.style.cssText = 'font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:'+typeColors[type]+';padding:10px 0 6px;border-bottom:2px solid '+typeColors[type]+';margin-bottom:12px;margin-top:16px;font-weight:600';
-    typeHeader.textContent = typeLabels[type] || type;
+function renderInvoices(){
+  var list=document.getElementById('invoiceList');if(!list)return;
+  var invoices=getInvoices();
+  if(_invoiceFilter==='outstanding')invoices=invoices.filter(function(i){return i.status!=='paid';});
+  else if(_invoiceFilter==='paid')invoices=invoices.filter(function(i){return i.status==='paid';});
+  if(!invoices.length){list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No invoices yet.</div>';return;}
+  list.innerHTML='';
+  var typeOrder=['casting','setting','dealer','findings','other'];
+  var typeLabels={casting:'Casting',setting:'Setting',dealer:'Dealers',findings:'Findings',other:'Other'};
+  var typeColors={casting:'#a07cc5',setting:'var(--teal-dim)',dealer:'var(--gold)',findings:'#7aaa8a',other:'var(--text-dim)'};
+  var byType={};typeOrder.forEach(function(t){byType[t]={};});
+  invoices.forEach(function(inv){var t=inv.type||'other';if(!byType[t])byType[t]={};var v=inv.vendor||'Unknown';if(!byType[t][v])byType[t][v]=[];byType[t][v].push(inv);});
+  typeOrder.forEach(function(type){
+    var vendors=byType[type];if(!vendors||!Object.keys(vendors).length)return;
+    var typeTotal=0;Object.values(vendors).forEach(function(invs){invs.forEach(function(inv){typeTotal+=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);});});
+    var typeHeader=document.createElement('div');typeHeader.style.cssText='font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:'+typeColors[type]+';padding:10px 0 6px;border-bottom:2px solid '+typeColors[type]+';margin-bottom:10px;margin-top:14px;display:flex;justify-content:space-between;align-items:center';
+    var tl=document.createElement('span');tl.textContent=typeLabels[type];var tt=document.createElement('span');tt.textContent=fmt(typeTotal);typeHeader.appendChild(tl);typeHeader.appendChild(tt);
     list.appendChild(typeHeader);
-
-    // Group total
-    var typeTotal = 0;
-    Object.values(vendors).forEach(function(invs) { invs.forEach(function(inv) { typeTotal += (inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0); }); });
-    var typeTotalEl = document.createElement('div');
-    typeTotalEl.style.cssText = 'float:right;font-size:13px;color:'+typeColors[type]+';margin-top:-28px';
-    typeTotalEl.textContent = '$' + typeTotal.toLocaleString();
-    typeHeader.style.position = 'relative';
-    typeHeader.appendChild(typeTotalEl);
-
-    Object.keys(vendors).sort().forEach(function(vendor) {
-      var invs = vendors[vendor];
-
-      // Vendor subsection
-      var vendorHeader = document.createElement('div');
-      vendorHeader.style.cssText = 'font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);padding:6px 0;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center';
-      var vendorTotal = invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
-      vendorHeader.innerHTML = '<span>' + vendor + '</span><span style="font-size:12px;color:var(--text-dim)">$'+vendorTotal.toLocaleString()+'</span>';
-      list.appendChild(vendorHeader);
-
-      invs.forEach(function(inv) {
-        var isPaid=inv.status==='paid';
-        var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
-        var card=document.createElement('div');
-        card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;padding:12px;margin-bottom:6px';
-        var header=document.createElement('div');
-        header.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px';
-        header.innerHTML='<div><div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' · #'+inv.invoiceNumber:'')+'</div></div>'
-          +'<div style="text-align:right"><div style="font-size:16px;color:'+(isPaid?'var(--green-bright)':typeColors[type])+';font-weight:500">$'+total.toLocaleString()+'</div>'
-          +'<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--text-dim)')+';margin-top:2px">'+(isPaid?'Paid':'Outstanding')+'</div></div>';
+    Object.keys(vendors).sort().forEach(function(vendor){
+      var invs=vendors[vendor];var vendorTotal=invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
+      var vh=document.createElement('div');vh.style.cssText='font-size:12px;letter-spacing:0.08em;color:var(--text-dim);padding:6px 0;margin-bottom:4px;display:flex;justify-content:space-between';
+      var vn=document.createElement('span');vn.textContent=vendor;var vt=document.createElement('span');vt.textContent=fmt(vendorTotal);vh.appendChild(vn);vh.appendChild(vt);list.appendChild(vh);
+      invs.forEach(function(inv){
+        var isPaid=inv.status==='paid';var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
+        var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;padding:12px;margin-bottom:6px';
+        var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px';
+        var hdrL=document.createElement('div');hdrL.innerHTML='<div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' #'+inv.invoiceNumber:'')+'</div>';
+        var hdrR=document.createElement('div');hdrR.style.cssText='text-align:right';
+        var amtEl=document.createElement('div');amtEl.style.cssText='font-size:16px;color:'+(isPaid?'var(--green-bright)':typeColors[type])+';font-weight:500';amtEl.textContent=fmt(total);
+        var statusEl=document.createElement('div');statusEl.style.cssText='font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--text-dim)')+';margin-top:2px';statusEl.textContent=isPaid?'Paid':'Outstanding';
+        hdrR.appendChild(amtEl);hdrR.appendChild(statusEl);hdrRow.appendChild(hdrL);hdrRow.appendChild(hdrR);card.appendChild(hdrRow);
         var body=document.createElement('div');
-        (inv.lineItems||[]).forEach(function(li) {
+        (inv.lineItems||[]).forEach(function(li){
           var liDiv=document.createElement('div');liDiv.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';
-          liDiv.innerHTML='<div style="flex:1;padding-right:10px">'
-            +'<div style="font-size:13px;color:var(--text)">'+(li.description||'--')+'</div>'
-            +(li.pushed?'<div style="font-size:11px;color:var(--green-bright);margin-top:2px">Pushed to '+(li.pushedTo||'project')+'</div>':'')
-            +'</div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
-            +'<div style="font-size:13px;color:var(--text)">$'+(li.amount||0).toLocaleString()+'</div>'
-            +(!li.pushed?'<button onclick="pushLineItemToProject('+inv.id+','+li.id+')" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:2px;cursor:pointer">Push</button>':'')
-            +'</div>';
-          body.appendChild(liDiv);
+          var liL=document.createElement('div');liL.style.cssText='flex:1;padding-right:10px';
+          var liDesc=document.createElement('div');liDesc.style.cssText='font-size:13px;color:var(--text)';liDesc.textContent=li.description||'--';liL.appendChild(liDesc);
+          if(li.pushed){var pushedEl=document.createElement('div');pushedEl.style.cssText='font-size:11px;color:var(--green-bright);margin-top:2px';pushedEl.textContent='Pushed to '+(li.pushedTo||'project');liL.appendChild(pushedEl);}
+          var liR=document.createElement('div');liR.style.cssText='display:flex;align-items:center;gap:8px;flex-shrink:0';
+          var liAmt=document.createElement('div');liAmt.style.cssText='font-size:13px;color:var(--text)';liAmt.textContent=fmt(li.amount);liR.appendChild(liAmt);
+          if(!li.pushed){var pushBtn2=document.createElement('button');pushBtn2.textContent='Push';pushBtn2.style.cssText='background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:2px;cursor:pointer';(function(invId,liId){pushBtn2.addEventListener('click',function(){pushLineItemToProject(invId,liId);});})(inv.id,li.id);liR.appendChild(pushBtn2);}
+          liDiv.appendChild(liL);liDiv.appendChild(liR);body.appendChild(liDiv);
         });
+        card.appendChild(body);
         var actions=document.createElement('div');actions.style.cssText='display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap';
-        actions.innerHTML='<button onclick="toggleInvoiceStatus('+inv.id+')" style="background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">'+(isPaid?'Mark outstanding':'Mark paid')+'</button>'
-          +'<button onclick="openInvoiceForm('+inv.id+')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Edit</button>'
-          +'<button onclick="deleteInvoice('+inv.id+')" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Delete</button>';
-        card.appendChild(header);card.appendChild(body);card.appendChild(actions);list.appendChild(card);
+        var paidBtn=document.createElement('button');paidBtn.textContent=isPaid?'Mark outstanding':'Mark paid';paidBtn.style.cssText='background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){paidBtn.addEventListener('click',function(){toggleInvoiceStatus(invId);});})(inv.id);
+        var editBtn2=document.createElement('button');editBtn2.textContent='Edit';editBtn2.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){editBtn2.addEventListener('click',function(){openInvoiceForm(invId);});})(inv.id);
+        var delBtn2=document.createElement('button');delBtn2.textContent='Delete';delBtn2.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){delBtn2.addEventListener('click',function(){deleteInvoice(invId);});})(inv.id);
+        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);card.appendChild(actions);list.appendChild(card);
       });
     });
   });
+}
+
+// =================== INVOICE SCAN ===================
+function scanInvoicePhoto(input){
+  var file=input.files&&input.files[0];if(!file)return;
+  var status=document.getElementById('inv-scan-status');if(status){status.style.display='block';status.textContent='Reading invoice...';}
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var b64=e.target.result.split(',')[1];var mediaType=file.type||'image/jpeg';
+    fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:b64}},{type:'text',text:'Extract invoice data. Return ONLY JSON: {invoiceNumber,vendor,date(like "Apr 5, 2026"),type(casting/setting/dealer/findings/other),lineItems:[{description,category(casting/setting/findings/dealer/cad/other),amount}]}'}]}]})})
+    .then(function(r){return r.json();}).then(function(data){
+      var text=(data.content||[]).map(function(c){return c.text||'';}).join('');
+      try{
+        var inv=JSON.parse(text.replace(/```json|```/g,'').trim());
+        openInvoiceForm();
+        setTimeout(function(){
+          if(inv.invoiceNumber)document.getElementById('inv-number').value=inv.invoiceNumber;
+          if(inv.date)document.getElementById('inv-date').value=inv.date;
+          if(inv.type&&document.getElementById('inv-type'))document.getElementById('inv-type').value=inv.type;
+          if(inv.vendor){var vs=document.getElementById('inv-vendor');if(vs){var found=Array.from(vs.options).find(function(o){return o.text.toLowerCase()===inv.vendor.toLowerCase();});if(found){vs.value=found.value;}else{addVendor(inv.vendor);setTimeout(function(){vs.innerHTML=buildVendorOptions(inv.vendor,true);vs.value=inv.vendor;},200);}}}
+          document.getElementById('inv-line-items').innerHTML='';window._invoiceLineCounter=0;(inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
+          if(status)status.style.display='none';showToast('Invoice scanned - review and save');
+        },300);
+      }catch(err){if(status)status.textContent='Could not read - fill in manually.';setTimeout(function(){if(status)status.style.display='none';},3000);}
+    }).catch(function(){if(status)status.textContent='Scan failed.';setTimeout(function(){if(status)status.style.display='none';},3000);});
+    input.value='';
+  };reader.readAsDataURL(file);
 }
 
 // =================== PRODUCTION ===================
-if (!window._production) window._production = [];
-var _editingProdId = null;
-var _prodStoneCounter = 0;
-var _prodFindingCounter = 0;
+if(!window._production)window._production=[];
+var _editingProdId=null;var _prodStoneCounter=0;var _prodFindingCounter=0;var _prodMoldCounter=0;
+function getProduction(){return window._production||[];}
+function persistProduction(){if(window._fb)window._fb.saveProduction(window._production);}
 
-function getProduction() { return window._production || []; }
-function persistProduction() { if (window._fb) window._fb.saveProduction(window._production); }
-
-function openProductionForm(editId) {
-  _editingProdId = editId || null;
-  var form = document.getElementById('productionForm');
-  if (!form) return;
-  form.style.display = 'block';
-  document.getElementById('productionFormTitle').textContent = editId ? 'Edit production spec' : 'New production spec';
-  _prodStoneCounter = 0; _prodFindingCounter = 0;
-  document.getElementById('prod-name').value = '';
-  document.getElementById('prod-linked').value = '';
-  document.getElementById('prod-mold').value = '';
-  document.getElementById('prod-caster').value = '';
-  document.getElementById('prod-metal').value = '';
-  document.getElementById('prod-grams').value = '';
-  document.getElementById('prod-notes').value = '';
-  document.getElementById('prod-stones').innerHTML = '';
-  document.getElementById('prod-findings').innerHTML = '';
-
-  // Populate piece selector with collection pieces
-  var pieceSel = document.getElementById('prod-piece-sel');
-  pieceSel.innerHTML = '<option value="">— Select an existing collection piece...</option>';
-  getSavedQuotes().filter(function(q) {
-    return q.status === 'collection' || q.status === 'collection-quote';
-  }).forEach(function(q) {
-    var label = q.client || q.pieceType || 'Collection piece';
-    var o = document.createElement('option'); o.value = q.id; o.textContent = label; pieceSel.appendChild(o);
-  });
-  pieceSel.innerHTML += '<option value="__custom__">+ Type a custom name below</option>';
-
-  if (editId) {
-    var spec = getProduction().find(function(s) { return s.id === editId; });
-    if (spec) {
-      if (spec.linkedId) { pieceSel.value = spec.linkedId; } else { pieceSel.value = '__custom__'; }
-      document.getElementById('prod-name').value = spec.name || '';
-      document.getElementById('prod-linked').value = spec.linkedId || '';
-      document.getElementById('prod-mold').value = spec.mold || '';
-      var casterSel = document.getElementById('prod-caster');
-      if (casterSel) {
-        var knownCasters = ['Carrera','Omega','Pafco','JM'];
-        if (spec.caster && knownCasters.indexOf(spec.caster) !== -1) {
-          casterSel.value = spec.caster;
-        } else if (spec.caster) {
-          // Add custom option
-          var opt = document.createElement('option'); opt.value = spec.caster; opt.textContent = spec.caster;
-          casterSel.insertBefore(opt, casterSel.lastElementChild);
-          casterSel.value = spec.caster;
-        }
-      }
-      document.getElementById('prod-caster').value = spec.caster || '';
-      document.getElementById('prod-metal').value = spec.metal || '';
-      document.getElementById('prod-grams').value = spec.grams || '';
-      document.getElementById('prod-notes').value = spec.notes || '';
-      (spec.stones || []).forEach(function(r) { addProdStoneRow(r); });
-      (spec.findings || []).forEach(function(r) { addProdFindingRow(r); });
-    }
-  } else {
-    addProdStoneRow(); addProdFindingRow();
-  }
-  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function handleProdPieceSel() {
-  var pieceSel = document.getElementById('prod-piece-sel');
-  var nameInput = document.getElementById('prod-name');
-  var linkedInput = document.getElementById('prod-linked');
-  var val = pieceSel.value;
-  if (!val || val === '__custom__') {
-    nameInput.placeholder = 'Type a custom name';
-    nameInput.value = '';
-    linkedInput.value = '';
-    nameInput.focus();
-  } else {
-    var q = getSavedQuotes().find(function(q) { return q.id == val; });
-    if (q) {
-      nameInput.value = q.client || q.pieceType || '';
-      linkedInput.value = q.id;
-    }
-  }
-}
-
-function closeProdForm() {
-  var form = document.getElementById('productionForm');
-  if (form) form.style.display = 'none';
-  _editingProdId = null;
-}
-
-function addProdStoneRow(prefill) {
-  var id = ++_prodStoneCounter;
-  var container = document.getElementById('prod-stones');
-  var wrapper = document.createElement('div');
-  wrapper.id = 'prod-stone-wrap-' + id;
-  wrapper.style.cssText = 'background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px';
-
-  // Row 1: shape, size, qty + remove button
-  var row1 = document.createElement('div');
-  row1.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center';
-  row1.innerHTML = '<input type="text" id="ps-shape-'+id+'" value="'+(prefill&&prefill.shape||'')+'" placeholder="Shape e.g. round, rose cut" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="text" id="ps-size-'+id+'" value="'+(prefill&&prefill.size||'')+'" placeholder="Size e.g. 2.5mm" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="number" id="ps-qty-'+id+'" value="'+(prefill&&prefill.qty||'')+'" placeholder="Qty" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<button onclick="document.getElementById(\'prod-stone-wrap-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px">x</button>';
-
-  // Row 2: dealer dropdown + URL
-  var row2 = document.createElement('div');
-  row2.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';
-  var vendorOpts = buildVendorOptions(prefill&&prefill.dealer||'', true);
-  row2.innerHTML = '<select id="ps-dealer-'+id+'" onchange="handleVendorChange(this, document.getElementById(\'ps-dealer-new-'+id+'\'))" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">' + vendorOpts + '</select>'
-    + '<input type="url" id="ps-url-'+id+'" value="'+(prefill&&prefill.url||'')+'" placeholder="Product URL (optional)" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:3px;outline:none">';
-
-  // New dealer input
-  var dealerNewRow = document.createElement('div');
-  dealerNewRow.style.cssText = 'display:none;margin-bottom:6px';
-  dealerNewRow.innerHTML = '<input type="text" id="ps-dealer-new-'+id+'" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById(\'ps-dealer-'+id+'\'), this)">';
-
-  // Notes
-  var notesRow = document.createElement('div');
-  notesRow.innerHTML = '<input type="text" id="ps-notes-'+id+'" value="'+(prefill&&prefill.notes||'')+'" placeholder="Notes e.g. slightly included OK, must be eye clean" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
-
-  wrapper.appendChild(row1); wrapper.appendChild(row2); wrapper.appendChild(dealerNewRow); wrapper.appendChild(notesRow);
+function addProdMoldRow(prefill){
+  var id=++_prodMoldCounter;var container=document.getElementById('prod-molds');if(!container)return;
+  var wrapper=document.createElement('div');wrapper.id='prod-mold-wrap-'+id;wrapper.dataset.weightUnit=(prefill&&prefill.weightUnit)||'g';wrapper.style.cssText='background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:8px';
+  var wu=(prefill&&prefill.weightUnit)||'g';
+  
+  var topRow=document.createElement('div');topRow.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+  var topLabel=document.createElement('div');topLabel.style.cssText='font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)';topLabel.textContent='Mold';
+  var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0';
+  remBtn.addEventListener('click',function(){wrapper.remove();updateProdCastEst();});
+  topRow.appendChild(topLabel);topRow.appendChild(remBtn);wrapper.appendChild(topRow);
+  
+  var nameQtyRow=document.createElement('div');nameQtyRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px';
+  nameQtyRow.innerHTML='<div><div class="field-label">Mold name / #</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="e.g. M-042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div>'
+    +'<div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div>';
+  var qtyIn=nameQtyRow.querySelector('#pm-qty-'+id);if(qtyIn)qtyIn.addEventListener('input',updateProdCastEst);
+  wrapper.appendChild(nameQtyRow);
+  
+  var purityOpts=[['10k',0.417],['14k',0.583],['18k',0.75],['22k',0.917],['24k',1.0]].map(function(p){return'<option value="'+p[0]+'"'+(prefill&&prefill.purity===p[0]?' selected':'')+'>'+p[0]+'</option>';}).join('');
+  var weightRow=document.createElement('div');weightRow.style.cssText='display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin-bottom:6px;align-items:end';
+  var purityDiv=document.createElement('div');purityDiv.innerHTML='<div class="field-label">Purity</div><select id="pm-purity-'+id+'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+purityOpts+'</select>';
+  var puritySel=purityDiv.querySelector('select');if(puritySel)puritySel.addEventListener('change',updateProdCastEst);
+  
+  var gBtn=document.createElement('button');gBtn.id='pm-unit-g-'+id;gBtn.textContent='g';gBtn.style.cssText='font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:2px;border:1px solid '+(wu==='g'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='g'?'var(--teal-dim)':'none')+';color:'+(wu==='g'?'#fafaf7':'var(--text-dim)')+';cursor:pointer';
+  var dwtBtn=document.createElement('button');dwtBtn.id='pm-unit-dwt-'+id;dwtBtn.textContent='dwt';dwtBtn.style.cssText='font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:2px;border:1px solid '+(wu==='dwt'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='dwt'?'var(--teal-dim)':'none')+';color:'+(wu==='dwt'?'#fafaf7':'var(--text-dim)')+';cursor:pointer';
+  (function(moldId){gBtn.addEventListener('click',function(){setProdWeightUnit(moldId,'g');});dwtBtn.addEventListener('click',function(){setProdWeightUnit(moldId,'dwt');});})(id);
+  
+  var unitBtns=document.createElement('div');unitBtns.style.cssText='display:flex;gap:4px';unitBtns.appendChild(gBtn);unitBtns.appendChild(dwtBtn);
+  var weightLabel=document.createElement('div');weightLabel.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px';
+  var wl=document.createElement('div');wl.className='field-label';wl.style.marginBottom='0';wl.textContent='Weight';weightLabel.appendChild(wl);weightLabel.appendChild(unitBtns);
+  var weightIn=document.createElement('input');weightIn.type='number';weightIn.id='pm-weight-'+id;weightIn.value=prefill&&prefill.weight||'';weightIn.placeholder='0';weightIn.step='0.01';weightIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';weightIn.addEventListener('input',updateProdCastEst);
+  var weightDiv=document.createElement('div');weightDiv.appendChild(weightLabel);weightDiv.appendChild(weightIn);
+  
+  var convertDiv=document.createElement('div');var convertEl=document.createElement('div');convertEl.id='pm-convert-'+id;convertEl.style.cssText='font-size:11px;color:var(--text-dim);padding:8px 0;text-align:center';convertDiv.appendChild(convertEl);
+  weightRow.appendChild(purityDiv);weightRow.appendChild(weightDiv);weightRow.appendChild(convertDiv);wrapper.appendChild(weightRow);
+  
+  var estEl=document.createElement('div');estEl.id='pm-est-'+id;estEl.style.cssText='font-size:12px;color:var(--text-dim);background:var(--bg);border-radius:3px;padding:6px 8px;display:none';wrapper.appendChild(estEl);
   container.appendChild(wrapper);
+  if(prefill&&prefill.weight)updateProdCastEst();
 }
 
-function addProdFindingRow(prefill) {
-  var id = ++_prodFindingCounter;
-  var container = document.getElementById('prod-findings');
-  var wrapper = document.createElement('div');
-  wrapper.id = 'prod-finding-wrap-' + id;
-  wrapper.style.cssText = 'background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px';
-
-  // Row 1: type, spec + remove
-  var row1 = document.createElement('div');
-  row1.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
-  row1.innerHTML = '<input type="text" id="pf-type-'+id+'" value="'+(prefill&&prefill.type||'')+'" placeholder="Type e.g. chain, clasp, ear wire" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="text" id="pf-spec-'+id+'" value="'+(prefill&&prefill.spec||'')+'" placeholder="Spec e.g. 1.2mm cable 18in" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<button onclick="document.getElementById(\'prod-finding-wrap-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px">x</button>';
-
-  // Row 2: source, URL
-  var row2 = document.createElement('div');
-  row2.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px';
-  row2.innerHTML = '<input type="text" id="pf-source-'+id+'" value="'+(prefill&&prefill.source||'')+'" placeholder="Source / vendor" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="url" id="pf-url-'+id+'" value="'+(prefill&&prefill.url||'')+'" placeholder="Product URL (optional)" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:3px;outline:none">';
-
-  wrapper.appendChild(row1); wrapper.appendChild(row2);
-  container.appendChild(wrapper);
+function setProdWeightUnit(moldId,unit){
+  var wrap=document.getElementById('prod-mold-wrap-'+moldId);if(!wrap)return;wrap.dataset.weightUnit=unit;
+  var gBtn=document.getElementById('pm-unit-g-'+moldId);var dwtBtn=document.getElementById('pm-unit-dwt-'+moldId);
+  if(gBtn){gBtn.style.background=unit==='g'?'var(--teal-dim)':'none';gBtn.style.color=unit==='g'?'#fafaf7':'var(--text-dim)';gBtn.style.borderColor=unit==='g'?'var(--teal-dim)':'var(--border)';}
+  if(dwtBtn){dwtBtn.style.background=unit==='dwt'?'var(--teal-dim)':'none';dwtBtn.style.color=unit==='dwt'?'#fafaf7':'var(--text-dim)';dwtBtn.style.borderColor=unit==='dwt'?'var(--teal-dim)':'var(--border)';}
+  updateProdCastEst();
 }
-
-function saveProdSpec() {
-  var name = document.getElementById('prod-name').value.trim();
-  if (!name) { showToast('Add a piece name'); return; }
-  var stones = [];
-  document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap) {
-    var i = wrap.id.replace('prod-stone-wrap-', '');
-    var shape = document.getElementById('ps-shape-'+i) && document.getElementById('ps-shape-'+i).value.trim();
-    var size = document.getElementById('ps-size-'+i) && document.getElementById('ps-size-'+i).value.trim();
-    var qty = document.getElementById('ps-qty-'+i) && document.getElementById('ps-qty-'+i).value.trim();
-    var dealerEl = document.getElementById('ps-dealer-'+i);
-    var dealerNewEl = document.getElementById('ps-dealer-new-'+i);
-    var dealer = dealerEl ? (dealerEl.value === '__new__' ? (dealerNewEl&&dealerNewEl.value.trim()) : dealerEl.value) : '';
-    if (dealerEl && dealerEl.value === '__new__' && dealer) addVendor(dealer);
-    var url = document.getElementById('ps-url-'+i) && document.getElementById('ps-url-'+i).value.trim();
-    var notes = document.getElementById('ps-notes-'+i) && document.getElementById('ps-notes-'+i).value.trim();
-    if (shape || size || dealer) stones.push({ shape: shape, size: size, qty: qty, dealer: dealer, url: url, notes: notes });
+function updateProdCastEst(){
+  var goldSpot=window._goldSpot||0;var purityMap={'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
+  document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){
+    var i=wrap.id.replace('prod-mold-wrap-','');
+    var weightEl=document.getElementById('pm-weight-'+i);var purityEl=document.getElementById('pm-purity-'+i);var qtyEl=document.getElementById('pm-qty-'+i);var estEl=document.getElementById('pm-est-'+i);var convertEl=document.getElementById('pm-convert-'+i);
+    if(!weightEl||!purityEl)return;
+    var weightVal=parseFloat(weightEl.value)||0;var unit=wrap.dataset.weightUnit||'g';
+    var grams=unit==='dwt'?weightVal*1.55517:weightVal;var dwt=unit==='g'?weightVal/1.55517:weightVal;
+    if(convertEl&&weightVal){convertEl.textContent=unit==='g'?dwt.toFixed(2)+' dwt':grams.toFixed(2)+' g';}else if(convertEl){convertEl.textContent='';}
+    var purity=purityMap[purityEl.value]||0.75;var qty=parseInt((qtyEl&&qtyEl.value)||1)||1;
+    var metalCost=(grams/31.1035)*goldSpot*purity*qty;var castingCost=metalCost*1.25;
+    if(estEl&&weightVal&&goldSpot){
+      estEl.style.display='block';
+      var estSpan=document.createElement('span');estSpan.style.cssText='color:var(--gold);font-weight:500';estSpan.textContent=fmt(castingCost);
+      var metalSpan=document.createElement('span');metalSpan.style.cssText='color:var(--text-dim);font-size:10px';metalSpan.textContent=' (metal '+fmt(metalCost)+' + 25%)';
+      var labelSpan=document.createElement('span');labelSpan.style.color='var(--text-dim)';labelSpan.textContent='Est. today (x'+qty+'): ';
+      estEl.innerHTML='';estEl.appendChild(labelSpan);estEl.appendChild(estSpan);estEl.appendChild(metalSpan);
+    }else if(estEl){estEl.style.display='none';}
   });
-  var findings = [];
-  document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap) {
-    var i = wrap.id.replace('prod-finding-wrap-', '');
-    var type = document.getElementById('pf-type-'+i) && document.getElementById('pf-type-'+i).value.trim();
-    var spec = document.getElementById('pf-spec-'+i) && document.getElementById('pf-spec-'+i).value.trim();
-    var source = document.getElementById('pf-source-'+i) && document.getElementById('pf-source-'+i).value.trim();
-    var url = document.getElementById('pf-url-'+i) && document.getElementById('pf-url-'+i).value.trim();
-    if (type || spec || source) findings.push({ type: type, spec: spec, source: source, url: url });
-  });
-  var spec = {
-    id: _editingProdId || Date.now(),
-    name: name,
-    mold: document.getElementById('prod-mold').value.trim(),
-    caster: (function() {
-      var sel = document.getElementById('prod-caster');
-      if (!sel) return '';
-      if (sel.value === '__new__') return document.getElementById('prod-caster-new').value.trim();
-      return sel.value;
-    })(),
-    metal: document.getElementById('prod-metal').value.trim(),
-    grams: document.getElementById('prod-grams').value.trim(),
-    notes: document.getElementById('prod-notes').value.trim(),
-    linkedId: document.getElementById('prod-linked').value || null,
-    stones: stones,
-    findings: findings,
-    lastMade: _editingProdId ? (getProduction().find(function(s) { return s.id === _editingProdId; }) || {}).lastMade : null,
-  };
-  var prod = getProduction();
-  if (_editingProdId) {
-    var idx = prod.findIndex(function(s) { return s.id === _editingProdId; });
-    if (idx !== -1) prod[idx] = spec; else prod.unshift(spec);
-  } else {
-    prod.unshift(spec);
+}
+
+function addProdStoneRow(prefill){
+  var id=++_prodStoneCounter;var container=document.getElementById('prod-stones');if(!container)return;
+  var wrapper=document.createElement('div');wrapper.id='prod-stone-wrap-'+id;wrapper.style.cssText='background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px';
+  var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center';
+  var shapeIn=document.createElement('input');shapeIn.type='text';shapeIn.id='ps-shape-'+id;shapeIn.value=prefill&&prefill.shape||'';shapeIn.placeholder='Shape';shapeIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var sizeIn=document.createElement('input');sizeIn.type='text';sizeIn.id='ps-size-'+id;sizeIn.value=prefill&&prefill.size||'';sizeIn.placeholder='2.5mm';sizeIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var qtyIn=document.createElement('input');qtyIn.type='number';qtyIn.id='ps-qty-'+id;qtyIn.value=prefill&&prefill.qty||'';qtyIn.placeholder='Qty';qtyIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtn.addEventListener('click',function(){wrapper.remove();});
+  row1.appendChild(shapeIn);row1.appendChild(sizeIn);row1.appendChild(qtyIn);row1.appendChild(remBtn);
+  var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';
+  var dealerSel=document.createElement('select');dealerSel.id='ps-dealer-'+id;dealerSel.innerHTML=buildVendorOptions(prefill&&prefill.dealer||'',true);dealerSel.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='ps-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:3px;outline:none';
+  row2.appendChild(dealerSel);row2.appendChild(urlIn);
+  var dealerNewRow=document.createElement('div');dealerNewRow.style.cssText='display:none;margin-bottom:6px';
+  var dealerNewIn=document.createElement('input');dealerNewIn.type='text';dealerNewIn.id='ps-dealer-new-'+id;dealerNewIn.placeholder='New vendor';dealerNewIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';
+  dealerSel.addEventListener('change',function(){handleVendorChange(dealerSel,dealerNewIn);});
+  dealerNewIn.addEventListener('blur',function(){commitNewVendor(dealerSel,dealerNewIn);});
+  dealerNewRow.appendChild(dealerNewIn);
+  var notesIn=document.createElement('input');notesIn.type='text';notesIn.id='ps-notes-'+id;notesIn.value=prefill&&prefill.notes||'';notesIn.placeholder='Notes e.g. must be eye clean';notesIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';
+  wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);container.appendChild(wrapper);
+}
+
+function addProdFindingRow(prefill){
+  var id=++_prodFindingCounter;var container=document.getElementById('prod-findings');if(!container)return;
+  var wrapper=document.createElement('div');wrapper.id='prod-finding-wrap-'+id;wrapper.style.cssText='background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px';
+  var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
+  var typeIn=document.createElement('input');typeIn.type='text';typeIn.id='pf-type-'+id;typeIn.value=prefill&&prefill.type||'';typeIn.placeholder='Type e.g. chain, clasp';typeIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var specIn=document.createElement('input');specIn.type='text';specIn.id='pf-spec-'+id;specIn.value=prefill&&prefill.spec||'';specIn.placeholder='Spec e.g. 1.2mm cable 18in';specIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtn.addEventListener('click',function(){wrapper.remove();});
+  row1.appendChild(typeIn);row1.appendChild(specIn);row1.appendChild(remBtn);
+  var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px';
+  var sourceIn=document.createElement('input');sourceIn.type='text';sourceIn.id='pf-source-'+id;sourceIn.value=prefill&&prefill.source||'';sourceIn.placeholder='Source / vendor';sourceIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none';
+  var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='pf-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:3px;outline:none';
+  row2.appendChild(sourceIn);row2.appendChild(urlIn);
+  wrapper.appendChild(row1);wrapper.appendChild(row2);container.appendChild(wrapper);
+}
+
+function openProductionForm(editId){
+  _editingProdId=editId||null;var form=document.getElementById('productionForm');if(!form)return;form.style.display='block';
+  document.getElementById('productionFormTitle').textContent=editId?'Edit production spec':'New production spec';
+  _prodStoneCounter=0;_prodFindingCounter=0;_prodMoldCounter=0;
+  document.getElementById('prod-name').value='';document.getElementById('prod-linked').value='';document.getElementById('prod-caster').value='';
+  if(document.getElementById('prod-caster-new'))document.getElementById('prod-caster-new').style.display='none';
+  document.getElementById('prod-notes').value='';document.getElementById('prod-molds').innerHTML='';document.getElementById('prod-stones').innerHTML='';document.getElementById('prod-findings').innerHTML='';
+  var pieceSel=document.getElementById('prod-piece-sel');
+  pieceSel.innerHTML='<option value="">-- Select existing collection piece...</option>';
+  getSavedQuotes().filter(function(q){return q.status==='collection'||q.status==='collection-quote';}).forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client||q.pieceType||'Collection piece';pieceSel.appendChild(o);});
+  pieceSel.innerHTML+='<option value="__custom__">+ Type a custom name below</option>';
+  if(editId){
+    var spec=getProduction().find(function(s){return s.id===editId;});
+    if(spec){
+      pieceSel.value=spec.linkedId||'__custom__';document.getElementById('prod-name').value=spec.name||'';document.getElementById('prod-linked').value=spec.linkedId||'';
+      var casterSel=document.getElementById('prod-caster');if(casterSel){var knownCasters=['Carrera','Omega','Pafco','JM'];if(spec.caster&&knownCasters.indexOf(spec.caster)!==-1){casterSel.value=spec.caster;}else if(spec.caster){var opt=document.createElement('option');opt.value=spec.caster;opt.textContent=spec.caster;casterSel.insertBefore(opt,casterSel.lastElementChild);casterSel.value=spec.caster;}}
+      document.getElementById('prod-notes').value=spec.notes||'';
+      (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});
+    }
+  }else{addProdMoldRow();addProdStoneRow();addProdFindingRow();}
+  form.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function closeProdForm(){var form=document.getElementById('productionForm');if(form)form.style.display='none';_editingProdId=null;}
+function handleProdPieceSel(){
+  var pieceSel=document.getElementById('prod-piece-sel');var nameInput=document.getElementById('prod-name');var linkedInput=document.getElementById('prod-linked');var val=pieceSel.value;
+  if(!val||val==='__custom__'){nameInput.placeholder='Type a custom name';nameInput.value='';linkedInput.value='';nameInput.focus();}
+  else{var q=getSavedQuotes().find(function(q){return q.id==val;});if(q){nameInput.value=q.client||q.pieceType||'';linkedInput.value=q.id;}}
+}
+function saveProdSpec(){
+  var name=document.getElementById('prod-name').value.trim();if(!name){showToast('Add a piece name');return;}
+  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';if(shape||size||dealer)stones.push({shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes});});
+  var findings=[];document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-finding-wrap-','');var tEl=document.getElementById('pf-type-'+i);var sEl=document.getElementById('pf-spec-'+i);var srEl=document.getElementById('pf-source-'+i);var uEl=document.getElementById('pf-url-'+i);var type=tEl?tEl.value.trim():'';var spec=sEl?sEl.value.trim():'';var source=srEl?srEl.value.trim():'';var url=uEl?uEl.value.trim():'';if(type||spec||source)findings.push({type:type,spec:spec,source:source,url:url});});
+  var molds=[];document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-mold-wrap-','');var nEl=document.getElementById('pm-name-'+i);var pEl=document.getElementById('pm-purity-'+i);var wEl=document.getElementById('pm-weight-'+i);var qEl=document.getElementById('pm-qty-'+i);var moldName=nEl?nEl.value.trim():'';var purity=pEl?pEl.value:'18k';var weight=wEl?wEl.value.trim():'';var qty=qEl?parseInt(qEl.value)||1:1;var weightUnit=wrap.dataset.weightUnit||'g';if(moldName||weight)molds.push({name:moldName,purity:purity,weight:weight,weightUnit:weightUnit,qty:qty});});
+  var existing=_editingProdId?(getProduction().find(function(s){return s.id===_editingProdId;})||{}):{};
+  var casterEl=document.getElementById('prod-caster');var caster=casterEl?(casterEl.value==='__new__'?(document.getElementById('prod-caster-new')?document.getElementById('prod-caster-new').value.trim():''):casterEl.value):'';
+  var spec2={id:_editingProdId||Date.now(),name:name,caster:caster,notes:document.getElementById('prod-notes').value.trim(),linkedId:document.getElementById('prod-linked').value||null,molds:molds,stones:stones,findings:findings,lastMadeHistory:existing.lastMadeHistory||[]};
+  var prod=getProduction();if(_editingProdId){var idx=prod.findIndex(function(s){return s.id===_editingProdId;});if(idx!==-1)prod[idx]=spec2;else prod.unshift(spec2);}else{prod.unshift(spec2);}
+  window._production=prod;persistProduction();closeProdForm();renderProduction();showToast('Saved');
+}
+
+function markProdLastMade(id){
+  var prod=getProduction();var spec=prod.find(function(s){return s.id===id;});if(!spec)return;
+  var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var modal=document.createElement('div');modal.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:380px';
+  var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var title=document.createElement('div');title.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px';title.textContent='Log production run';modal.appendChild(title);
+  var dateDiv=document.createElement('div');dateDiv.style.marginBottom='10px';dateDiv.innerHTML='<div class="field-label">Date invoiced</div>';var dateIn=document.createElement('input');dateIn.type='text';dateIn.id='pm-log-date';dateIn.value=today;dateIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box';dateDiv.appendChild(dateIn);modal.appendChild(dateDiv);
+  var costDiv=document.createElement('div');costDiv.style.marginBottom='10px';costDiv.innerHTML='<div class="field-label">Actual casting cost</div>';var costIn=document.createElement('input');costIn.type='number';costIn.id='pm-log-cost';costIn.placeholder='0';costIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box';costDiv.appendChild(costIn);modal.appendChild(costDiv);
+  var vendorDiv=document.createElement('div');vendorDiv.style.marginBottom='14px';vendorDiv.innerHTML='<div class="field-label">Casting vendor</div>';var vendorIn=document.createElement('input');vendorIn.type='text';vendorIn.id='pm-log-vendor';vendorIn.value=spec.caster||'';vendorIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box';vendorDiv.appendChild(vendorIn);modal.appendChild(vendorDiv);
+  var goldSpot=window._goldSpot||0;var purityMap={'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
+  if(goldSpot&&spec.molds&&spec.molds.length){
+    var estDiv=document.createElement('div');estDiv.style.cssText='background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:14px;font-size:12px';
+    var estLabel=document.createElement('div');estLabel.style.cssText='font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px';estLabel.textContent='Today at '+fmt(goldSpot)+'/oz';estDiv.appendChild(estLabel);
+    var totalEst=0;
+    spec.molds.forEach(function(m){var w=parseFloat(m.weight)||0;var grams=m.weightUnit==='dwt'?w*1.55517:w;var purity=purityMap[m.purity]||0.75;var qty=parseInt(m.qty)||1;var est=(grams/31.1035)*goldSpot*purity*qty*1.25;totalEst+=est;var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;padding:3px 0';var lbl=document.createElement('span');lbl.style.color='var(--text-dim)';lbl.textContent=(m.name||'Mold')+' x'+qty;var val=document.createElement('span');val.style.color='var(--gold)';val.textContent=fmt(est);row.appendChild(lbl);row.appendChild(val);estDiv.appendChild(row);});
+    if(spec.molds.length>1){var totalRow=document.createElement('div');totalRow.style.cssText='display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--border);margin-top:4px';var tl=document.createElement('span');tl.style.color='var(--text-dim)';tl.textContent='Total est.';var tv=document.createElement('span');tv.style.cssText='color:var(--gold);font-weight:500';tv.textContent=fmt(totalEst);totalRow.appendChild(tl);totalRow.appendChild(tv);estDiv.appendChild(totalRow);}
+    modal.appendChild(estDiv);
   }
-  window._production = prod;
-  persistProduction();
-  closeProdForm();
-  renderProduction();
-  showToast('Saved');
+  var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
+  var saveBtn=document.createElement('button');saveBtn.textContent='Save';saveBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  saveBtn.addEventListener('click',function(){var date=dateIn.value.trim()||today;var cost=parseFloat(costIn.value)||0;var vendor=vendorIn.value.trim();if(!spec.lastMadeHistory)spec.lastMadeHistory=[];spec.lastMadeHistory.unshift({date:date,cost:cost,vendor:vendor,goldSpot:window._goldSpot||0});window._production=prod;persistProduction();overlay.remove();renderProduction();showToast('Production run logged');});
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:3px;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
+  btnRow.appendChild(saveBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
+function deleteProdSpec(id){if(!confirm('Delete this production spec?'))return;window._production=getProduction().filter(function(s){return s.id!==id;});persistProduction();renderProduction();}
 
-function markProdLastMade(id) {
-  var prod = getProduction();
-  var spec = prod.find(function(s) { return s.id === id; });
-  if (!spec) return;
-  spec.lastMade = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-  window._production = prod;
-  persistProduction();
-  renderProduction();
-  showToast('Marked as made today');
-}
-
-function deleteProdSpec(id) {
-  if (!confirm('Delete this production spec?')) return;
-  window._production = getProduction().filter(function(s) { return s.id !== id; });
-  persistProduction();
-  renderProduction();
-}
-
-function renderProduction() {
-  var list = document.getElementById('productionList');
-  if (!list) return;
-  var specs = getProduction();
-  if (!specs.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No production specs yet.</div>';
-    return;
-  }
-  list.innerHTML = '';
-  specs.forEach(function(spec) {
-    var linked = spec.linkedId ? getSavedQuotes().find(function(q) { return q.id == spec.linkedId; }) : null;
-    var card = document.createElement('div');
-    card.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;padding:14px;margin-bottom:10px';
-
-    // Header
-    var header = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
-      + '<div><div style="font-size:16px;color:var(--text);font-weight:500">' + spec.name + '</div>'
-      + (linked ? '<div style="font-size:12px;color:var(--teal-dim);margin-top:2px">→ ' + (linked.client || 'Collection piece') + '</div>' : '')
-      + (spec.lastMade ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">Last made: ' + spec.lastMade + '</div>' : '')
-      + '</div>'
-      + '<div style="display:flex;gap:6px">'
-      + '<button onclick="markProdLastMade(' + spec.id + ')" style="background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Made today</button>'
-      + '<button onclick="openProductionForm(' + spec.id + ')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Edit</button>'
-      + '<button onclick="deleteProdSpec(' + spec.id + ')" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Delete</button>'
-      + '</div></div>';
-
-    // Metal / mold info
-    var meta = '';
-    if (spec.mold || spec.caster || spec.metal || spec.grams) {
-      meta += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:12px;margin-bottom:10px;padding:8px;background:var(--surface2);border-radius:3px">';
-      if (spec.mold) meta += '<span style="color:var(--text-dim)">Mold</span><span style="color:var(--text)">' + spec.mold + '</span>';
-      if (spec.caster) meta += '<span style="color:var(--text-dim)">Caster</span><span style="color:var(--text)">' + spec.caster + '</span>';
-      if (spec.metal) meta += '<span style="color:var(--text-dim)">Metal</span><span style="color:var(--text)">' + spec.metal + '</span>';
-      if (spec.grams) meta += '<span style="color:var(--text-dim)">Grams</span><span style="color:var(--text)">' + spec.grams + '</span>';
-      meta += '</div>';
-    }
-
-    // Stones
-    var stonesHtml = '';
-    if (spec.stones && spec.stones.length) {
-      stonesHtml += '<div style="margin-bottom:10px">';
-      stonesHtml += '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Stones</div>';
-      spec.stones.forEach(function(st) {
-        stonesHtml += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)">'
-          + '<div style="flex:1;padding-right:8px"><div style="font-size:13px;color:var(--text)">' + [st.shape, st.size, st.qty ? 'x' + st.qty : ''].filter(Boolean).join(' · ') + '</div>'
-          + (st.dealer ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + st.dealer + '</div>' : '')
-          + (st.notes ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic">' + st.notes + '</div>' : '')
-          + '</div>'
-          + (st.url ? '<a href="' + st.url + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0">→ Link</a>' : '')
-          + '</div>';
+function renderProduction(){
+  var list=document.getElementById('productionList');if(!list)return;var specs=getProduction();
+  if(!specs.length){list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No production specs yet.</div>';return;}
+  list.innerHTML='';var goldSpot=window._goldSpot||0;var purityMap={'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
+  specs.forEach(function(spec){
+    var linked=spec.linkedId?getSavedQuotes().find(function(q){return q.id==spec.linkedId;}):null;
+    var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;padding:14px;margin-bottom:10px';
+    
+    var hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px';
+    var hdrL=document.createElement('div');
+    var nameEl=document.createElement('div');nameEl.style.cssText='font-size:16px;color:var(--text);font-weight:500';nameEl.textContent=spec.name;hdrL.appendChild(nameEl);
+    if(linked){var linkedEl=document.createElement('div');linkedEl.style.cssText='font-size:12px;color:var(--teal-dim);margin-top:2px';linkedEl.textContent=linked.client||'Collection piece';hdrL.appendChild(linkedEl);}
+    if(spec.caster){var casterEl=document.createElement('div');casterEl.style.cssText='font-size:12px;color:var(--text-dim);margin-top:2px';casterEl.textContent=spec.caster;hdrL.appendChild(casterEl);}
+    var hdrR=document.createElement('div');hdrR.style.cssText='display:flex;gap:6px';
+    var runBtn=document.createElement('button');runBtn.textContent='+ Run';runBtn.style.cssText='background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(sid){runBtn.addEventListener('click',function(){markProdLastMade(sid);});})(spec.id);
+    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(){openProductionForm(sid);});})(spec.id);
+    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(){deleteProdSpec(sid);});})(spec.id);
+    hdrR.appendChild(runBtn);hdrR.appendChild(editBtn);hdrR.appendChild(delBtn);hdr.appendChild(hdrL);hdr.appendChild(hdrR);card.appendChild(hdr);
+    
+    if(spec.molds&&spec.molds.length){
+      var moldSection=document.createElement('div');moldSection.style.marginBottom='12px';
+      var moldLabel=document.createElement('div');moldLabel.style.cssText='font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px';moldLabel.textContent='Molds';moldSection.appendChild(moldLabel);
+      var totalEstToday=0;
+      spec.molds.forEach(function(m){
+        var w=parseFloat(m.weight)||0;var grams=m.weightUnit==='dwt'?w*1.55517:w;var dwt=m.weightUnit==='g'?w/1.55517:w;var purity=purityMap[m.purity]||0.75;var qty=parseInt(m.qty)||1;var estToday=goldSpot?Math.round((grams/31.1035)*goldSpot*purity*qty*1.25):0;totalEstToday+=estToday;
+        var mCard=document.createElement('div');mCard.style.cssText='background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start';
+        var mL=document.createElement('div');var mName=document.createElement('div');mName.style.cssText='font-size:13px;color:var(--text);font-weight:500';mName.textContent=m.name||'Mold';mL.appendChild(mName);var mInfo=document.createElement('div');mInfo.style.cssText='font-size:12px;color:var(--text-dim);margin-top:2px';mInfo.textContent=m.purity+' - '+(m.weightUnit==='g'?w+'g / '+dwt.toFixed(2)+'dwt':dwt.toFixed(2)+'dwt / '+grams.toFixed(2)+'g')+' - x'+qty;mL.appendChild(mInfo);mCard.appendChild(mL);
+        if(estToday){var mR=document.createElement('div');mR.style.textAlign='right';var estVal=document.createElement('div');estVal.style.cssText='font-size:13px;color:var(--gold)';estVal.textContent=fmt(estToday);var estLbl=document.createElement('div');estLbl.style.cssText='font-size:10px;color:var(--text-dim)';estLbl.textContent='est. today';mR.appendChild(estVal);mR.appendChild(estLbl);mCard.appendChild(mR);}
+        moldSection.appendChild(mCard);
       });
-      stonesHtml += '</div>';
+      if(spec.molds.length>1&&totalEstToday){var totalRow=document.createElement('div');totalRow.style.cssText='display:flex;justify-content:space-between;padding:4px 0;font-size:12px';var tl=document.createElement('span');tl.style.color='var(--text-dim)';tl.textContent='Total est. today';var tv=document.createElement('span');tv.style.cssText='color:var(--gold);font-weight:500';tv.textContent=fmt(totalEstToday);totalRow.appendChild(tl);totalRow.appendChild(tv);moldSection.appendChild(totalRow);}
+      card.appendChild(moldSection);
     }
-
-    // Findings
-    var findingsHtml = '';
-    if (spec.findings && spec.findings.length) {
-      findingsHtml += '<div style="margin-bottom:10px">';
-      findingsHtml += '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Findings & chain</div>';
-      spec.findings.forEach(function(f) {
-        findingsHtml += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)">'
-          + '<div><div style="font-size:13px;color:var(--text)">' + [f.type, f.spec].filter(Boolean).join(' — ') + '</div>'
-          + (f.source ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + f.source + '</div>' : '')
-          + '</div>'
-          + (f.url ? '<a href="' + f.url + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0;margin-left:8px">→ Link</a>' : '')
-          + '</div>';
-      });
-      findingsHtml += '</div>';
+    
+    if(spec.lastMadeHistory&&spec.lastMadeHistory.length){
+      var histSection=document.createElement('div');histSection.style.marginBottom='10px';var histLabel=document.createElement('div');histLabel.style.cssText='font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px';histLabel.textContent='Production history';histSection.appendChild(histLabel);
+      spec.lastMadeHistory.slice(0,3).forEach(function(run){var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';var rl=document.createElement('div');var rd=document.createElement('div');rd.style.cssText='font-size:13px;color:var(--text)';rd.textContent=run.date+(run.vendor?' - '+run.vendor:'');rl.appendChild(rd);if(run.goldSpot){var rg=document.createElement('div');rg.style.cssText='font-size:11px;color:var(--text-dim);margin-top:1px';rg.textContent='Gold at '+fmt(run.goldSpot)+'/oz';rl.appendChild(rg);}var rr=document.createElement('div');rr.style.cssText='font-size:13px;color:var(--text);font-weight:500';rr.textContent=run.cost?fmt(run.cost):'cost not entered';row.appendChild(rl);row.appendChild(rr);histSection.appendChild(row);});
+      card.appendChild(histSection);
     }
-
-    // Notes
-    var notesHtml = spec.notes ? '<div style="font-size:13px;color:var(--text-dim);font-style:italic;border-top:1px solid var(--border);padding-top:8px;margin-top:4px">' + spec.notes + '</div>' : '';
-
-    card.innerHTML = header + meta + stonesHtml + findingsHtml + notesHtml;
+    
+    if(spec.stones&&spec.stones.length){var stSection=document.createElement('div');stSection.style.marginBottom='10px';var stLabel=document.createElement('div');stLabel.style.cssText='font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px';stLabel.textContent='Stones';stSection.appendChild(stLabel);spec.stones.forEach(function(st){var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';var rl=document.createElement('div');rl.style.cssText='flex:1;padding-right:8px';var info=document.createElement('div');info.style.cssText='font-size:13px;color:var(--text)';info.textContent=[st.shape,st.size,st.qty?'x'+st.qty:''].filter(Boolean).join(' - ');rl.appendChild(info);if(st.dealer){var dl=document.createElement('div');dl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';dl.textContent=st.dealer;rl.appendChild(dl);}if(st.notes){var nl=document.createElement('div');nl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic';nl.textContent=st.notes;rl.appendChild(nl);}row.appendChild(rl);if(st.url){var la=document.createElement('a');la.href=st.url;la.target='_blank';la.rel='noopener';la.textContent='Link';la.style.cssText='font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0';row.appendChild(la);}stSection.appendChild(row);});card.appendChild(stSection);}
+    
+    if(spec.findings&&spec.findings.length){var fiSection=document.createElement('div');fiSection.style.marginBottom='10px';var fiLabel=document.createElement('div');fiLabel.style.cssText='font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px';fiLabel.textContent='Findings';fiSection.appendChild(fiLabel);spec.findings.forEach(function(f){var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';var rl=document.createElement('div');var info=document.createElement('div');info.style.cssText='font-size:13px;color:var(--text)';info.textContent=[f.type,f.spec].filter(Boolean).join(' - ');rl.appendChild(info);if(f.source){var sl=document.createElement('div');sl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';sl.textContent=f.source;rl.appendChild(sl);}row.appendChild(rl);if(f.url){var la=document.createElement('a');la.href=f.url;la.target='_blank';la.rel='noopener';la.textContent='Link';la.style.cssText='font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0;margin-left:8px';row.appendChild(la);}fiSection.appendChild(row);});card.appendChild(fiSection);}
+    
+    if(spec.notes){var notesEl=document.createElement('div');notesEl.style.cssText='font-size:13px;color:var(--text-dim);font-style:italic;border-top:1px solid var(--border);padding-top:8px;margin-top:4px';notesEl.textContent=spec.notes;card.appendChild(notesEl);}
     list.appendChild(card);
   });
 }
-
-
-// =================== INVOICE SCAN ===================
-function scanInvoicePhoto(input) {
-  var file = input.files && input.files[0];
-  if (!file) return;
-  var status = document.getElementById('inv-scan-status');
-  if (status) { status.style.display = 'block'; status.textContent = 'Reading invoice...'; }
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var b64 = e.target.result.split(',')[1];
-    var mediaType = file.type || 'image/jpeg';
-    fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
-            { type: 'text', text: 'Extract the invoice data from this image. Return ONLY a JSON object with these fields: invoiceNumber (string), vendor (string), date (string, formatted like "Apr 5, 2026"), type (one of: casting, setting, dealer, findings, other — infer from vendor/context), lineItems (array of objects with: description (string), category (one of: casting, setting, findings, dealer, cad, other), amount (number)). If a field is unclear, use an empty string or 0. No explanation, just the JSON.' }
-          ]
-        }]
-      })
-    }).then(function(r) { return r.json(); }).then(function(data) {
-      var text = (data.content || []).map(function(c) { return c.text || ''; }).join('');
-      try {
-        var clean = text.replace(/```json|```/g, '').trim();
-        var inv = JSON.parse(clean);
-        openInvoiceForm();
-        setTimeout(function() {
-          if (inv.invoiceNumber) document.getElementById('inv-number').value = inv.invoiceNumber;
-          if (inv.date) document.getElementById('inv-date').value = inv.date;
-          if (inv.type) { var typeEl = document.getElementById('inv-type'); if (typeEl) typeEl.value = inv.type; }
-          if (inv.vendor) {
-            var vendorSel = document.getElementById('inv-vendor');
-            if (vendorSel) {
-              var found = Array.from(vendorSel.options).find(function(o) { return o.text.toLowerCase() === inv.vendor.toLowerCase(); });
-              if (found) { vendorSel.value = found.value; }
-              else {
-                addVendor(inv.vendor);
-                setTimeout(function() {
-                  vendorSel.innerHTML = buildVendorOptions(inv.vendor, true);
-                  vendorSel.value = inv.vendor;
-                }, 200);
-              }
-            }
-          }
-          document.getElementById('inv-line-items').innerHTML = '';
-          window._invoiceLineCounter = 0;
-          (inv.lineItems || []).forEach(function(li) { addInvoiceLineItem(li); });
-          if (status) { status.style.display = 'none'; }
-          showToast('Invoice scanned — review and save');
-        }, 300);
-      } catch(err) {
-        if (status) { status.textContent = 'Could not read invoice — fill in manually.'; }
-        setTimeout(function() { if (status) status.style.display = 'none'; }, 3000);
-      }
-    }).catch(function() {
-      if (status) { status.textContent = 'Scan failed — fill in manually.'; }
-      setTimeout(function() { if (status) status.style.display = 'none'; }, 3000);
-    });
-    // Discard image immediately
-    input.value = '';
-  };
-  reader.readAsDataURL(file);
-}
-
 
 
 </script>
@@ -8043,7 +7758,6 @@ function scanInvoicePhoto(input) {
     saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
     saveVendors: (data) => set(ref(db, 'vendors'), data),
     saveInvoices: (data) => set(ref(db, 'invoices'), data),
-    saveProduction: (data) => set(ref(db, 'production'), data),
   };
   window._chainPhotos = {};
 
@@ -8103,12 +7817,6 @@ function scanInvoicePhoto(input) {
     const val = snap.val();
     window._invoices = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     if (typeof renderInvoices === 'function') renderInvoices();
-  });
-
-  onValue(ref(db, 'production'), snap => {
-    const val = snap.val();
-    window._production = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
-    if (typeof renderProduction === 'function') renderProduction();
   });
   onValue(ref(db, 'inventory'), snap => {
     const val = snap.val();
