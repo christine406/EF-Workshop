@@ -4670,19 +4670,21 @@ function renderPL() {
     const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
     let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
     if (q.isMultiPiece) {
-      // Sum costs across all pieces
-      stoneCost = (q.pieces||[]).some(p => p.actualStoneCost != null)
-        ? (q.pieces||[]).reduce((s,p) => s + (p.actualStoneCost ?? p.stoneCost ?? 0), 0)
-        : (q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0), 0));
+      // Sum costs across all pieces — use piece's stones array as fallback for stone cost
+      stoneCost = (q.pieces||[]).reduce((s,p) => {
+        const actual = p.actualStoneCost;
+        const fromStones = (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0);
+        return s + (actual != null ? actual : fromStones);
+      }, 0);
       metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null)
         ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0)
-        : (q.actualMetalCost ?? 0);
+        : (q.pieces||[]).reduce((s,p) => s + (p.metalCost||0), 0);
       laborCost = (q.pieces||[]).some(p => p.actualLabor != null)
         ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0)
-        : (q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0));
+        : (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0);
       chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
       designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
-      meleeCost = 0;
+      meleeCost = (q.pieces||[]).reduce((s,p) => s + (p.actualMeleeCost ?? p.meleeCost ?? 0), 0);
     } else {
       stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0)
         ? q.actualStoneCost
@@ -4736,12 +4738,16 @@ function renderPL() {
       const usingQuotedRetail = !(q.clientPrice > 0);
       let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
       if (q.isMultiPiece) {
-        stoneCost = (q.pieces||[]).some(p => p.actualStoneCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualStoneCost ?? p.stoneCost ?? 0), 0) : (q.actualStoneCost ?? (q.pieces||[]).reduce((s,p) => s + (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0), 0));
-        metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0) : (q.actualMetalCost ?? 0);
-        laborCost = (q.pieces||[]).some(p => p.actualLabor != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0) : (q.actualLabor ?? (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0));
+        stoneCost = (q.pieces||[]).reduce((s,p) => {
+          const actual = p.actualStoneCost;
+          const fromStones = (p.stones||[]).reduce((ss,st) => ss + (st.cost||0), 0) + (p.stoneCost||0);
+          return s + (actual != null ? actual : fromStones);
+        }, 0);
+        metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0) : (q.pieces||[]).reduce((s,p) => s + (p.metalCost||0), 0);
+        laborCost = (q.pieces||[]).some(p => p.actualLabor != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0) : (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0);
         chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
         designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
-        meleeCost = 0;
+        meleeCost = (q.pieces||[]).reduce((s,p) => s + (p.actualMeleeCost ?? p.meleeCost ?? 0), 0);
       } else {
         stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0) ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
         meleeCost = (q.actualMeleeCost != null) ? q.actualMeleeCost : (q.meleeCost || 0);
@@ -5029,10 +5035,11 @@ function convertToProject(id, e) {
     if (q.actualDesignFee == null) q.actualDesignFee = q.designFee || 0;
     if (q.actualChainCost == null) q.actualChainCost = q.chainCost || 0;
 
-    // For multi-piece sets, pre-fill each piece
+    // For multi-piece sets, pre-fill each piece from its own stones array
     if (q.isMultiPiece && q.pieces) {
       q.pieces.forEach(p => {
-        if (p.actualStoneCost == null) p.actualStoneCost = p.stoneCost || 0;
+        const pieceStonesCost = (p.stones||[]).reduce((s,st) => s + (st.cost||0), 0) + (p.stoneCost||0);
+        if (p.actualStoneCost == null) p.actualStoneCost = pieceStonesCost;
         if (p.actualMeleeCost == null) p.actualMeleeCost = p.meleeCost || 0;
         if (p.actualMetalCost == null) p.actualMetalCost = p.metalCost || 0;
         if (p.actualLabor == null) p.actualLabor = p.laborEst || 0;
