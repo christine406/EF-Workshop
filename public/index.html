@@ -8417,7 +8417,10 @@ function calcProdRetail(showBreakdown) {
   var laborCost = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
   var findingsCost = parseFloat(document.getElementById('prod-findings-cost').value) || 0;
   var designFee = parseFloat(document.getElementById('prod-design-fee').value) || 0;
-  if (!stoneCost && !meleeCost && !metalCost && !laborCost && !findingsCost && !designFee) return;
+  if (!stoneCost && !meleeCost && !metalCost && !laborCost && !findingsCost && !designFee) {
+    var retailField0 = document.getElementById('prod-retail-price');
+    if (retailField0 && !showBreakdown) return; // only block live update, not button click
+  }
   var purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
   var goldSpot = window._goldSpot || 0;
   // If metal cost is 0 and we have molds, pre-fill from mold estimate
@@ -8456,6 +8459,10 @@ function calcProdRetail(showBreakdown) {
   var overhead = (metalRetail + findingsRetail + laborRetail + meleeRetail + designFee) * 1.13;
   var suggested = Math.round((stoneRetail + overhead) / 50) * 50;
   var bd = document.getElementById('prod-calc-breakdown');
+  var suggested_rounded = suggested;
+  // Always update the retail price field live
+  var retailField = document.getElementById('prod-retail-price');
+  if (retailField && suggested) retailField.value = suggested_rounded;
   if (bd && showBreakdown) {
     var lines = [];
     if (stoneCost) lines.push('Stone ' + fmt(stoneCost) + ' x' + stoneMarkup(stoneCost) + ' = ' + fmt(stoneRetail));
@@ -8467,7 +8474,6 @@ function calcProdRetail(showBreakdown) {
     lines.push('Suggested retail: ' + fmt(suggested));
     bd.style.display = 'block';
     bd.innerHTML = lines.join('<br>');
-    document.getElementById('prod-retail-price').value = suggested;
   } else if (bd && !showBreakdown) {
     bd.style.display = 'none';
   }
