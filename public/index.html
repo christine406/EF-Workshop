@@ -1276,8 +1276,11 @@
           <button class="toggle-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
           <button class="toggle-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
         </div>
-        <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New invoice</button>
+        <button onclick="document.getElementById('inv-scan-input').click()" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:3px;cursor:pointer;white-space:nowrap">📷 Scan</button>
+        <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New</button>
       </div>
+      <input type="file" id="inv-scan-input" accept="image/*" capture="environment" style="display:none" onchange="scanInvoicePhoto(this)">
+      <div id="inv-scan-status" style="display:none;background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--teal-dim);text-align:center">Reading invoice...</div>
       <div id="invoiceForm" style="display:none;background:var(--surface2);border-radius:4px;padding:14px;margin-bottom:16px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -1288,6 +1291,16 @@
           <div class="field-label">Vendor</div>
           <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'))" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></select>
           <div id="inv-vendor-other-row" style="display:none;margin-top:6px"><input type="text" id="inv-vendor-other" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('inv-vendor'),this)"></div>
+        </div>
+        <div style="margin-bottom:10px">
+          <div class="field-label">Type</div>
+          <select id="inv-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+            <option value="casting">Casting</option>
+            <option value="setting">Setting</option>
+            <option value="dealer">Dealer</option>
+            <option value="findings">Findings</option>
+            <option value="other">Other</option>
+          </select>
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -7388,6 +7401,7 @@ function openInvoiceForm(editId) {
     if (inv) {
       document.getElementById('inv-number').value = inv.invoiceNumber || '';
       document.getElementById('inv-date').value = inv.date || '';
+      if (document.getElementById('inv-type')) document.getElementById('inv-type').value = inv.type || 'other';
       if (invVendor) invVendor.value = inv.vendor || '';
       (inv.lineItems || []).forEach(function(li) { addInvoiceLineItem(li); });
     }
@@ -7448,7 +7462,8 @@ function saveInvoice() {
     var inv = invoices.find(function(i){return i.id===_editingInvoiceId;});
     if (inv) { inv.invoiceNumber=num; inv.date=date; inv.vendor=vendor; inv.lineItems=lineItems; }
   } else {
-    invoices.unshift({id:Date.now(), invoiceNumber:num, vendor:vendor, date:date, status:'outstanding', lineItems:lineItems});
+    var invType = document.getElementById('inv-type') ? document.getElementById('inv-type').value : 'other';
+    invoices.unshift({id:Date.now(), invoiceNumber:num, vendor:vendor, date:date, type:invType, status:'outstanding', lineItems:lineItems});
   }
   window._invoices = invoices; persistInvoices(); closeInvoiceForm(); renderInvoices(); showToast('Invoice saved');
 }
@@ -7544,34 +7559,80 @@ function renderInvoices() {
   else if (_invoiceFilter==='paid') invoices=invoices.filter(function(i){return i.status==='paid';});
   if (!invoices.length) { list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No invoices yet.</div>'; return; }
   list.innerHTML='';
+
+  // Group by type then vendor
+  var typeOrder = ['casting','setting','dealer','findings','other'];
+  var typeLabels = { casting:'Casting', setting:'Setting', dealer:'Dealers', findings:'Findings', other:'Other' };
+  var typeColors = { casting:'#a07cc5', setting:'var(--teal-dim)', dealer:'var(--gold)', findings:'#7aaa8a', other:'var(--text-dim)' };
+
+  var byType = {};
+  typeOrder.forEach(function(t) { byType[t] = {}; });
   invoices.forEach(function(inv) {
-    var isPaid=inv.status==='paid';
-    var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
-    var card=document.createElement('div');
-    card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':'var(--gold)')+';border-radius:4px;padding:14px;margin-bottom:8px';
-    var header=document.createElement('div');header.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px';
-    header.innerHTML='<div><div style="font-size:16px;color:var(--text);font-weight:500">'+(inv.vendor||'--')+'</div>'
-      +'<div style="font-size:12px;color:var(--text-dim);margin-top:2px">'+(inv.date||'')+(inv.invoiceNumber?' #'+inv.invoiceNumber:'')+'</div></div>'
-      +'<div style="text-align:right"><div style="font-size:18px;color:'+(isPaid?'var(--green-bright)':'var(--gold)')+';font-weight:500">$'+total.toLocaleString()+'</div>'
-      +'<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--gold)')+';margin-top:2px">'+(isPaid?'Paid':'Outstanding')+'</div></div>';
-    var body=document.createElement('div');
-    (inv.lineItems||[]).forEach(function(li) {
-      var liDiv=document.createElement('div');liDiv.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-top:1px solid var(--border)';
-      liDiv.innerHTML='<div style="flex:1;padding-right:10px">'
-        +'<div style="font-size:13px;color:var(--text)">'+(li.description||'--')+'</div>'
-        +'<div style="font-size:11px;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:0.07em">'+li.category+'</div>'
-        +(li.pushed?'<div style="font-size:11px;color:var(--green-bright);margin-top:2px">Pushed to '+(li.pushedTo||'project')+'</div>':'')
-        +'</div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
-        +'<div style="font-size:14px;color:var(--text)">$'+(li.amount||0).toLocaleString()+'</div>'
-        +(!li.pushed?'<button onclick="pushLineItemToProject('+inv.id+','+li.id+')" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer">Push</button>':'')
-        +'</div>';
-      body.appendChild(liDiv);
+    var t = inv.type || 'other';
+    if (!byType[t]) byType[t] = {};
+    var v = inv.vendor || 'Unknown';
+    if (!byType[t][v]) byType[t][v] = [];
+    byType[t][v].push(inv);
+  });
+
+  typeOrder.forEach(function(type) {
+    var vendors = byType[type];
+    if (!vendors || !Object.keys(vendors).length) return;
+
+    // Type section header
+    var typeHeader = document.createElement('div');
+    typeHeader.style.cssText = 'font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:'+typeColors[type]+';padding:10px 0 6px;border-bottom:2px solid '+typeColors[type]+';margin-bottom:12px;margin-top:16px;font-weight:600';
+    typeHeader.textContent = typeLabels[type] || type;
+    list.appendChild(typeHeader);
+
+    // Group total
+    var typeTotal = 0;
+    Object.values(vendors).forEach(function(invs) { invs.forEach(function(inv) { typeTotal += (inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0); }); });
+    var typeTotalEl = document.createElement('div');
+    typeTotalEl.style.cssText = 'float:right;font-size:13px;color:'+typeColors[type]+';margin-top:-28px';
+    typeTotalEl.textContent = '$' + typeTotal.toLocaleString();
+    typeHeader.style.position = 'relative';
+    typeHeader.appendChild(typeTotalEl);
+
+    Object.keys(vendors).sort().forEach(function(vendor) {
+      var invs = vendors[vendor];
+
+      // Vendor subsection
+      var vendorHeader = document.createElement('div');
+      vendorHeader.style.cssText = 'font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);padding:6px 0;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center';
+      var vendorTotal = invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
+      vendorHeader.innerHTML = '<span>' + vendor + '</span><span style="font-size:12px;color:var(--text-dim)">$'+vendorTotal.toLocaleString()+'</span>';
+      list.appendChild(vendorHeader);
+
+      invs.forEach(function(inv) {
+        var isPaid=inv.status==='paid';
+        var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
+        var card=document.createElement('div');
+        card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;padding:12px;margin-bottom:6px';
+        var header=document.createElement('div');
+        header.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px';
+        header.innerHTML='<div><div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' · #'+inv.invoiceNumber:'')+'</div></div>'
+          +'<div style="text-align:right"><div style="font-size:16px;color:'+(isPaid?'var(--green-bright)':typeColors[type])+';font-weight:500">$'+total.toLocaleString()+'</div>'
+          +'<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--text-dim)')+';margin-top:2px">'+(isPaid?'Paid':'Outstanding')+'</div></div>';
+        var body=document.createElement('div');
+        (inv.lineItems||[]).forEach(function(li) {
+          var liDiv=document.createElement('div');liDiv.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';
+          liDiv.innerHTML='<div style="flex:1;padding-right:10px">'
+            +'<div style="font-size:13px;color:var(--text)">'+(li.description||'--')+'</div>'
+            +(li.pushed?'<div style="font-size:11px;color:var(--green-bright);margin-top:2px">Pushed to '+(li.pushedTo||'project')+'</div>':'')
+            +'</div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+            +'<div style="font-size:13px;color:var(--text)">$'+(li.amount||0).toLocaleString()+'</div>'
+            +(!li.pushed?'<button onclick="pushLineItemToProject('+inv.id+','+li.id+')" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:2px;cursor:pointer">Push</button>':'')
+            +'</div>';
+          body.appendChild(liDiv);
+        });
+        var actions=document.createElement('div');actions.style.cssText='display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap';
+        actions.innerHTML='<button onclick="toggleInvoiceStatus('+inv.id+')" style="background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">'+(isPaid?'Mark outstanding':'Mark paid')+'</button>'
+          +'<button onclick="openInvoiceForm('+inv.id+')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Edit</button>'
+          +'<button onclick="deleteInvoice('+inv.id+')" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Delete</button>';
+        card.appendChild(header);card.appendChild(body);card.appendChild(actions);list.appendChild(card);
+      });
     });
-    var actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap';
-    actions.innerHTML='<button onclick="toggleInvoiceStatus('+inv.id+')" style="background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer">'+(isPaid?'Mark outstanding':'Mark paid')+'</button>'
-      +'<button onclick="openInvoiceForm('+inv.id+')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer">Edit</button>'
-      +'<button onclick="deleteInvoice('+inv.id+')" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer">Delete</button>';
-    card.appendChild(header);card.appendChild(body);card.appendChild(actions);list.appendChild(card);
   });
 }
 
@@ -7880,6 +7941,75 @@ function renderProduction() {
     card.innerHTML = header + meta + stonesHtml + findingsHtml + notesHtml;
     list.appendChild(card);
   });
+}
+
+
+// =================== INVOICE SCAN ===================
+function scanInvoicePhoto(input) {
+  var file = input.files && input.files[0];
+  if (!file) return;
+  var status = document.getElementById('inv-scan-status');
+  if (status) { status.style.display = 'block'; status.textContent = 'Reading invoice...'; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var b64 = e.target.result.split(',')[1];
+    var mediaType = file.type || 'image/jpeg';
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+            { type: 'text', text: 'Extract the invoice data from this image. Return ONLY a JSON object with these fields: invoiceNumber (string), vendor (string), date (string, formatted like "Apr 5, 2026"), type (one of: casting, setting, dealer, findings, other — infer from vendor/context), lineItems (array of objects with: description (string), category (one of: casting, setting, findings, dealer, cad, other), amount (number)). If a field is unclear, use an empty string or 0. No explanation, just the JSON.' }
+          ]
+        }]
+      })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      var text = (data.content || []).map(function(c) { return c.text || ''; }).join('');
+      try {
+        var clean = text.replace(/```json|```/g, '').trim();
+        var inv = JSON.parse(clean);
+        openInvoiceForm();
+        setTimeout(function() {
+          if (inv.invoiceNumber) document.getElementById('inv-number').value = inv.invoiceNumber;
+          if (inv.date) document.getElementById('inv-date').value = inv.date;
+          if (inv.type) { var typeEl = document.getElementById('inv-type'); if (typeEl) typeEl.value = inv.type; }
+          if (inv.vendor) {
+            var vendorSel = document.getElementById('inv-vendor');
+            if (vendorSel) {
+              var found = Array.from(vendorSel.options).find(function(o) { return o.text.toLowerCase() === inv.vendor.toLowerCase(); });
+              if (found) { vendorSel.value = found.value; }
+              else {
+                addVendor(inv.vendor);
+                setTimeout(function() {
+                  vendorSel.innerHTML = buildVendorOptions(inv.vendor, true);
+                  vendorSel.value = inv.vendor;
+                }, 200);
+              }
+            }
+          }
+          document.getElementById('inv-line-items').innerHTML = '';
+          window._invoiceLineCounter = 0;
+          (inv.lineItems || []).forEach(function(li) { addInvoiceLineItem(li); });
+          if (status) { status.style.display = 'none'; }
+          showToast('Invoice scanned — review and save');
+        }, 300);
+      } catch(err) {
+        if (status) { status.textContent = 'Could not read invoice — fill in manually.'; }
+        setTimeout(function() { if (status) status.style.display = 'none'; }, 3000);
+      }
+    }).catch(function() {
+      if (status) { status.textContent = 'Scan failed — fill in manually.'; }
+      setTimeout(function() { if (status) status.style.display = 'none'; }, 3000);
+    });
+    // Discard image immediately
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
 }
 
 
