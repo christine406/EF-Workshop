@@ -4653,8 +4653,9 @@ function renderPL() {
   const all = getSavedQuotes();
   // Include all active bespoke/semi-custom projects — exclude collection and loose sale
   const eligible = all.filter(q =>
-    (q.status === 'project' || q.status === 'completed') &&
+    (q.status === 'project' || q.status === 'completed' || q.status === 'quote') &&
     q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts' &&
+    q.status !== 'collection-quote' &&
     !q.looseSale &&
     !q.excludeFromPL
   );
@@ -4719,8 +4720,9 @@ function renderPL() {
 
   if (isExpanded) {
     const allEligible = all.filter(q =>
-      (q.status === 'project' || q.status === 'completed') &&
+      (q.status === 'project' || q.status === 'completed' || q.status === 'quote') &&
       q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts' &&
+      q.status !== 'collection-quote' &&
       !q.looseSale
     );
     html += `<div style="border-top:1px solid var(--border);padding:0 14px 12px">`;
