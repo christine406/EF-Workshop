@@ -7999,17 +7999,16 @@ function renderProduction(){
 
     // Molds — distinct background block
     if(spec.molds&&spec.molds.length){
-      var moldSection=document.createElement('div');moldSection.style.cssText='background:rgba(160,124,197,0.08);border-radius:4px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(160,124,197,0.18)';
-      var moldLabel=document.createElement('div');moldLabel.style.cssText='font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#7aaa8a;margin-bottom:8px;font-weight:600';moldLabel.textContent='Molds';moldSection.appendChild(moldLabel);
+      var moldSection=document.createElement('div');moldSection.style.cssText='background:rgba(122,170,138,0.08);border-radius:4px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(122,170,138,0.18)';
       var totalEstToday=0;
       spec.molds.forEach(function(m){
         var w=parseFloat(m.weight)||0;var grams=m.weightUnit==='dwt'?w*1.55517:w;var dwt=m.weightUnit==='g'?w/1.55517:w;var purity=purityMap[m.purity]||0.75;var qty=parseInt(m.qty)||1;var estToday=goldSpot?Math.round((grams/31.1035)*goldSpot*purity*qty*1.25):0;totalEstToday+=estToday;
-        var mCard=document.createElement('div');mCard.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(160,124,197,0.2)';
+        var mCard=document.createElement('div');mCard.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(122,170,138,0.2)';
         var mL=document.createElement('div');var mName=document.createElement('div');mName.style.cssText='font-size:13px;color:var(--text);font-weight:500';mName.textContent=m.name||'Mold';mL.appendChild(mName);var mInfo=document.createElement('div');mInfo.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';mInfo.textContent=m.purity+' · '+(m.weightUnit==='g'?w+'g / '+dwt.toFixed(2)+'dwt':dwt.toFixed(2)+'dwt / '+grams.toFixed(2)+'g')+' · x'+qty;mL.appendChild(mInfo);mCard.appendChild(mL);
         if(estToday){var mR=document.createElement('div');mR.style.textAlign='right';var estVal=document.createElement('div');estVal.style.cssText='font-size:13px;color:var(--gold)';estVal.textContent=fmt(estToday);var estLbl=document.createElement('div');estLbl.style.cssText='font-size:10px;color:var(--text-dim)';estLbl.textContent='est. today';mR.appendChild(estVal);mR.appendChild(estLbl);mCard.appendChild(mR);}
         moldSection.appendChild(mCard);
       });
-      if(spec.molds.length>1&&totalEstToday){var totalRow=document.createElement('div');totalRow.style.cssText='display:flex;justify-content:space-between;padding:6px 0 0;font-size:12px;border-top:1px solid rgba(160,124,197,0.2);margin-top:2px';var tl=document.createElement('span');tl.style.color='var(--text-dim)';tl.textContent='Total est. today';var tv=document.createElement('span');tv.style.cssText='color:var(--gold);font-weight:500';tv.textContent=fmt(totalEstToday);totalRow.appendChild(tl);totalRow.appendChild(tv);moldSection.appendChild(totalRow);}
+      if(spec.molds.length>1&&totalEstToday){var totalRow=document.createElement('div');totalRow.style.cssText='display:flex;justify-content:space-between;padding:6px 0 0;font-size:12px;border-top:1px solid rgba(122,170,138,0.2);margin-top:2px';var tl=document.createElement('span');tl.style.color='var(--text-dim)';tl.textContent='Total est. today';var tv=document.createElement('span');tv.style.cssText='color:var(--gold);font-weight:500';tv.textContent=fmt(totalEstToday);totalRow.appendChild(tl);totalRow.appendChild(tv);moldSection.appendChild(totalRow);}
       body.appendChild(moldSection);
     }
 
