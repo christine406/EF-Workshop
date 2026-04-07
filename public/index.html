@@ -1333,7 +1333,15 @@
           </div>
           <div>
             <div class="field-label">Casting vendor</div>
-            <input type="text" id="prod-caster" placeholder="e.g. Carrera" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+            <select id="prod-caster" onchange="document.getElementById('prod-caster-new').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+              <option value="">— Select</option>
+              <option value="Carrera">Carrera</option>
+              <option value="Omega">Omega</option>
+              <option value="Pafco">Pafco</option>
+              <option value="JM">JM</option>
+              <option value="__new__">+ Add new...</option>
+            </select>
+            <input type="text" id="prod-caster-new" placeholder="New casting vendor" style="display:none;width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
           </div>
           <div>
             <div class="field-label">Metal</div>
@@ -7611,6 +7619,18 @@ function openProductionForm(editId) {
       document.getElementById('prod-name').value = spec.name || '';
       document.getElementById('prod-linked').value = spec.linkedId || '';
       document.getElementById('prod-mold').value = spec.mold || '';
+      var casterSel = document.getElementById('prod-caster');
+      if (casterSel) {
+        var knownCasters = ['Carrera','Omega','Pafco','JM'];
+        if (spec.caster && knownCasters.indexOf(spec.caster) !== -1) {
+          casterSel.value = spec.caster;
+        } else if (spec.caster) {
+          // Add custom option
+          var opt = document.createElement('option'); opt.value = spec.caster; opt.textContent = spec.caster;
+          casterSel.insertBefore(opt, casterSel.lastElementChild);
+          casterSel.value = spec.caster;
+        }
+      }
       document.getElementById('prod-caster').value = spec.caster || '';
       document.getElementById('prod-metal').value = spec.metal || '';
       document.getElementById('prod-grams').value = spec.grams || '';
@@ -7652,22 +7672,35 @@ function closeProdForm() {
 function addProdStoneRow(prefill) {
   var id = ++_prodStoneCounter;
   var container = document.getElementById('prod-stones');
-  var div = document.createElement('div');
-  div.id = 'prod-stone-' + id;
-  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 60px 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
-  div.innerHTML = '<input type="text" id="ps-shape-'+id+'" value="'+(prefill&&prefill.shape||'')+'" placeholder="Shape" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="text" id="ps-size-'+id+'" value="'+(prefill&&prefill.size||'')+'" placeholder="Size e.g. 2.5mm" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="number" id="ps-qty-'+id+'" value="'+(prefill&&prefill.qty||'')+'" placeholder="Qty" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<input type="text" id="ps-source-'+id+'" value="'+(prefill&&prefill.source||'')+'" placeholder="Source / vendor" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
-    + '<button onclick="document.getElementById(\'prod-stone-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px">x</button>';
-  // URL row
-  var urlDiv = document.createElement('div');
-  urlDiv.style.cssText = 'grid-column:1/-1;margin-bottom:4px';
-  urlDiv.innerHTML = '<input type="url" id="ps-url-'+id+'" value="'+(prefill&&prefill.url||'')+'" placeholder="Product URL (optional)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:6px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
   var wrapper = document.createElement('div');
   wrapper.id = 'prod-stone-wrap-' + id;
   wrapper.style.cssText = 'background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px';
-  wrapper.appendChild(div); wrapper.appendChild(urlDiv);
+
+  // Row 1: shape, size, qty + remove button
+  var row1 = document.createElement('div');
+  row1.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center';
+  row1.innerHTML = '<input type="text" id="ps-shape-'+id+'" value="'+(prefill&&prefill.shape||'')+'" placeholder="Shape e.g. round, rose cut" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
+    + '<input type="text" id="ps-size-'+id+'" value="'+(prefill&&prefill.size||'')+'" placeholder="Size e.g. 2.5mm" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
+    + '<input type="number" id="ps-qty-'+id+'" value="'+(prefill&&prefill.qty||'')+'" placeholder="Qty" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
+    + '<button onclick="document.getElementById(\'prod-stone-wrap-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px">x</button>';
+
+  // Row 2: dealer dropdown + URL
+  var row2 = document.createElement('div');
+  row2.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';
+  var vendorOpts = buildVendorOptions(prefill&&prefill.dealer||'', true);
+  row2.innerHTML = '<select id="ps-dealer-'+id+'" onchange="handleVendorChange(this, document.getElementById(\'ps-dealer-new-'+id+'\'))" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">' + vendorOpts + '</select>'
+    + '<input type="url" id="ps-url-'+id+'" value="'+(prefill&&prefill.url||'')+'" placeholder="Product URL (optional)" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:3px;outline:none">';
+
+  // New dealer input
+  var dealerNewRow = document.createElement('div');
+  dealerNewRow.style.cssText = 'display:none;margin-bottom:6px';
+  dealerNewRow.innerHTML = '<input type="text" id="ps-dealer-new-'+id+'" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById(\'ps-dealer-'+id+'\'), this)">';
+
+  // Notes
+  var notesRow = document.createElement('div');
+  notesRow.innerHTML = '<input type="text" id="ps-notes-'+id+'" value="'+(prefill&&prefill.notes||'')+'" placeholder="Notes e.g. slightly included OK, must be eye clean" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
+
+  wrapper.appendChild(row1); wrapper.appendChild(row2); wrapper.appendChild(dealerNewRow); wrapper.appendChild(notesRow);
   container.appendChild(wrapper);
 }
 
@@ -7677,15 +7710,20 @@ function addProdFindingRow(prefill) {
   var wrapper = document.createElement('div');
   wrapper.id = 'prod-finding-wrap-' + id;
   wrapper.style.cssText = 'background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:6px';
+
+  // Row 1: type, spec + remove
   var row1 = document.createElement('div');
   row1.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
   row1.innerHTML = '<input type="text" id="pf-type-'+id+'" value="'+(prefill&&prefill.type||'')+'" placeholder="Type e.g. chain, clasp, ear wire" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
     + '<input type="text" id="pf-spec-'+id+'" value="'+(prefill&&prefill.spec||'')+'" placeholder="Spec e.g. 1.2mm cable 18in" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
     + '<button onclick="document.getElementById(\'prod-finding-wrap-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px">x</button>';
+
+  // Row 2: source, URL
   var row2 = document.createElement('div');
   row2.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px';
   row2.innerHTML = '<input type="text" id="pf-source-'+id+'" value="'+(prefill&&prefill.source||'')+'" placeholder="Source / vendor" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none">'
     + '<input type="url" id="pf-url-'+id+'" value="'+(prefill&&prefill.url||'')+'" placeholder="Product URL (optional)" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:3px;outline:none">';
+
   wrapper.appendChild(row1); wrapper.appendChild(row2);
   container.appendChild(wrapper);
 }
@@ -7699,9 +7737,13 @@ function saveProdSpec() {
     var shape = document.getElementById('ps-shape-'+i) && document.getElementById('ps-shape-'+i).value.trim();
     var size = document.getElementById('ps-size-'+i) && document.getElementById('ps-size-'+i).value.trim();
     var qty = document.getElementById('ps-qty-'+i) && document.getElementById('ps-qty-'+i).value.trim();
-    var source = document.getElementById('ps-source-'+i) && document.getElementById('ps-source-'+i).value.trim();
+    var dealerEl = document.getElementById('ps-dealer-'+i);
+    var dealerNewEl = document.getElementById('ps-dealer-new-'+i);
+    var dealer = dealerEl ? (dealerEl.value === '__new__' ? (dealerNewEl&&dealerNewEl.value.trim()) : dealerEl.value) : '';
+    if (dealerEl && dealerEl.value === '__new__' && dealer) addVendor(dealer);
     var url = document.getElementById('ps-url-'+i) && document.getElementById('ps-url-'+i).value.trim();
-    if (shape || size || source) stones.push({ shape: shape, size: size, qty: qty, source: source, url: url });
+    var notes = document.getElementById('ps-notes-'+i) && document.getElementById('ps-notes-'+i).value.trim();
+    if (shape || size || dealer) stones.push({ shape: shape, size: size, qty: qty, dealer: dealer, url: url, notes: notes });
   });
   var findings = [];
   document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap) {
@@ -7716,7 +7758,12 @@ function saveProdSpec() {
     id: _editingProdId || Date.now(),
     name: name,
     mold: document.getElementById('prod-mold').value.trim(),
-    caster: document.getElementById('prod-caster').value.trim(),
+    caster: (function() {
+      var sel = document.getElementById('prod-caster');
+      if (!sel) return '';
+      if (sel.value === '__new__') return document.getElementById('prod-caster-new').value.trim();
+      return sel.value;
+    })(),
     metal: document.getElementById('prod-metal').value.trim(),
     grams: document.getElementById('prod-grams').value.trim(),
     notes: document.getElementById('prod-notes').value.trim(),
@@ -7801,10 +7848,11 @@ function renderProduction() {
       stonesHtml += '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Stones</div>';
       spec.stones.forEach(function(st) {
         stonesHtml += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)">'
-          + '<div><div style="font-size:13px;color:var(--text)">' + [st.shape, st.size, st.qty ? 'x' + st.qty : ''].filter(Boolean).join(' · ') + '</div>'
-          + (st.source ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + st.source + '</div>' : '')
+          + '<div style="flex:1;padding-right:8px"><div style="font-size:13px;color:var(--text)">' + [st.shape, st.size, st.qty ? 'x' + st.qty : ''].filter(Boolean).join(' · ') + '</div>'
+          + (st.dealer ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + st.dealer + '</div>' : '')
+          + (st.notes ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic">' + st.notes + '</div>' : '')
           + '</div>'
-          + (st.url ? '<a href="' + st.url + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0;margin-left:8px">→ Link</a>' : '')
+          + (st.url ? '<a href="' + st.url + '" target="_blank" rel="noopener" style="font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0">→ Link</a>' : '')
           + '</div>';
       });
       stonesHtml += '</div>';
