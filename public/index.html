@@ -7543,6 +7543,21 @@ function renderInvoices() {
   onValue(ref(db, 'quotes'), snap => {
     const val = snap.val();
     window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    // One-time fix: reset actualStoneCost on multi-piece pieces where it was incorrectly pre-filled as 0
+    // but the piece has stones with real cost data
+    let fixedAny = false;
+    (window._savedQuotes || []).forEach(q => {
+      if (q.isMultiPiece && q.pieces) {
+        q.pieces.forEach(p => {
+          const realStonesCost = (p.stones||[]).reduce((s,st) => s + (st.cost||0), 0);
+          if (p.actualStoneCost === 0 && realStonesCost > 0) {
+            p.actualStoneCost = null; // reset so display falls back to stones array
+            fixedAny = true;
+          }
+        });
+      }
+    });
+    if (fixedAny) { if (window._fb) window._fb.saveQuotes(window._savedQuotes); }
     if (typeof fixInventoryStoneStatuses === 'function') fixInventoryStoneStatuses();
     if (typeof renderSaved === 'function') renderSaved();
   });
