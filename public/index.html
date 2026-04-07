@@ -7999,7 +7999,7 @@ function renderProduction(){
 
     // Molds — distinct background block
     if(spec.molds&&spec.molds.length){
-      var moldSection=document.createElement('div');moldSection.style.cssText='background:#1a1a24;border-radius:4px;padding:10px 12px;margin-bottom:8px';
+      var moldSection=document.createElement('div');moldSection.style.cssText='background:rgba(160,124,197,0.08);border-radius:4px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(160,124,197,0.18)';
       var moldLabel=document.createElement('div');moldLabel.style.cssText='font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#a07cc5;margin-bottom:8px;font-weight:600';moldLabel.textContent='Molds';moldSection.appendChild(moldLabel);
       var totalEstToday=0;
       spec.molds.forEach(function(m){
@@ -8015,7 +8015,7 @@ function renderProduction(){
 
     // Stones — distinct background block
     if(spec.stones&&spec.stones.length){
-      var stSection=document.createElement('div');stSection.style.cssText='background:#1a2420;border-radius:4px;padding:10px 12px;margin-bottom:8px';
+      var stSection=document.createElement('div');stSection.style.cssText='background:rgba(122,170,138,0.08);border-radius:4px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(122,170,138,0.18)';
       var stLabel=document.createElement('div');stLabel.style.cssText='font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#7aaa8a;margin-bottom:8px;font-weight:600';stLabel.textContent='Stones';stSection.appendChild(stLabel);
       spec.stones.forEach(function(st){var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(122,170,138,0.2)';var rl=document.createElement('div');rl.style.cssText='flex:1;padding-right:8px';var info=document.createElement('div');info.style.cssText='font-size:13px;color:var(--text)';info.textContent=[st.shape,st.size,st.qty?'x'+st.qty:''].filter(Boolean).join(' · ');rl.appendChild(info);if(st.dealer){var dl=document.createElement('div');dl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';dl.textContent=st.dealer;rl.appendChild(dl);}if(st.notes){var nl=document.createElement('div');nl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic';nl.textContent=st.notes;rl.appendChild(nl);}row.appendChild(rl);if(st.url){var la=document.createElement('a');la.href=st.url;la.target='_blank';la.rel='noopener';la.textContent='Link';la.style.cssText='font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:2px;white-space:nowrap;flex-shrink:0';row.appendChild(la);}stSection.appendChild(row);});
       body.appendChild(stSection);
@@ -8023,7 +8023,7 @@ function renderProduction(){
 
     // Findings — distinct background block
     if(spec.findings&&spec.findings.length){
-      var fiSection=document.createElement('div');fiSection.style.cssText='background:#1a1e24;border-radius:4px;padding:10px 12px;margin-bottom:8px';
+      var fiSection=document.createElement('div');fiSection.style.cssText='background:rgba(100,180,180,0.08);border-radius:4px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(100,180,180,0.18)';
       var fiLabel=document.createElement('div');fiLabel.style.cssText='font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px;font-weight:600';fiLabel.textContent='Findings & chain';fiSection.appendChild(fiLabel);
       spec.findings.forEach(function(f){
         var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(100,180,180,0.15)';
