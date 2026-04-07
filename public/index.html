@@ -4586,12 +4586,15 @@ function buildQuoteCard(q) {
   if (q.status === 'quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
   if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
 
-  if (q.status === 'project' || q.status === 'collection') {
+  if (q.status === 'project' || q.status === 'collection' || q.status === 'collection-quote') {
     html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
+  }
+  if (q.status === 'project' || q.status === 'collection') {
     html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',\'completed\',event)">✓ Completed</button>';
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'abandoned\',event)">✕ Abandoned</button>';
   }
   if (q.status === 'completed') {
+    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
     html += '<span style="font-size:13px;color:var(--green-bright);padding:4px 0">✓ Completed</span>';
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
   }
