@@ -4685,11 +4685,11 @@ function buildQuoteCard(q) {
   const showStoneCost = hasActuals ? (q.actualStoneCost || 0) : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const showMetalCost = hasActuals ? (q.actualMetalCost || 0) : (q.metalEstimate || 0);
   const showLaborCost = hasActuals ? (q.actualLabor || 0) : (q.laborEst || 0);
-  const showDesignFee = q.designFee || 0;
+  const showDesignFee = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
   const showMeleeCost = hasActuals ? (q.actualMeleeCost || 0) : (q.meleeCost || 0);
   const showChainCost = q.chainCost || 0;
-  const totalCosts = showStoneCost + showMetalCost + showLaborCost + showDesignFee + showMeleeCost + showChainCost;
-  if (totalCosts > 0) {
+  const totalCosts = showStoneCost + showMetalCost + showLaborCost + showMeleeCost + showChainCost;
+  if (totalCosts > 0 || showDesignFee != null) {
     html += '<div style="margin-bottom:8px;background:var(--surface2);border-radius:3px;padding:8px 10px">';
     html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">'
       + (hasActuals ? 'Actual costs' : 'Est. costs') + '</div>';
@@ -4698,12 +4698,14 @@ function buildQuoteCard(q) {
     if (showMetalCost) html += '<span style="color:var(--text-dim)">Metal</span><span style="color:var(--text)">$' + showMetalCost.toLocaleString() + '</span>';
     if (showLaborCost) html += '<span style="color:var(--text-dim)">Labor</span><span style="color:var(--text)">$' + showLaborCost.toLocaleString() + '</span>';
     if (showMeleeCost) html += '<span style="color:var(--text-dim)">Materials</span><span style="color:var(--text)">$' + showMeleeCost.toLocaleString() + '</span>';
-    if (showDesignFee) html += '<span style="color:var(--text-dim)">Design fee</span><span style="color:var(--text)">$' + showDesignFee.toLocaleString() + '</span>';
     if (showChainCost) html += '<span style="color:var(--text-dim)">Chain</span><span style="color:var(--text)">$' + showChainCost.toLocaleString() + '</span>';
+    html += '<span style="color:var(--text-dim)">Design fee</span><span style="color:' + (showDesignFee ? 'var(--text)' : 'var(--text-dim)') + '">' + (showDesignFee ? '$' + showDesignFee.toLocaleString() : '—') + '</span>';
     html += '</div>';
-    html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:6px;padding-top:6px;font-size:13px">'
-      + '<span style="color:var(--text-dim)">Total costs</span>'
-      + '<span style="color:var(--text);font-weight:500">$' + totalCosts.toLocaleString() + '</span></div>';
+    if (totalCosts > 0) {
+      html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:6px;padding-top:6px;font-size:13px">'
+        + '<span style="color:var(--text-dim)">Total costs</span>'
+        + '<span style="color:var(--text);font-weight:500">$' + totalCosts.toLocaleString() + '</span></div>';
+    }
     html += '</div>';
   }
 
