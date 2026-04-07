@@ -5113,7 +5113,7 @@ function updateActuals(id, e, pieceIdx) {
         <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
         <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : '—'}${q.purity ? ' · ' + q.purity : ''}</div>
         <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(q.total||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(src.total || q.total || 0).toLocaleString()}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -5149,7 +5149,7 @@ function updateActuals(id, e, pieceIdx) {
       </div>
       <div>
         <div class="field-label">Design fee ($)</div>
-        <input type="number" id="af-design-${id}" value="${q.designFee || ''}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-design-${id}" value="${q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
     </div>
@@ -5275,14 +5275,13 @@ function saveActuals(id) {
   q.actualStoneCost = stoneCost;
   q.actualMetalCost = metalCost;
   q.actualLabor = laborCost;
-  q.designFee = designFee;
+  q.actualDesignFee = designFee;
   q.actualMeleeCost = meleeCost;
   q.castingCompany = castingCompany;
   q.chainCost = chainCost;
   q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : (q.chainName || '');
   q.clientPrice = clientPrice;
 
-  // Recalculate actual retail
   // Recalculate actual retail using same markup formula as quote builder
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const meleeRetail = meleeCost * 1.75;
@@ -5291,22 +5290,20 @@ function saveActuals(id) {
   const rawTotal = stoneRetail + rest * 1.13;
   const recalcRetail = Math.round(rawTotal / 50) * 50;
 
-  // actualTotal = recalculated retail, or client price if they paid something different
   q.actualTotal = clientPrice > 0 ? clientPrice : recalcRetail;
 
   // If this is a piece in a set, copy actuals back to the piece
   if (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) {
     const p = q.pieces[q._pieceIdx];
-    p.actualStoneCost = q.actualStoneCost;
-    p.actualMetalCost = q.actualMetalCost;
-    p.actualLabor = q.actualLabor;
-    p.actualDesignFee = q.designFee;
-    p.actualChainCost = q.chainCost;
+    p.actualStoneCost = stoneCost;
+    p.actualMetalCost = metalCost;
+    p.actualLabor = laborCost;
+    p.actualDesignFee = designFee;
+    p.actualMeleeCost = meleeCost;
+    p.actualChainCost = chainCost;
     p.actualTotal = q.actualTotal;
-    p.clientPrice = q.clientPrice;
-    // Recalculate set total from pieces
+    p.clientPrice = clientPrice;
     q.total = (q.pieces || []).reduce((s, pc) => s + (pc.total || 0), 0);
-    // Remove temporary _pieceIdx
     delete q._pieceIdx;
   }
 
