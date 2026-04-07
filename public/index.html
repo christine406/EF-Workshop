@@ -4518,8 +4518,8 @@ function buildMultiPieceCard(q) {
     const chainLine = hasActuals && p.actualChainCost ? 'Chain: $' + Number(p.actualChainCost).toLocaleString() : (p.chainCost ? 'Chain (est): $' + Number(p.chainCost).toLocaleString() : '');
     const costLines = [stoneLine, metalLine, laborLine, designLine, chainLine].filter(Boolean);
     const totalCost = hasActuals
-      ? (Number(p.actualStoneCost||0) + Number(p.actualMetalCost||0) + Number(p.actualLabor||0) + Number(p.actualDesignFee||0) + Number(p.actualChainCost||0))
-      : (Number(p.stoneCost||0) + Number(p.metalCost||0) + Number(p.laborEst||0) + Number(p.designFee||0) + Number(p.chainCost||0));
+      ? (Number(p.actualStoneCost||0) + Number(p.actualMetalCost||0) + Number(p.actualLabor||0) + Number(p.actualChainCost||0))
+      : (Number(p.stoneCost||0) + Number(p.metalCost||0) + Number(p.laborEst||0) + Number(p.chainCost||0));
     const profit = (p.total||0) - totalCost;
 
     html += '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
@@ -4596,8 +4596,7 @@ function buildQuoteCard(q) {
   const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : (q.metalEstimate || 0);
   const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
-  const designFeeActual = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
-  const cost = stoneCost + metalCost + laborCost + designFeeActual + (q.chainCost || 0) + (q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0));
+  const cost = stoneCost + metalCost + laborCost + (q.chainCost || 0) + (q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0));
   const profitBefore = q.total - cost;
   const profitAtClientPrice = clientPrice - cost;
   const statusClass = (q.status === 'project' || q.status === 'collection') ? 'status-project'
@@ -4823,7 +4822,7 @@ function renderPL() {
         ? q.actualLabor
         : (q.laborEst || 0);
       chainCost = q.actualChainCost != null ? q.actualChainCost : (q.chainCost || 0);
-      designFee = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
+      designFee = 0; // design fee is not a cost — it's billable to client
     }
     const cost = stoneCost + meleeCost + metalCost + laborCost + chainCost + designFee;
     const profit = revenue - cost;
@@ -4872,7 +4871,7 @@ function renderPL() {
         metalCost = (q.pieces||[]).some(p => p.actualMetalCost != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualMetalCost ?? p.metalCost ?? 0), 0) : (q.pieces||[]).reduce((s,p) => s + (p.metalCost||0), 0);
         laborCost = (q.pieces||[]).some(p => p.actualLabor != null) ? (q.pieces||[]).reduce((s,p) => s + (p.actualLabor ?? p.laborEst ?? 0), 0) : (q.pieces||[]).reduce((s,p) => s + (p.laborEst||0), 0);
         chainCost = (q.pieces||[]).reduce((s,p) => s + (p.chainCost||0), 0);
-        designFee = (q.pieces||[]).reduce((s,p) => s + (p.designFee||0), 0);
+        designFee = 0; // design fee is not a cost
         meleeCost = (q.pieces||[]).reduce((s,p) => s + (p.actualMeleeCost ?? p.meleeCost ?? 0), 0);
       } else {
         stoneCost = (q.actualStoneCost != null && q.actualStoneCost > 0) ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
@@ -4880,9 +4879,9 @@ function renderPL() {
         metalCost = (q.actualMetalCost != null && q.actualMetalCost > 0) ? q.actualMetalCost : (q.metalEstimate ? q.metalEstimate / 1.35 : 0);
         laborCost = (q.actualLabor != null && q.actualLabor > 0) ? q.actualLabor : (q.laborEst || 0);
         chainCost = q.actualChainCost != null ? q.actualChainCost : (q.chainCost || 0);
-        designFee = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
+        designFee = 0; // design fee is not a cost — it's billable to client
       }
-      const rowCost = stoneCost + meleeCost + metalCost + laborCost + chainCost + designFee;
+      const rowCost = stoneCost + meleeCost + metalCost + laborCost + chainCost;
       const profit = revenue - rowCost;
       html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);opacity:${excluded?0.4:1}">
         <div style="display:flex;align-items:flex-start;gap:8px">
@@ -5334,7 +5333,7 @@ function calcActualsLive(id) {
   const rawTotal = stoneRetail + rest * 1.13;
   const suggestedRetail = Math.round(rawTotal / 50) * 50;
 
-  const totalCost = stoneCost + metalCost + laborCost + designFee + meleeCost + chainCost;
+  const totalCost = stoneCost + metalCost + laborCost + meleeCost + chainCost;
   const clientPrice = parseFloat(document.getElementById('af-client-' + id)?.value) || 0;
   const revenue = clientPrice > 0 ? clientPrice : suggestedRetail;
   const profit = revenue - totalCost;
@@ -7966,7 +7965,7 @@ function renderProduction(){
     var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;margin-bottom:8px;overflow:hidden';
 
     // Collapsed header — always visible
-    var totalCost=(spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0)+(spec.designFee||0);
+    var totalCost=(spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0);
     var profit=spec.retailPrice&&totalCost?spec.retailPrice-totalCost:null;
     var lastRun=spec.lastMadeHistory&&spec.lastMadeHistory[0];
     var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;user-select:none';
@@ -8001,10 +8000,10 @@ function renderProduction(){
     actionRow.appendChild(orderBtn);actionRow.appendChild(logRunBtn);actionRow.appendChild(editBtn);actionRow.appendChild(delBtn);body.appendChild(actionRow);
 
     // Cost summary
-    var hasCosts=spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost||spec.designFee;
+    var hasCosts=spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost;
     if(hasCosts){
       var costsDiv=document.createElement('div');costsDiv.style.cssText='display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;padding:8px;background:var(--surface2);border-radius:3px;margin-bottom:10px';
-      var pairs=[['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost],['Design',spec.designFee]];
+      var pairs=[['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost]];
       pairs.forEach(function(p){if(!p[1])return;var span=document.createElement('span');span.style.color='var(--text-dim)';span.textContent=p[0]+' '+fmt(p[1]);costsDiv.appendChild(span);});
       body.appendChild(costsDiv);
     }
