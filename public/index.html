@@ -4632,7 +4632,7 @@ function buildQuoteCard(q) {
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
-    + '<div class="quote-meta"><span>' + q.date + '</span><span>' + q.purity + '</span>' + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px;font-family:var(--font-mono)">Consignment</span>' : '') + occasionTag + '</div>'
+    + '<div class="quote-meta">' + (q.date ? '<span>' + q.date + '</span>' : '') + (q.purity ? '<span>' + q.purity + '</span>' : '') + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:2px;font-family:var(--font-mono)">Consignment</span>' : '') + occasionTag + '</div>'
     + (q.clientBudget ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">Budget <span style="color:#ccc07a">$' + q.clientBudget.toLocaleString() + '</span>' + (q.total ? ' · <span style="color:' + (q.clientBudget >= q.total ? 'var(--green-bright)' : 'var(--red)') + '">' + (q.clientBudget >= q.total ? '✓ $' + (q.clientBudget - q.total).toLocaleString() + ' under' : '$' + (q.total - q.clientBudget).toLocaleString() + ' over') + '</span>' : '') + '</div>' : '')
     + '</div>'
     + '<div style="text-align:right">'
@@ -7868,30 +7868,50 @@ function renderProduction(){
   list.innerHTML='';var goldSpot=window._goldSpot||0;var purityMap={'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
   specs.forEach(function(spec){
     var linked=spec.linkedId?getSavedQuotes().find(function(q){return q.id==spec.linkedId;}):null;
-    var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;padding:14px;margin-bottom:10px';
-    
-    var hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px';
+    var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;margin-bottom:8px;overflow:hidden';
+
+    // Collapsed header — always visible
+    var totalCost=(spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0)+(spec.designFee||0);
+    var profit=spec.retailPrice&&totalCost?spec.retailPrice-totalCost:null;
+    var lastRun=spec.lastMadeHistory&&spec.lastMadeHistory[0];
+    var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;user-select:none';
     var hdrL=document.createElement('div');
-    var nameEl=document.createElement('div');nameEl.style.cssText='font-size:16px;color:var(--text);font-weight:500';nameEl.textContent=spec.name;hdrL.appendChild(nameEl);
-    if(spec.retailPrice){var priceEl=document.createElement('div');priceEl.style.cssText='font-size:14px;color:var(--gold);margin-top:3px;font-weight:500';priceEl.textContent=fmt(spec.retailPrice);hdrL.appendChild(priceEl);}
-    if(spec.caster){var casterEl=document.createElement('div');casterEl.style.cssText='font-size:12px;color:var(--text-dim);margin-top:2px';casterEl.textContent=spec.caster;hdrL.appendChild(casterEl);}
-    var hdrR=document.createElement('div');hdrR.style.cssText='display:flex;flex-direction:column;gap:5px;align-items:flex-end';
-    var orderBtn=document.createElement('button');orderBtn.textContent='Start order';orderBtn.style.cssText='background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer';(function(sid){orderBtn.addEventListener('click',function(){startProdOrder(sid);});})(spec.id);
-    var btnRow2=document.createElement('div');btnRow2.style.cssText='display:flex;gap:5px';
-    var runBtn=document.createElement('button');runBtn.textContent='+ Run';runBtn.style.cssText='background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 7px;border-radius:2px;cursor:pointer';(function(sid){runBtn.addEventListener('click',function(){markProdLastMade(sid);});})(spec.id);
-    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 7px;border-radius:2px;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(){openProductionForm(sid);});})(spec.id);
-    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 7px;border-radius:2px;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(){deleteProdSpec(sid);});})(spec.id);
-    btnRow2.appendChild(runBtn);btnRow2.appendChild(editBtn);btnRow2.appendChild(delBtn);
-    hdrR.appendChild(orderBtn);hdrR.appendChild(btnRow2);hdr.appendChild(hdrL);hdr.appendChild(hdrR);card.appendChild(hdr);
-    // Cost summary strip
-    var hasCosts = spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost||spec.designFee;
+    var nameEl=document.createElement('div');nameEl.style.cssText='font-size:15px;color:var(--text);font-weight:500';nameEl.textContent=spec.name;hdrL.appendChild(nameEl);
+    var subLine=document.createElement('div');subLine.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px;display:flex;gap:10px;align-items:center';
+    if(spec.caster){var cEl=document.createElement('span');cEl.textContent=spec.caster;subLine.appendChild(cEl);}
+    if(lastRun){var lrEl=document.createElement('span');lrEl.textContent='Last run '+lastRun.date;subLine.appendChild(lrEl);}
+    hdrL.appendChild(subLine);
+    var hdrR=document.createElement('div');hdrR.style.cssText='display:flex;flex-direction:column;align-items:flex-end;gap:2px';
+    if(spec.retailPrice){var prEl=document.createElement('div');prEl.style.cssText='font-size:15px;color:var(--gold);font-weight:600';prEl.textContent=fmt(spec.retailPrice);hdrR.appendChild(prEl);}
+    if(profit!==null){var profEl=document.createElement('div');profEl.style.cssText='font-size:11px;color:'+(profit>=0?'var(--green-bright)':'var(--red)');profEl.textContent=fmt(profit)+' profit';hdrR.appendChild(profEl);}
+    var chevron=document.createElement('div');chevron.style.cssText='font-size:11px;color:var(--text-dim);margin-top:4px';chevron.textContent='▾';hdrR.appendChild(chevron);
+    hdrRow.appendChild(hdrL);hdrRow.appendChild(hdrR);
+
+    // Expanded body — hidden by default
+    var body=document.createElement('div');body.style.cssText='display:none;padding:0 14px 14px;border-top:1px solid var(--border)';
+
+    hdrRow.addEventListener('click',function(){
+      var open=body.style.display!=='none';
+      body.style.display=open?'none':'block';
+      chevron.textContent=open?'▾':'▴';
+    });
+    card.appendChild(hdrRow);card.appendChild(body);
+
+    // Action buttons in body
+    var actionRow=document.createElement('div');actionRow.style.cssText='display:flex;gap:6px;padding-top:12px;margin-bottom:12px;flex-wrap:wrap';
+    var orderBtn=document.createElement('button');orderBtn.textContent='Start order';orderBtn.style.cssText='background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;border-radius:2px;cursor:pointer';(function(sid){orderBtn.addEventListener('click',function(e){e.stopPropagation();startProdOrder(sid);});})(spec.id);
+    var logRunBtn=document.createElement('button');logRunBtn.textContent='Log run';logRunBtn.style.cssText='background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:2px;cursor:pointer';(function(sid){logRunBtn.addEventListener('click',function(e){e.stopPropagation();markProdLastMade(sid);});})(spec.id);
+    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:2px;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(e){e.stopPropagation();openProductionForm(sid);});})(spec.id);
+    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:2px;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(e){e.stopPropagation();deleteProdSpec(sid);});})(spec.id);
+    actionRow.appendChild(orderBtn);actionRow.appendChild(logRunBtn);actionRow.appendChild(editBtn);actionRow.appendChild(delBtn);body.appendChild(actionRow);
+
+    // Cost summary
+    var hasCosts=spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost||spec.designFee;
     if(hasCosts){
       var costsDiv=document.createElement('div');costsDiv.style.cssText='display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;padding:8px;background:var(--surface2);border-radius:3px;margin-bottom:10px';
-      var totalCost=(spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0)+(spec.designFee||0);
       var pairs=[['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost],['Design',spec.designFee]];
       pairs.forEach(function(p){if(!p[1])return;var span=document.createElement('span');span.style.color='var(--text-dim)';span.textContent=p[0]+' '+fmt(p[1]);costsDiv.appendChild(span);});
-      if(spec.retailPrice&&totalCost){var margin=Math.round(((spec.retailPrice-totalCost)/spec.retailPrice)*100);var mSpan=document.createElement('span');mSpan.style.cssText='color:var(--green-bright);margin-left:auto';mSpan.textContent='Margin '+margin+'%';costsDiv.appendChild(mSpan);}
-      card.appendChild(costsDiv);
+      body.appendChild(costsDiv);
     }
     
     if(spec.molds&&spec.molds.length){
@@ -8332,14 +8352,19 @@ function calcProdRetail(showBreakdown) {
 function startProdOrder(specId) {
   var spec = getProduction().find(function(s) { return s.id === specId; });
   if (!spec) return;
+  var clientName = prompt('Client name for this order:');
+  if (clientName === null) return; // cancelled
+  clientName = (clientName || '').trim() || 'Unnamed';
   var quotes = getSavedQuotes();
   var now = Date.now();
   var newProject = {
     id: now,
-    client: '',
+    client: clientName,
     pieceType: spec.name,
     status: 'project',
     quoteType: 'bespoke',
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    purity: spec.molds && spec.molds[0] ? spec.molds[0].purity + ' yellow' : '18k yellow',
     fromSpecId: specId,
     clientPrice: spec.retailPrice || 0,
     total: spec.retailPrice || 0,
@@ -8350,20 +8375,19 @@ function startProdOrder(specId) {
     actualChainCost: spec.findingsCost || 0,
     actualDesignFee: spec.designFee || 0,
     notes: [],
-    costPushes: [],
-    created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    costPushes: []
   };
   quotes.unshift(newProject);
   window._savedQuotes = quotes;
   persistQuotes();
   showScreen('saved');
-  // Open the actuals/details form for this new project after render
   setTimeout(function() {
-    var el = document.getElementById('proj-' + now);
+    var el = document.querySelector('[data-id="' + now + '"]');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    openActualsOverlay(now);
-  }, 300);
-  showToast('Order started — add client name and confirm costs');
+    var fakeEvent = { stopPropagation: function(){} };
+    updateActuals(now, fakeEvent);
+  }, 400);
+  showToast('Order started for ' + clientName);
 }
 
 
