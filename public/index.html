@@ -1396,8 +1396,28 @@
           </div>
           <div id="prod-findings"></div>
         </div>
+        <!-- Pricing section -->
+        <div style="margin-bottom:10px;padding:12px;background:var(--bg);border-radius:3px;border:1px solid var(--border)">
+          <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Pricing</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+            <div><div class="field-label">Stone cost</div><input type="number" id="prod-stone-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+            <div><div class="field-label">Melee / materials</div><input type="number" id="prod-melee-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+            <div><div class="field-label">Metal / casting</div><input type="number" id="prod-metal-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+            <div><div class="field-label">Labor / setting</div><input type="number" id="prod-labor-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+            <div><div class="field-label">Findings / chain</div><input type="number" id="prod-findings-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+            <div><div class="field-label">Design fee</div><input type="number" id="prod-design-fee" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+          </div>
+          <div id="prod-calc-breakdown" style="display:none;font-size:12px;color:var(--text-dim);background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:8px"></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="calcProdRetail(true)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;border-radius:2px;cursor:pointer;white-space:nowrap">Calculate</button>
+            <div style="flex:1">
+              <div class="field-label">Retail price</div>
+              <input type="number" id="prod-retail-price" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;font-weight:500;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+            </div>
+          </div>
+        </div>
         <div style="margin-bottom:12px">
-          <div class="field-label">Notes</div>
+          <div class="field-label">Internal notes</div>
           <textarea id="prod-notes" rows="2" placeholder="e.g. Always order 3 extra melee." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;resize:none;box-sizing:border-box"></textarea>
         </div>
         <div style="display:flex;gap:8px">
@@ -7730,6 +7750,8 @@ function openProductionForm(editId){
   document.getElementById('prod-name').value='';document.getElementById('prod-linked').value='';document.getElementById('prod-caster').value='';
   if(document.getElementById('prod-caster-new'))document.getElementById('prod-caster-new').style.display='none';
   document.getElementById('prod-notes').value='';document.getElementById('prod-molds').innerHTML='';document.getElementById('prod-stones').innerHTML='';document.getElementById('prod-findings').innerHTML='';
+  ['prod-stone-cost','prod-melee-cost','prod-metal-cost','prod-labor-cost','prod-findings-cost','prod-design-fee','prod-retail-price'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  var bd=document.getElementById('prod-calc-breakdown');if(bd)bd.style.display='none';
   var pieceSel=document.getElementById('prod-piece-sel');
   pieceSel.innerHTML='<option value="">-- Select existing collection piece...</option>';
   getSavedQuotes().filter(function(q){return q.status==='collection'||q.status==='collection-quote';}).forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client||q.pieceType||'Collection piece';pieceSel.appendChild(o);});
@@ -7740,6 +7762,13 @@ function openProductionForm(editId){
       pieceSel.value=spec.linkedId||'__custom__';document.getElementById('prod-name').value=spec.name||'';document.getElementById('prod-linked').value=spec.linkedId||'';
       var casterSel=document.getElementById('prod-caster');if(casterSel){var knownCasters=['Carrera','Omega','Pafco','JM'];if(spec.caster&&knownCasters.indexOf(spec.caster)!==-1){casterSel.value=spec.caster;}else if(spec.caster){var opt=document.createElement('option');opt.value=spec.caster;opt.textContent=spec.caster;casterSel.insertBefore(opt,casterSel.lastElementChild);casterSel.value=spec.caster;}}
       document.getElementById('prod-notes').value=spec.notes||'';
+      if(document.getElementById('prod-stone-cost'))document.getElementById('prod-stone-cost').value=spec.stoneCost||'';
+      if(document.getElementById('prod-melee-cost'))document.getElementById('prod-melee-cost').value=spec.meleeCost||'';
+      if(document.getElementById('prod-metal-cost'))document.getElementById('prod-metal-cost').value=spec.metalCost||'';
+      if(document.getElementById('prod-labor-cost'))document.getElementById('prod-labor-cost').value=spec.laborCost||'';
+      if(document.getElementById('prod-findings-cost'))document.getElementById('prod-findings-cost').value=spec.findingsCost||'';
+      if(document.getElementById('prod-design-fee'))document.getElementById('prod-design-fee').value=spec.designFee||'';
+      if(document.getElementById('prod-retail-price'))document.getElementById('prod-retail-price').value=spec.retailPrice||'';
       (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});
     }
   }else{addProdMoldRow();addProdStoneRow();addProdFindingRow();}
@@ -7758,7 +7787,15 @@ function saveProdSpec(){
   var molds=[];document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-mold-wrap-','');var nEl=document.getElementById('pm-name-'+i);var pEl=document.getElementById('pm-purity-'+i);var wEl=document.getElementById('pm-weight-'+i);var qEl=document.getElementById('pm-qty-'+i);var moldName=nEl?nEl.value.trim():'';var purity=pEl?pEl.value:'18k';var weight=wEl?wEl.value.trim():'';var qty=qEl?parseInt(qEl.value)||1:1;var weightUnit=wrap.dataset.weightUnit||'g';if(moldName||weight)molds.push({name:moldName,purity:purity,weight:weight,weightUnit:weightUnit,qty:qty});});
   var existing=_editingProdId?(getProduction().find(function(s){return s.id===_editingProdId;})||{}):{};
   var casterEl=document.getElementById('prod-caster');var caster=casterEl?(casterEl.value==='__new__'?(document.getElementById('prod-caster-new')?document.getElementById('prod-caster-new').value.trim():''):casterEl.value):'';
-  var spec2={id:_editingProdId||Date.now(),name:name,caster:caster,notes:document.getElementById('prod-notes').value.trim(),linkedId:document.getElementById('prod-linked').value||null,molds:molds,stones:stones,findings:findings,lastMadeHistory:existing.lastMadeHistory||[]};
+  var spec2={id:_editingProdId||Date.now(),name:name,caster:caster,notes:document.getElementById('prod-notes').value.trim(),linkedId:document.getElementById('prod-linked').value||null,molds:molds,stones:stones,findings:findings,lastMadeHistory:existing.lastMadeHistory||[],
+    stoneCost:parseFloat(document.getElementById('prod-stone-cost').value)||0,
+    meleeCost:parseFloat(document.getElementById('prod-melee-cost').value)||0,
+    metalCost:parseFloat(document.getElementById('prod-metal-cost').value)||0,
+    laborCost:parseFloat(document.getElementById('prod-labor-cost').value)||0,
+    findingsCost:parseFloat(document.getElementById('prod-findings-cost').value)||0,
+    designFee:parseFloat(document.getElementById('prod-design-fee').value)||0,
+    retailPrice:parseFloat(document.getElementById('prod-retail-price').value)||0
+  };
   var prod=getProduction();if(_editingProdId){var idx=prod.findIndex(function(s){return s.id===_editingProdId;});if(idx!==-1)prod[idx]=spec2;else prod.unshift(spec2);}else{prod.unshift(spec2);}
   window._production=prod;persistProduction();closeProdForm();renderProduction();showToast('Saved');
 }
@@ -7800,13 +7837,26 @@ function renderProduction(){
     var hdr=document.createElement('div');hdr.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px';
     var hdrL=document.createElement('div');
     var nameEl=document.createElement('div');nameEl.style.cssText='font-size:16px;color:var(--text);font-weight:500';nameEl.textContent=spec.name;hdrL.appendChild(nameEl);
-    if(linked){var linkedEl=document.createElement('div');linkedEl.style.cssText='font-size:12px;color:var(--teal-dim);margin-top:2px';linkedEl.textContent=linked.client||'Collection piece';hdrL.appendChild(linkedEl);}
+    if(spec.retailPrice){var priceEl=document.createElement('div');priceEl.style.cssText='font-size:14px;color:var(--gold);margin-top:3px;font-weight:500';priceEl.textContent=fmt(spec.retailPrice);hdrL.appendChild(priceEl);}
     if(spec.caster){var casterEl=document.createElement('div');casterEl.style.cssText='font-size:12px;color:var(--text-dim);margin-top:2px';casterEl.textContent=spec.caster;hdrL.appendChild(casterEl);}
-    var hdrR=document.createElement('div');hdrR.style.cssText='display:flex;gap:6px';
-    var runBtn=document.createElement('button');runBtn.textContent='+ Run';runBtn.style.cssText='background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(sid){runBtn.addEventListener('click',function(){markProdLastMade(sid);});})(spec.id);
-    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(){openProductionForm(sid);});})(spec.id);
-    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(){deleteProdSpec(sid);});})(spec.id);
-    hdrR.appendChild(runBtn);hdrR.appendChild(editBtn);hdrR.appendChild(delBtn);hdr.appendChild(hdrL);hdr.appendChild(hdrR);card.appendChild(hdr);
+    var hdrR=document.createElement('div');hdrR.style.cssText='display:flex;flex-direction:column;gap:5px;align-items:flex-end';
+    var orderBtn=document.createElement('button');orderBtn.textContent='Start order';orderBtn.style.cssText='background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:2px;cursor:pointer';(function(sid){orderBtn.addEventListener('click',function(){startProdOrder(sid);});})(spec.id);
+    var btnRow2=document.createElement('div');btnRow2.style.cssText='display:flex;gap:5px';
+    var runBtn=document.createElement('button');runBtn.textContent='+ Run';runBtn.style.cssText='background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 7px;border-radius:2px;cursor:pointer';(function(sid){runBtn.addEventListener('click',function(){markProdLastMade(sid);});})(spec.id);
+    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 7px;border-radius:2px;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(){openProductionForm(sid);});})(spec.id);
+    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 7px;border-radius:2px;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(){deleteProdSpec(sid);});})(spec.id);
+    btnRow2.appendChild(runBtn);btnRow2.appendChild(editBtn);btnRow2.appendChild(delBtn);
+    hdrR.appendChild(orderBtn);hdrR.appendChild(btnRow2);hdr.appendChild(hdrL);hdr.appendChild(hdrR);card.appendChild(hdr);
+    // Cost summary strip
+    var hasCosts = spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost||spec.designFee;
+    if(hasCosts){
+      var costsDiv=document.createElement('div');costsDiv.style.cssText='display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;padding:8px;background:var(--surface2);border-radius:3px;margin-bottom:10px';
+      var totalCost=(spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0)+(spec.designFee||0);
+      var pairs=[['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost],['Design',spec.designFee]];
+      pairs.forEach(function(p){if(!p[1])return;var span=document.createElement('span');span.style.color='var(--text-dim)';span.textContent=p[0]+' '+fmt(p[1]);costsDiv.appendChild(span);});
+      if(spec.retailPrice&&totalCost){var margin=Math.round(((spec.retailPrice-totalCost)/spec.retailPrice)*100);var mSpan=document.createElement('span');mSpan.style.cssText='color:var(--green-bright);margin-left:auto';mSpan.textContent='Margin '+margin+'%';costsDiv.appendChild(mSpan);}
+      card.appendChild(costsDiv);
+    }
     
     if(spec.molds&&spec.molds.length){
       var moldSection=document.createElement('div');moldSection.style.marginBottom='12px';
@@ -8176,6 +8226,108 @@ function updateProdCastEst() {
     if(ee&&wv&&goldSpot){ee.style.display='block';ee.innerHTML='<span style="color:var(--text-dim)">Est. casting today (x'+qty+'):</span> <span style="color:var(--gold);font-weight:500">'+fmt(casting)+'</span> <span style="color:var(--text-dim);font-size:10px">(metal '+fmt(metal)+' + 25%)</span>';}
     else if(ee){ee.style.display='none';}
   });
+}
+
+
+
+function calcProdRetail(showBreakdown) {
+  var stoneCost = parseFloat(document.getElementById('prod-stone-cost').value) || 0;
+  var meleeCost = parseFloat(document.getElementById('prod-melee-cost').value) || 0;
+  var metalCost = parseFloat(document.getElementById('prod-metal-cost').value) || 0;
+  var laborCost = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
+  var findingsCost = parseFloat(document.getElementById('prod-findings-cost').value) || 0;
+  var designFee = parseFloat(document.getElementById('prod-design-fee').value) || 0;
+  if (!stoneCost && !meleeCost && !metalCost && !laborCost && !findingsCost && !designFee) return;
+  var purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
+  var goldSpot = window._goldSpot || 0;
+  // If metal cost is 0 and we have molds, pre-fill from mold estimate
+  if (!metalCost && goldSpot) {
+    var moldEst = 0;
+    document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap) {
+      var i = wrap.id.replace('prod-mold-wrap-', '');
+      var wEl = document.getElementById('pm-weight-' + i);
+      var pEl = document.getElementById('pm-purity-' + i);
+      var qEl = document.getElementById('pm-qty-' + i);
+      if (!wEl || !pEl) return;
+      var w = parseFloat(wEl.value) || 0;
+      var grams = wrap.dataset.weightUnit === 'dwt' ? w * 1.55517 : w;
+      var purity = purityMap[pEl.value] || 0.75;
+      var qty = parseInt((qEl && qEl.value) || 1) || 1;
+      moldEst += (grams / 31.1035) * goldSpot * purity * qty * 1.25;
+    });
+    if (moldEst) {
+      metalCost = Math.round(moldEst);
+      document.getElementById('prod-metal-cost').value = metalCost;
+    }
+  }
+  // Markup formula — same as quote tab
+  function stoneMarkup(c) {
+    if (c <= 5000) return 2.1;
+    if (c <= 10000) return 1.8;
+    if (c <= 15000) return 1.6;
+    if (c <= 25000) return 1.55;
+    return 1.5;
+  }
+  var stoneRetail = stoneCost * stoneMarkup(stoneCost);
+  var meleeRetail = meleeCost * 1.75;
+  var metalRetail = metalCost * 1.35;
+  var laborRetail = laborCost * 1.4;
+  var findingsRetail = findingsCost * 1.35;
+  var overhead = (metalRetail + findingsRetail + laborRetail + designFee) * 1.13;
+  var suggested = Math.round((stoneRetail + meleeRetail + overhead) / 50) * 50;
+  var bd = document.getElementById('prod-calc-breakdown');
+  if (bd && showBreakdown) {
+    var lines = [];
+    if (stoneCost) lines.push('Stone ' + fmt(stoneCost) + ' x' + stoneMarkup(stoneCost) + ' = ' + fmt(stoneRetail));
+    if (meleeCost) lines.push('Melee ' + fmt(meleeCost) + ' x1.75 = ' + fmt(meleeRetail));
+    if (metalCost) lines.push('Metal ' + fmt(metalCost) + ' x1.35 = ' + fmt(metalRetail));
+    if (laborCost) lines.push('Labor ' + fmt(laborCost) + ' x1.4 = ' + fmt(laborRetail));
+    if (findingsCost) lines.push('Findings ' + fmt(findingsCost) + ' x1.35 = ' + fmt(findingsRetail));
+    lines.push('Overhead x1.13 = ' + fmt(overhead - (metalRetail + findingsRetail + laborRetail + designFee)));
+    lines.push('Suggested retail: ' + fmt(suggested));
+    bd.style.display = 'block';
+    bd.innerHTML = lines.join('<br>');
+    document.getElementById('prod-retail-price').value = suggested;
+  } else if (bd && !showBreakdown) {
+    bd.style.display = 'none';
+  }
+}
+
+function startProdOrder(specId) {
+  var spec = getProduction().find(function(s) { return s.id === specId; });
+  if (!spec) return;
+  var quotes = getSavedQuotes();
+  var now = Date.now();
+  var newProject = {
+    id: now,
+    client: '',
+    pieceType: spec.name,
+    status: 'project',
+    quoteType: 'bespoke',
+    fromSpecId: specId,
+    clientPrice: spec.retailPrice || 0,
+    total: spec.retailPrice || 0,
+    actualStoneCost: spec.stoneCost || 0,
+    actualMeleeCost: spec.meleeCost || 0,
+    actualMetalCost: spec.metalCost || 0,
+    actualLabor: spec.laborCost || 0,
+    actualChainCost: spec.findingsCost || 0,
+    actualDesignFee: spec.designFee || 0,
+    notes: [],
+    costPushes: [],
+    created: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  };
+  quotes.unshift(newProject);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  showScreen('saved');
+  // Open the actuals/details form for this new project after render
+  setTimeout(function() {
+    var el = document.getElementById('proj-' + now);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    openActualsOverlay(now);
+  }, 300);
+  showToast('Order started — add client name and confirm costs');
 }
 
 
