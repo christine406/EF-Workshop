@@ -5924,7 +5924,7 @@ function renderStonesTable() {
     const statusColor = statusColors[s.status] || 'var(--text-dim)';
     const linkedProject = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
     html += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArchived ? '0.45' : '1') + '">'
-      + '<td style="padding:8px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#7a2a2a">🌹</span>' : ' <span style="font-size:9px;color:#6b8cba">✨</span>') + (s.gia ? '<div style="font-size:10px;color:var(--text-dim)">GIA ' + s.gia + '</div>' : '') + '</td>'
+      + '<td style="padding:8px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#560c25">🌹</span>' : '') + (s.gia ? '<div style="font-size:10px;color:var(--text-dim)">GIA ' + s.gia + '</div>' : '') + '</td>'
       + '<td style="padding:8px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
       + '<td style="padding:8px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
       + '<td style="padding:8px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
@@ -5936,7 +5936,7 @@ function renderStonesTable() {
   });
 
   html += '</tbody></table></div>';
-  html += '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><span style="color:#7a2a2a">🌹</span> antique &nbsp;·&nbsp; <span style="color:#6b8cba">✨</span> modern &nbsp;·&nbsp; ' + sorted.length + ' stones total</div>';
+  html += '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><span style="color:#560c25">🌹</span> antique &nbsp;·&nbsp; ' + sorted.length + ' stones total</div>';
   el.innerHTML = html;
 }
 
@@ -6423,7 +6423,7 @@ function renderStoneInventory() {
       const stColor = s.status === 'in-use' ? 'var(--teal-dim)' : isArch ? 'var(--text-dim)' : s.status === 'available' ? 'var(--green-bright)' : 'var(--text-dim)';
       const linkedProj = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
       thtml += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArch ? '0.45' : '1') + '">'
-        + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#7a2a2a">🌹</span>' : ' <span style="font-size:9px;color:#6b8cba">✨</span>') + '</td>'
+        + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#560c25">🌹</span>' : '') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
@@ -6492,7 +6492,7 @@ function renderStoneInventory() {
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
         <span style="font-size:12px;background:#e8d9b8;color:#5a4a2a;padding:2px 6px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">${catLabels[s.category] || s.category}</span>
-        ${s.antique ? '<span style="font-size:12px;background:#7a2a2a;color:#fafaf7;padding:3px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : '<span style="font-size:12px;background:#6b8cba;color:#fafaf7;padding:3px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">✨ Modern</span>'}
+        ${s.antique ? '<span style="font-size:12px;background:#560c25;color:#fafaf7;padding:3px 8px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : ''}
         ${hasPending ? '<span style="font-size:12px;background:#ccc07a;color:#3a2800;padding:2px 7px;border-radius:2px;letter-spacing:0.08em;text-transform:uppercase">⏳ Pending · ' + pendingInquiries.length + '</span>' : ''}
         ${s.usedInQuoteId && !s.usedInProjectId ? '<span style="font-size:11px;background:#f0e8d0;color:#7a5a20;padding:2px 7px;border-radius:2px;letter-spacing:0.06em">In quote · ' + (s.usedInQuoteClient || 'unknown') + '</span>' : ''}
         ${s.usedInProjectId ? (function(){ const proj = getSavedQuotes().find(q => q.id === s.usedInProjectId); return proj ? '<span style="font-size:11px;background:var(--surface2);color:var(--teal-dim);border:1px solid var(--teal-dim);padding:2px 7px;border-radius:2px;letter-spacing:0.06em">project: ' + proj.client + '</span>' : ''; })() : ''}
@@ -6849,7 +6849,7 @@ function renderDataScreen() {
     const antiqueCount = stones.filter(x => x.antique).length;
     html += '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'
       + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'
-      + '<div style="font-size:14px;color:var(--text)">' + cut + (antiqueCount === stones.length ? ' <span style="font-size:10px;color:#7a2a2a;letter-spacing:0.08em;text-transform:uppercase">antique</span>' : antiqueCount > 0 ? ' <span style="font-size:10px;color:var(--text-dim)">(' + antiqueCount + ' antique)</span>' : '') + '</div>'
+      + '<div style="font-size:14px;color:var(--text)">' + cut + (antiqueCount === stones.length ? ' <span style="font-size:10px;color:#560c25;letter-spacing:0.08em;text-transform:uppercase">antique</span>' : antiqueCount > 0 ? ' <span style="font-size:10px;color:var(--text-dim)">(' + antiqueCount + ' antique)</span>' : '') + '</div>'
       + '<div style="font-size:14px;color:var(--gold);font-weight:500">$' + Math.round(avg).toLocaleString() + '/ct avg</div>'
       + '</div>'
       + '<div style="display:flex;gap:12px">'
@@ -6897,7 +6897,7 @@ function renderDataScreen() {
     const cpctColor = Math.abs(pctDiff) < 10 ? 'var(--text)' : pctDiff < -10 ? 'var(--green-bright)' : '#ccc07a';
     const statusLabel = archivedStatuses.includes(s.status) ? 'archived' : s.status === 'unavailable' ? 'reserved' : s.status === 'in-use' ? 'in use' : s.status;
     html += '<tr style="border-bottom:1px solid var(--border)">'
-      + '<td style="padding:7px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#7a2a2a">✦</span>' : '') + '</td>'
+      + '<td style="padding:7px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#560c25">✦</span>' : '') + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + parseFloat(s.carat).toFixed(2) + ' ct</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
