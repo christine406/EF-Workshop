@@ -1369,6 +1369,10 @@
           <input type="hidden" id="prod-linked">
         </div>
         <div style="margin-bottom:10px">
+          <div class="field-label">Group <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(optional — e.g. Lettera Charms)</span></div>
+          <input type="text" id="prod-group" placeholder="e.g. Lettera Charms" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+        </div>
+        <div style="margin-bottom:10px">
           <div class="field-label">Casting vendor</div>
           <select id="prod-caster" onchange="document.getElementById('prod-caster-new').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
             <option value="">-- Select</option><option value="Carrera Casting">Carrera Casting</option><option value="Omega">Omega</option><option value="Pafco">Pafco</option><option value="JM">JM</option><option value="__new__">+ Add new...</option>
@@ -1377,7 +1381,7 @@
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div class="field-label" style="margin-bottom:0">Molds</div>
+            <div class="field-label" style="margin-bottom:0">Molds / CAD files</div>
             <button onclick="addProdMoldRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer">+ Add mold</button>
           </div>
           <div id="prod-molds"></div>
@@ -7863,6 +7867,7 @@ function openProductionForm(editId){
   document.getElementById('productionFormTitle').textContent=editId?'Edit production spec':'New production spec';
   _prodStoneCounter=0;_prodFindingCounter=0;_prodMoldCounter=0;
   document.getElementById('prod-name').value='';document.getElementById('prod-linked').value='';document.getElementById('prod-caster').value='';
+  if(document.getElementById('prod-group'))document.getElementById('prod-group').value='';
   if(document.getElementById('prod-caster-new'))document.getElementById('prod-caster-new').style.display='none';
   document.getElementById('prod-notes').value='';document.getElementById('prod-molds').innerHTML='';document.getElementById('prod-stones').innerHTML='';document.getElementById('prod-findings').innerHTML='';
   ['prod-stone-cost','prod-melee-cost','prod-metal-cost','prod-labor-cost','prod-findings-cost','prod-design-fee','prod-retail-price'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
@@ -7877,6 +7882,7 @@ function openProductionForm(editId){
       pieceSel.value=spec.linkedId||'__custom__';document.getElementById('prod-name').value=spec.name||'';document.getElementById('prod-linked').value=spec.linkedId||'';
       var casterSel=document.getElementById('prod-caster');if(casterSel){var knownCasters=['Carrera Casting','Omega','Pafco','JM'];if(spec.caster&&knownCasters.indexOf(spec.caster)!==-1){casterSel.value=spec.caster;}else if(spec.caster){var opt=document.createElement('option');opt.value=spec.caster;opt.textContent=spec.caster;casterSel.insertBefore(opt,casterSel.lastElementChild);casterSel.value=spec.caster;}}
       document.getElementById('prod-notes').value=spec.notes||'';
+      if(document.getElementById('prod-group'))document.getElementById('prod-group').value=spec.group||'';
       if(document.getElementById('prod-stone-cost'))document.getElementById('prod-stone-cost').value=spec.stoneCost||'';
       if(document.getElementById('prod-melee-cost'))document.getElementById('prod-melee-cost').value=spec.meleeCost||'';
       if(document.getElementById('prod-metal-cost'))document.getElementById('prod-metal-cost').value=spec.metalCost||'';
@@ -7913,10 +7919,11 @@ function saveProdSpec(){
       var tEl=document.getElementById('pf-type-'+i);var sEl=document.getElementById('pf-spec-'+i);var vEl=document.getElementById('pf-vendor-'+i);var vnEl=document.getElementById('pf-vendor-new-'+i);var uEl=document.getElementById('pf-url-'+i);var type=tEl?tEl.value.trim():'';var spec=sEl?sEl.value.trim():'';var source=vEl?(vEl.value==='__new__'?(vnEl?vnEl.value.trim():''):vEl.value):'';if(vEl&&vEl.value==='__new__'&&source)addVendor(source);var url=uEl?uEl.value.trim():'';if(type||spec||source)findings.push({type:type,spec:spec,source:source,url:url});
     }
   });
-  var molds=[];document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-mold-wrap-','');var nEl=document.getElementById('pm-name-'+i);var pEl=document.getElementById('pm-purity-'+i);var wEl=document.getElementById('pm-weight-'+i);var qEl=document.getElementById('pm-qty-'+i);var moldName=nEl?nEl.value.trim():'';var purity=pEl?pEl.value:'18k';var weight=wEl?wEl.value.trim():'';var qty=qEl?parseInt(qEl.value)||1:1;var weightUnit=wrap.dataset.weightUnit||'g';if(moldName||weight)molds.push({name:moldName,purity:purity,weight:weight,weightUnit:weightUnit,qty:qty});});
+  var molds=[];document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-mold-wrap-','');var nEl=document.getElementById('pm-name-'+i);var pEl=document.getElementById('pm-purity-'+i);var wEl=document.getElementById('pm-weight-'+i);var qEl=document.getElementById('pm-qty-'+i);var moldName=nEl?nEl.value.trim():'';var purity=pEl?pEl.value:'18k';var weight=wEl?wEl.value.trim():'';var qty=qEl?parseInt(qEl.value)||1:1;var weightUnit=wrap.dataset.weightUnit||'g';var moldType=wrap.dataset.moldType||'mold';if(moldName||weight)molds.push({name:moldName,purity:purity,weight:weight,weightUnit:weightUnit,qty:qty,moldType:moldType});});
   var existing=_editingProdId?(getProduction().find(function(s){return s.id===_editingProdId;})||{}):{};
   var casterEl=document.getElementById('prod-caster');var caster=casterEl?(casterEl.value==='__new__'?(document.getElementById('prod-caster-new')?document.getElementById('prod-caster-new').value.trim():''):casterEl.value):'';
-  var spec2={id:_editingProdId||Date.now(),name:name,caster:caster,notes:document.getElementById('prod-notes').value.trim(),linkedId:document.getElementById('prod-linked').value||null,molds:molds,stones:stones,findings:findings,lastMadeHistory:existing.lastMadeHistory||[],
+  var prodGroup=document.getElementById('prod-group')?document.getElementById('prod-group').value.trim():'';
+  var spec2={id:_editingProdId||Date.now(),name:name,group:prodGroup,caster:caster,notes:document.getElementById('prod-notes').value.trim(),linkedId:document.getElementById('prod-linked').value||null,molds:molds,stones:stones,findings:findings,lastMadeHistory:existing.lastMadeHistory||[],
     stoneCost:parseFloat(document.getElementById('prod-stone-cost').value)||0,
     meleeCost:parseFloat(document.getElementById('prod-melee-cost').value)||0,
     metalCost:parseFloat(document.getElementById('prod-metal-cost').value)||0,
@@ -7959,7 +7966,12 @@ function renderProduction(){
   var list=document.getElementById('productionList');if(!list)return;var specs=getProduction();
   if(!specs.length){list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No production specs yet.</div>';return;}
   list.innerHTML='';var goldSpot=window._goldSpot||0;var purityMap={'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
-  specs.forEach(function(spec){
+
+  // Group specs
+  var grouped={};var ungrouped=[];
+  specs.forEach(function(spec){if(spec.group&&spec.group.trim()){if(!grouped[spec.group])grouped[spec.group]=[];grouped[spec.group].push(spec);}else{ungrouped.push(spec);}});
+
+  function renderSpec(spec, container){
     var linked=spec.linkedId?getSavedQuotes().find(function(q){return q.id==spec.linkedId;}):null;
     var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:4px;margin-bottom:8px;overflow:hidden';
 
@@ -8014,7 +8026,7 @@ function renderProduction(){
       spec.molds.forEach(function(m){
         var w=parseFloat(m.weight)||0;var grams=m.weightUnit==='dwt'?w*1.55517:w;var dwt=m.weightUnit==='g'?w/1.55517:w;var purity=purityMap[m.purity]||0.75;var qty=parseInt(m.qty)||1;var estToday=goldSpot?Math.round((grams/31.1035)*goldSpot*purity*qty*1.25):0;totalEstToday+=estToday;
         var mCard=document.createElement('div');mCard.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(122,170,138,0.2)';
-        var mL=document.createElement('div');var mName=document.createElement('div');mName.style.cssText='font-size:13px;color:var(--text);font-weight:500';mName.textContent=m.name||'Mold';mL.appendChild(mName);var mInfo=document.createElement('div');mInfo.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';mInfo.textContent=m.purity+' · '+(m.weightUnit==='g'?w+'g / '+dwt.toFixed(2)+'dwt':dwt.toFixed(2)+'dwt / '+grams.toFixed(2)+'g')+' · x'+qty;mL.appendChild(mInfo);mCard.appendChild(mL);
+        var mL=document.createElement('div');var mName=document.createElement('div');mName.style.cssText='font-size:13px;color:var(--text);font-weight:500';mName.textContent=(m.moldType==='cad'?'CAD: ':'')+( m.name||'Mold');mL.appendChild(mName);var mInfo=document.createElement('div');mInfo.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';mInfo.textContent=m.purity+' · '+(m.weightUnit==='g'?w+'g / '+dwt.toFixed(2)+'dwt':dwt.toFixed(2)+'dwt / '+grams.toFixed(2)+'g')+' · x'+qty;mL.appendChild(mInfo);mCard.appendChild(mL);
         if(estToday){var mR=document.createElement('div');mR.style.textAlign='right';var estVal=document.createElement('div');estVal.style.cssText='font-size:13px;color:var(--gold)';estVal.textContent=fmt(estToday);var estLbl=document.createElement('div');estLbl.style.cssText='font-size:10px;color:var(--text-dim)';estLbl.textContent='est. today';mR.appendChild(estVal);mR.appendChild(estLbl);mCard.appendChild(mR);}
         moldSection.appendChild(mCard);
       });
@@ -8061,12 +8073,28 @@ function renderProduction(){
       body.appendChild(histSection);
     }
 
-    list.appendChild(card);
+    (container||list).appendChild(card);
+  } // end renderSpec
+
+  // Render grouped specs — collapsed by default
+  Object.keys(grouped).sort().forEach(function(groupName){
+    var groupSpecs=grouped[groupName];
+    var groupWrap=document.createElement('div');groupWrap.style.cssText='margin-bottom:10px';
+    var groupHdr=document.createElement('div');groupHdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;cursor:pointer;user-select:none;margin-bottom:4px';
+    var gL=document.createElement('div');
+    var gName=document.createElement('span');gName.style.cssText='font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)';gName.textContent=groupName;
+    var gCount=document.createElement('span');gCount.style.cssText='font-size:11px;color:var(--text-dim);margin-left:8px';gCount.textContent='('+groupSpecs.length+')';
+    gL.appendChild(gName);gL.appendChild(gCount);
+    var gChevron=document.createElement('span');gChevron.style.cssText='font-size:11px;color:var(--text-dim)';gChevron.textContent='▾';
+    groupHdr.appendChild(gL);groupHdr.appendChild(gChevron);
+    var groupBody=document.createElement('div');groupBody.style.display='none';
+    groupHdr.addEventListener('click',function(){var open=groupBody.style.display!=='none';groupBody.style.display=open?'none':'block';gChevron.textContent=open?'▾':'▴';});
+    groupSpecs.forEach(function(spec){renderSpec(spec,groupBody);});
+    groupWrap.appendChild(groupHdr);groupWrap.appendChild(groupBody);list.appendChild(groupWrap);
   });
+  // Render ungrouped specs directly
+  ungrouped.forEach(function(spec){renderSpec(spec,list);});
 }
-
-
-// =================== VENDORS ===================
 if (!window._vendors) window._vendors = ['American Gem Corp', 'Virat', 'Galapo', 'Julius Klein'];
 function getVendors() { return window._vendors || ['American Gem Corp', 'Virat', 'Galapo', 'Julius Klein']; }
 function persistVendors() {
@@ -8367,11 +8395,17 @@ function persistProduction() { if (window._fb) window._fb.saveProduction(window.
 function addProdMoldRow(prefill) {
   var id=++_prodMoldCounter; var container=document.getElementById('prod-molds'); if(!container)return;
   var wrap=document.createElement('div'); wrap.id='prod-mold-wrap-'+id; wrap.dataset.weightUnit=(prefill&&prefill.weightUnit)||'g';
+  wrap.dataset.moldType=(prefill&&prefill.moldType)||'mold';
   wrap.style.cssText='background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:8px';
-  var wu=wrap.dataset.weightUnit;
+  var wu=wrap.dataset.weightUnit; var mt=wrap.dataset.moldType;
   var po=[['10k',0.417],['14k',0.583],['18k',0.75],['22k',0.917],['24k',1.0]].map(function(p){return '<option value="'+p[0]+'"'+(prefill&&prefill.purity===p[0]?' selected':'')+'>'+p[0]+'</option>';}).join('');
-  wrap.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)">Mold</div><button onclick="document.getElementById(\'prod-mold-wrap-'+id+'\').remove();updateProdCastEst()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0">x</button></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><div><div class="field-label">Mold name / #</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="e.g. M-042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div><div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" oninput="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div></div>'
+  var tb='font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer;border:1px solid ';
+  var ta=tb+'var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  var ti=tb+'var(--border);background:none;color:var(--text-dim)';
+  wrap.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+    +'<div style="display:flex;gap:5px"><button id="pm-type-mold-'+id+'" style="'+(mt==='mold'?ta:ti)+'" onclick="setProdMoldType(\''+id+'\',\'mold\')">Mold</button><button id="pm-type-cad-'+id+'" style="'+(mt==='cad'?ta:ti)+'" onclick="setProdMoldType(\''+id+'\',\'cad\')">CAD file</button></div>'
+    +'<button onclick="document.getElementById(\'prod-mold-wrap-'+id+'\').remove();updateProdCastEst()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0">x</button></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><div><div class="field-label" id="pm-name-label-'+id+'">'+(mt==='cad'?'CAD file name':'Mold name / #')+'</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="'+(mt==='cad'?'e.g. Lettera-B.3dm':'e.g. M-042')+'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div><div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" oninput="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin-bottom:6px;align-items:end"><div><div class="field-label">Purity</div><select id="pm-purity-'+id+'" onchange="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+po+'</select></div>'
     +'<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="field-label" style="margin-bottom:0">Weight</div><div style="display:flex;gap:4px"><button id="pm-unit-g-'+id+'" onclick="setProdWeightUnit(\''+id+'\',\'g\')" style="font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:2px;border:1px solid '+(wu==='g'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='g'?'var(--teal-dim)':'none')+';color:'+(wu==='g'?'#fafaf7':'var(--text-dim)')+';cursor:pointer">g</button><button id="pm-unit-dwt-'+id+'" onclick="setProdWeightUnit(\''+id+'\',\'dwt\')" style="font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:2px;border:1px solid '+(wu==='dwt'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='dwt'?'var(--teal-dim)':'none')+';color:'+(wu==='dwt'?'#fafaf7':'var(--text-dim)')+';cursor:pointer">dwt</button></div></div>'
     +'<input type="number" id="pm-weight-'+id+'" value="'+(prefill&&prefill.weight||'')+'" placeholder="0" step="0.01" oninput="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div>'
@@ -8385,6 +8419,16 @@ function setProdWeightUnit(moldId, unit) {
   if(gb){gb.style.background=unit==='g'?'var(--teal-dim)':'none';gb.style.color=unit==='g'?'#fafaf7':'var(--text-dim)';gb.style.borderColor=unit==='g'?'var(--teal-dim)':'var(--border)';}
   if(db){db.style.background=unit==='dwt'?'var(--teal-dim)':'none';db.style.color=unit==='dwt'?'#fafaf7':'var(--text-dim)';db.style.borderColor=unit==='dwt'?'var(--teal-dim)':'var(--border)';}
   updateProdCastEst();
+}
+function setProdMoldType(moldId, type) {
+  var wrap=document.getElementById('prod-mold-wrap-'+moldId);if(!wrap)return;wrap.dataset.moldType=type;
+  var mb=document.getElementById('pm-type-mold-'+moldId);var cb=document.getElementById('pm-type-cad-'+moldId);
+  var ta='font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer;border:1px solid var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  var ti='font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer;border:1px solid var(--border);background:none;color:var(--text-dim)';
+  if(mb){mb.style.cssText=type==='mold'?ta:ti;}if(cb){cb.style.cssText=type==='cad'?ta:ti;}
+  var lbl=document.getElementById('pm-name-label-'+moldId);var inp=document.getElementById('pm-name-'+moldId);
+  if(lbl)lbl.textContent=type==='cad'?'CAD file name':'Mold name / #';
+  if(inp&&!inp.value)inp.placeholder=type==='cad'?'e.g. Lettera-B.3dm':'e.g. M-042';
 }
 function updateProdCastEst() {
   var goldSpot=window._goldSpot||0;
