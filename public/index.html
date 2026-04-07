@@ -7838,6 +7838,9 @@ function addProdFindingRow(prefill){
           var c=CHAINS[idx];
           chainLabel.textContent=c.name+' · '+c.karat;
           chainLabel.style.color='var(--gold)';
+          // Push wholesale cost into findings cost field so calcProdRetail picks it up
+          var findingsField=document.getElementById('prod-findings-cost');
+          if(findingsField){findingsField.value=c.wholesale;calcProdRetail();}
         }
         browseBtn.style.display='inline-block';
       });
@@ -7847,7 +7850,11 @@ function addProdFindingRow(prefill){
   // Auto-build picker if prefilled with inventory chain
   if(useInventory){
     buildChainTreePicker('pf-chain-tree-'+id,'pf-chain-idx-'+id,'pf-chain-label-'+id,function(idx){
-      if(typeof CHAINS!=='undefined'&&CHAINS[idx]){chainLabel.textContent=CHAINS[idx].name+' · '+CHAINS[idx].karat;}
+      if(typeof CHAINS!=='undefined'&&CHAINS[idx]){
+        chainLabel.textContent=CHAINS[idx].name+' · '+CHAINS[idx].karat;
+        var findingsField=document.getElementById('prod-findings-cost');
+        if(findingsField){findingsField.value=CHAINS[idx].wholesale;calcProdRetail();}
+      }
       browseBtn.style.display='inline-block';
     });
   }
@@ -7877,6 +7884,11 @@ function openProductionForm(editId){
       if(document.getElementById('prod-metal-cost'))document.getElementById('prod-metal-cost').value=spec.metalCost||'';
       if(document.getElementById('prod-labor-cost'))document.getElementById('prod-labor-cost').value=spec.laborCost||'';
       if(document.getElementById('prod-findings-cost'))document.getElementById('prod-findings-cost').value=spec.findingsCost||'';
+      // If no manual findingsCost but spec has inventory chain findings, sum their wholesale costs
+      if(!spec.findingsCost){
+        var chainFindingsTotal=(spec.findings||[]).reduce(function(s,f){return s+(f.chainWholesale||0);},0);
+        if(chainFindingsTotal&&document.getElementById('prod-findings-cost'))document.getElementById('prod-findings-cost').value=chainFindingsTotal;
+      }
       if(document.getElementById('prod-design-fee'))document.getElementById('prod-design-fee').value=spec.designFee||'';
       if(document.getElementById('prod-retail-price'))document.getElementById('prod-retail-price').value=spec.retailPrice||'';
       (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});
