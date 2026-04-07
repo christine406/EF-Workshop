@@ -3190,10 +3190,10 @@ function renderExtraPieces() {
 function calcExtraPiece(id) {
   const p = _extraPieces.find(p => p.id === id);
   if (!p) return;
-  const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0) + (p.meleeCost||0) * 1.75;
+  const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0);
   const metalMarkup = Math.round((p.metalCost||0) * 1.05 * 1.35);
   const laborRetail = (p.laborCost||0) * 1.4;
-  const rest = metalMarkup + Math.round(laborRetail) + (p.designFee||0);
+  const rest = metalMarkup + Math.round(laborRetail) + Math.round((p.meleeCost||0) * 1.75) + (p.designFee||0);
   const rawTotal = stoneRetail + rest * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
   p._total = total;
@@ -3215,10 +3215,10 @@ function calcExtraPiece(id) {
 
 function getExtraPiecesForSave() {
   return _extraPieces.map(p => {
-    const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0) + (p.meleeCost||0) * 1.75;
+    const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0);
     const metalMarkup = Math.round((p.metalCost||0) * 1.05 * 1.35);
     const laborRetail = (p.laborCost||0) * 1.4;
-    const rest = metalMarkup + Math.round(laborRetail) + (p.designFee||0);
+    const rest = metalMarkup + Math.round(laborRetail) + Math.round((p.meleeCost||0) * 1.75) + (p.designFee||0);
     const rawTotal = stoneRetail + rest * 1.13;
     const total = Math.round(rawTotal / 50) * 50;
     return {
@@ -4238,10 +4238,10 @@ function calcNewPieceForSet(setId) {
   const metalCost = parseFloat(document.getElementById(fid + '-metal')?.value) || 0;
   const laborCost = parseFloat(document.getElementById(fid + '-labor')?.value) || 0;
   const designFee = parseFloat(document.getElementById(fid + '-design')?.value) || 0;
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const metalMarkup = Math.round(metalCost * 1.35);
   const laborRetail = laborCost * 1.4;
-  const rest = metalMarkup + Math.round(laborRetail) + designFee;
+  const rest = metalMarkup + Math.round(laborRetail) + Math.round(meleeCost * 1.75) + designFee;
   const total = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
   const resultEl = document.getElementById(fid + '-result');
   const totalEl = document.getElementById(fid + '-total');
@@ -4258,10 +4258,10 @@ function saveNewPieceToSet(setId) {
   const metalCost = parseFloat(document.getElementById(fid + '-metal')?.value) || 0;
   const laborCost = parseFloat(document.getElementById(fid + '-labor')?.value) || 0;
   const designFee = parseFloat(document.getElementById(fid + '-design')?.value) || 0;
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const metalMarkup = Math.round(metalCost * 1.35);
   const laborRetail = laborCost * 1.4;
-  const rest = metalMarkup + Math.round(laborRetail) + designFee;
+  const rest = metalMarkup + Math.round(laborRetail) + Math.round(meleeCost * 1.75) + designFee;
   const total = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
 
   const quotes = getSavedQuotes();
@@ -4452,10 +4452,10 @@ function savePieceEdit(setId, pieceIdx) {
   }
 
   // Recalculate piece total
-  const stoneRetail = p.stoneCost * stoneMarkupProject(p.stoneCost) + p.meleeCost * 1.75;
+  const stoneRetail = p.stoneCost * stoneMarkupProject(p.stoneCost);
   const metalMarkup = Math.round(p.metalCost * 1.35);
   const laborRetail = p.laborEst * 1.4;
-  const rest = metalMarkup + Math.round(laborRetail) + (p.designFee||0);
+  const rest = metalMarkup + Math.round(laborRetail) + Math.round((p.meleeCost||0) * 1.75) + (p.designFee||0);
   p.total = Math.round((stoneRetail + rest * 1.13) / 50) * 50;
   p.stoneTotal = Math.round(stoneRetail);
   p.metalTotal = metalMarkup;
@@ -4596,7 +4596,8 @@ function buildQuoteCard(q) {
   const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : (q.metalEstimate || 0);
   const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
-  const cost = stoneCost + metalCost + laborCost + (q.designFee || 0) + (q.chainCost || 0) + (q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0));
+  const designFeeActual = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
+  const cost = stoneCost + metalCost + laborCost + designFeeActual + (q.chainCost || 0) + (q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0));
   const profitBefore = q.total - cost;
   const profitAtClientPrice = clientPrice - cost;
   const statusClass = (q.status === 'project' || q.status === 'collection') ? 'status-project'
@@ -5277,9 +5278,14 @@ function updateActuals(id, e, pieceIdx) {
         <input type="number" id="af-design-${id}" value="${q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
+      <div>
+        <div class="field-label">Findings / chain cost ($)</div>
+        <input type="number" id="af-chain-cost-${id}" value="${q.actualChainCost != null ? q.actualChainCost : (q.chainCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
+      </div>
     </div>
     <div style="margin-bottom:8px">
-      <div class="field-label">Chain</div>
+      <div class="field-label">Chain (from inventory)</div>
       <input type="hidden" id="af-chain-${id}" value="${q.chainCost ? CHAINS.findIndex(c => c.wholesale === q.chainCost) : ''}">
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
         <div id="af-chain-label-${id}" style="font-size:14px;color:var(--gold);font-style:italic">${q.chainName || 'None selected'}</div>
@@ -5314,13 +5320,17 @@ function calcActualsLive(id) {
   const meleeCost = parseFloat(document.getElementById('af-melee-' + id)?.value) || 0;
   const chainEl = document.getElementById('af-chain-' + id);
   const chainIdx = chainEl?.value || '';
-  const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
+  const chainPickerCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
+  // Also read the direct chain cost field — take whichever is larger (picker or manual)
+  const chainCostField = parseFloat(document.getElementById('af-chain-cost-' + id)?.value) || 0;
+  const chainCost = chainPickerCost > 0 ? chainPickerCost : chainCostField;
 
   // Recalculate suggested retail using same markup formula as quote builder
+  // Formula: stone_retail + melee_retail + (metal + chain + labor + design) * 1.13
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const meleeRetail = meleeCost * 1.75;
   const laborRetail = laborCost * 1.4;
-  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + designFee + Math.round(meleeRetail);
+  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + Math.round(meleeRetail) + designFee;
   const rawTotal = stoneRetail + rest * 1.13;
   const suggestedRetail = Math.round(rawTotal / 50) * 50;
 
@@ -5424,14 +5434,16 @@ function saveActuals(id) {
   const stoneCost = stoneField !== '' && stoneField != null ? parseFloat(stoneField) : origStoneCost;
   const metalCost = metalField !== '' && metalField != null ? parseFloat(metalField) : origMetalCost;
   const laborCost = laborField !== '' && laborField != null ? parseFloat(laborField) : origLaborCost;
-  const designFee = designField !== '' && designField != null ? parseFloat(designField) : origDesignFee;
+  const designFee = (designField !== '' && designField != null) ? (parseFloat(designField) || 0) : origDesignFee;
   const meleeCost = meleeField !== '' && meleeField != null ? parseFloat(meleeField) : (q.meleeCost || 0);
   const clientPrice = clientField !== '' && clientField != null ? parseFloat(clientField) || 0 : (q.clientPrice || 0);
 
   const castingCompany = document.getElementById('af-caster-' + id)?.value || q.castingCompany || '';
   const chainEl = document.getElementById('af-chain-' + id);
   const chainIdx = chainEl?.value || '';
-  const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : (q.chainCost || 0);
+  const chainPickerWholesale = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
+  const chainCostFieldVal = parseFloat(document.getElementById('af-chain-cost-' + id)?.value);
+  const chainCost = chainPickerWholesale > 0 ? chainPickerWholesale : (isNaN(chainCostFieldVal) ? (q.chainCost || 0) : chainCostFieldVal);
 
   q.actualStoneCost = stoneCost;
   q.actualMetalCost = metalCost;
@@ -5447,7 +5459,7 @@ function saveActuals(id) {
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const meleeRetail = meleeCost * 1.75;
   const laborRetail = laborCost * 1.4;
-  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + designFee + Math.round(meleeRetail);
+  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + Math.round(meleeRetail) + designFee;
   const rawTotal = stoneRetail + rest * 1.13;
   const recalcRetail = Math.round(rawTotal / 50) * 50;
 
@@ -5543,11 +5555,11 @@ function saveDirectAsPiece() {
   const notes = document.getElementById('npNotes').value;
   const fingerSize = '';
 
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const laborRetail = laborCost * 1.4;
   const metalMarkup = Math.round(metalCost * 1.35);
   const chainMarkup = Math.round(chainWholesale * 1.35);
-  const rest = metalMarkup + chainMarkup + Math.round(laborRetail) + designFee;
+  const rest = metalMarkup + chainMarkup + Math.round(laborRetail) + Math.round(meleeCost * 1.75) + designFee;
   const rawTotal = stoneRetail + rest * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
@@ -5630,9 +5642,9 @@ function saveDirectProject(projectType = 'client') {
   };
 
   const totalStoneCost = stoneCost + meleeCost;
-  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost) + meleeCost * 1.75;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const laborRetail = laborCost * 1.4;
-  const rest = Math.round(metalCost * 1.35) + Math.round(chainWholesale * 1.35) + laborRetail + designFee;
+  const rest = Math.round(metalCost * 1.35) + Math.round(chainWholesale * 1.35) + Math.round(laborRetail) + Math.round(meleeCost * 1.75) + designFee;
   const rawTotal = stoneRetail + rest * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
@@ -8430,17 +8442,17 @@ function calcProdRetail(showBreakdown) {
   var metalRetail = metalCost * 1.35;
   var laborRetail = laborCost * 1.4;
   var findingsRetail = findingsCost * 1.35;
-  var overhead = (metalRetail + findingsRetail + laborRetail + designFee) * 1.13;
-  var suggested = Math.round((stoneRetail + meleeRetail + overhead) / 50) * 50;
+  var overhead = (metalRetail + findingsRetail + laborRetail + meleeRetail + designFee) * 1.13;
+  var suggested = Math.round((stoneRetail + overhead) / 50) * 50;
   var bd = document.getElementById('prod-calc-breakdown');
   if (bd && showBreakdown) {
     var lines = [];
     if (stoneCost) lines.push('Stone ' + fmt(stoneCost) + ' x' + stoneMarkup(stoneCost) + ' = ' + fmt(stoneRetail));
-    if (meleeCost) lines.push('Melee ' + fmt(meleeCost) + ' x1.75 = ' + fmt(meleeRetail));
+    if (meleeCost) lines.push('Melee ' + fmt(meleeCost) + ' x1.75 = ' + fmt(meleeRetail) + ' (in overhead)');
     if (metalCost) lines.push('Metal ' + fmt(metalCost) + ' x1.35 = ' + fmt(metalRetail));
     if (laborCost) lines.push('Labor ' + fmt(laborCost) + ' x1.4 = ' + fmt(laborRetail));
     if (findingsCost) lines.push('Findings ' + fmt(findingsCost) + ' x1.35 = ' + fmt(findingsRetail));
-    lines.push('Overhead x1.13 = ' + fmt(overhead - (metalRetail + findingsRetail + laborRetail + designFee)));
+    lines.push('Overhead pool x1.13 = ' + fmt(Math.round(overhead - (metalRetail + findingsRetail + laborRetail + designFee))));
     lines.push('Suggested retail: ' + fmt(suggested));
     bd.style.display = 'block';
     bd.innerHTML = lines.join('<br>');
