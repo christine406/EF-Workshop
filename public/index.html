@@ -5301,7 +5301,9 @@ function updateActuals(id, e, pieceIdx) {
   overlay.appendChild(modal);
   overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
-  buildChainTreePicker('af-chain-tree-' + id, 'af-chain-' + id, 'af-chain-label-' + id, () => {});
+  buildChainTreePicker('af-chain-tree-' + id, 'af-chain-' + id, 'af-chain-label-' + id, () => { calcActualsLive(id); });
+  // Show live panel immediately based on prefilled values
+  setTimeout(() => calcActualsLive(id), 50);
 }
 
 function calcActualsLive(id) {
@@ -5314,26 +5316,60 @@ function calcActualsLive(id) {
   const chainIdx = chainEl?.value || '';
   const chainCost = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
 
-  // Recalculate retail using same markup formula as quote builder
+  // Recalculate suggested retail using same markup formula as quote builder
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const meleeRetail = meleeCost * 1.75;
   const laborRetail = laborCost * 1.4;
   const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + designFee + Math.round(meleeRetail);
   const rawTotal = stoneRetail + rest * 1.13;
-  const total = Math.round(rawTotal / 50) * 50;
+  const suggestedRetail = Math.round(rawTotal / 50) * 50;
 
   const totalCost = stoneCost + metalCost + laborCost + designFee + meleeCost + chainCost;
   const clientPrice = parseFloat(document.getElementById('af-client-' + id)?.value) || 0;
-  const revenue = clientPrice > 0 ? clientPrice : total;
+  const revenue = clientPrice > 0 ? clientPrice : suggestedRetail;
   const profit = revenue - totalCost;
+  const variance = clientPrice > 0 ? clientPrice - suggestedRetail : 0;
 
   const liveEl = document.getElementById('af-live-' + id);
-  if (liveEl) liveEl.style.display = 'block';
-  if (liveEl) {
-    liveEl.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Total costs</span><span style="color:var(--text);font-size:15px">$' + totalCost.toLocaleString() + '</span></div>'
-      + (total ? '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Retail</span><span style="color:var(--gold);font-size:15px">$' + total.toLocaleString() + '</span></div>' : '')
-      + '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + ';font-size:15px">$' + profit.toLocaleString() + '</span></div>';
+  if (!liveEl) return;
+  if (!totalCost && !suggestedRetail) { liveEl.style.display = 'none'; return; }
+  liveEl.style.display = 'block';
+
+  let html = '';
+  // Total costs row
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    + '<span style="color:var(--text-dim);font-size:12px">Total costs</span>'
+    + '<span style="color:var(--text);font-size:15px;font-weight:500">$' + totalCost.toLocaleString() + '</span></div>';
+
+  // Suggested retail — always shown, always based on current inputs
+  if (suggestedRetail) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border)">'
+      + '<span style="color:var(--text-dim);font-size:12px">Suggested retail</span>'
+      + '<span style="color:var(--gold);font-size:16px;font-weight:600">$' + suggestedRetail.toLocaleString() + '</span></div>';
   }
+
+  // Client price vs suggested — show variance if client price set and differs
+  if (clientPrice > 0 && suggestedRetail && clientPrice !== suggestedRetail) {
+    const varColor = variance >= 0 ? 'var(--green-bright)' : 'var(--red)';
+    const varSign = variance >= 0 ? '+' : '';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<span style="color:var(--text-dim);font-size:12px">Client price</span>'
+      + '<div style="text-align:right">'
+      + '<span style="color:var(--text);font-size:15px;font-weight:500">$' + clientPrice.toLocaleString() + '</span>'
+      + ' <span style="color:' + varColor + ';font-size:11px">' + varSign + '$' + Math.abs(variance).toLocaleString() + '</span>'
+      + '</div></div>';
+  } else if (clientPrice > 0) {
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<span style="color:var(--text-dim);font-size:12px">Client price</span>'
+      + '<span style="color:var(--text);font-size:15px;font-weight:500">$' + clientPrice.toLocaleString() + '</span></div>';
+  }
+
+  // Profit
+  html += '<div style="display:flex;justify-content:space-between;align-items:center">'
+    + '<span style="color:var(--text-dim);font-size:12px">Est. profit</span>'
+    + '<span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + ';font-size:15px;font-weight:500">$' + profit.toLocaleString() + '</span></div>';
+
+  liveEl.innerHTML = html;
 }
 
 function startSemiCustom(id, e) {
