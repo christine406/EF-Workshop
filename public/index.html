@@ -1049,8 +1049,8 @@
         <button id="sortAlphaBtn" onclick="setSavedSort('alpha')" style="background:var(--surface2);color:var(--text-dim);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 2px 2px 0;cursor:pointer;border-left:1px solid var(--border)">A–Z</button>
       </div>
 
+      <div id="plSummary" style="margin-bottom:12px"></div>
       <div id="savedList"></div>
-      <div id="plSummary" style="margin-top:16px"></div>
     </div>
   </div>
   <div class="screen" id="screen-stones">
@@ -4667,7 +4667,7 @@ function renderPL() {
 
   let totalRevenue = 0, totalCost = 0, totalProfit = 0;
   const rows = eligible.map(q => {
-    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
+    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.total || 0);
     let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
     if (q.isMultiPiece) {
       // Sum costs across all pieces — use piece's stones array as fallback for stone cost
@@ -4734,7 +4734,7 @@ function renderPL() {
     allEligible.forEach(q => {
       const excluded = !!q.excludeFromPL;
       const hasFinal = q.actualMetalCost != null || q.actualLabor != null;
-      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.quotedRetail || q.totalRetail || 0);
+      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.total || 0);
       const usingQuotedRetail = !(q.clientPrice > 0);
       let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
       if (q.isMultiPiece) {
