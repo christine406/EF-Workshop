@@ -1318,8 +1318,12 @@
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px" id="productionFormTitle">New production spec</div>
 
         <div style="margin-bottom:10px">
-          <div class="field-label">Piece name</div>
-          <input type="text" id="prod-name" placeholder="e.g. Honey Ring 4.30" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+          <div class="field-label">Piece</div>
+          <select id="prod-piece-sel" onchange="handleProdPieceSel()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;margin-bottom:6px">
+            <option value="">— Select existing collection piece or type a name</option>
+          </select>
+          <input type="text" id="prod-name" placeholder="Or type a custom name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+          <input type="hidden" id="prod-linked">
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -1357,13 +1361,6 @@
             <button onclick="addProdFindingRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer">+ Add</button>
           </div>
           <div id="prod-findings"></div>
-        </div>
-
-        <div style="margin-bottom:10px">
-          <div class="field-label">Linked collection piece (optional)</div>
-          <select id="prod-linked" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-            <option value="">— None</option>
-          </select>
         </div>
 
         <div style="margin-bottom:12px">
@@ -7587,6 +7584,7 @@ function openProductionForm(editId) {
   document.getElementById('productionFormTitle').textContent = editId ? 'Edit production spec' : 'New production spec';
   _prodStoneCounter = 0; _prodFindingCounter = 0;
   document.getElementById('prod-name').value = '';
+  document.getElementById('prod-linked').value = '';
   document.getElementById('prod-mold').value = '';
   document.getElementById('prod-caster').value = '';
   document.getElementById('prod-metal').value = '';
@@ -7595,25 +7593,28 @@ function openProductionForm(editId) {
   document.getElementById('prod-stones').innerHTML = '';
   document.getElementById('prod-findings').innerHTML = '';
 
-  // Populate linked collection dropdown
-  var sel = document.getElementById('prod-linked');
-  sel.innerHTML = '<option value="">— None</option>';
+  // Populate piece selector with collection pieces
+  var pieceSel = document.getElementById('prod-piece-sel');
+  pieceSel.innerHTML = '<option value="">— Select an existing collection piece...</option>';
   getSavedQuotes().filter(function(q) {
     return q.status === 'collection' || q.status === 'collection-quote';
   }).forEach(function(q) {
-    var o = document.createElement('option'); o.value = q.id; o.textContent = q.client || q.pieceType || 'Collection piece'; sel.appendChild(o);
+    var label = q.client || q.pieceType || 'Collection piece';
+    var o = document.createElement('option'); o.value = q.id; o.textContent = label; pieceSel.appendChild(o);
   });
+  pieceSel.innerHTML += '<option value="__custom__">+ Type a custom name below</option>';
 
   if (editId) {
     var spec = getProduction().find(function(s) { return s.id === editId; });
     if (spec) {
+      if (spec.linkedId) { pieceSel.value = spec.linkedId; } else { pieceSel.value = '__custom__'; }
       document.getElementById('prod-name').value = spec.name || '';
+      document.getElementById('prod-linked').value = spec.linkedId || '';
       document.getElementById('prod-mold').value = spec.mold || '';
       document.getElementById('prod-caster').value = spec.caster || '';
       document.getElementById('prod-metal').value = spec.metal || '';
       document.getElementById('prod-grams').value = spec.grams || '';
       document.getElementById('prod-notes').value = spec.notes || '';
-      sel.value = spec.linkedId || '';
       (spec.stones || []).forEach(function(r) { addProdStoneRow(r); });
       (spec.findings || []).forEach(function(r) { addProdFindingRow(r); });
     }
@@ -7621,6 +7622,25 @@ function openProductionForm(editId) {
     addProdStoneRow(); addProdFindingRow();
   }
   form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function handleProdPieceSel() {
+  var pieceSel = document.getElementById('prod-piece-sel');
+  var nameInput = document.getElementById('prod-name');
+  var linkedInput = document.getElementById('prod-linked');
+  var val = pieceSel.value;
+  if (!val || val === '__custom__') {
+    nameInput.placeholder = 'Type a custom name';
+    nameInput.value = '';
+    linkedInput.value = '';
+    nameInput.focus();
+  } else {
+    var q = getSavedQuotes().find(function(q) { return q.id == val; });
+    if (q) {
+      nameInput.value = q.client || q.pieceType || '';
+      linkedInput.value = q.id;
+    }
+  }
 }
 
 function closeProdForm() {
