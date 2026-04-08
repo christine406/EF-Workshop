@@ -1282,7 +1282,7 @@
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-          <div><div class="field-label">Date invoiced</div><input type="text" id="inv-date" placeholder="e.g. Apr 5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Vendor</div>
@@ -1324,7 +1324,7 @@
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-          <div><div class="field-label">Date invoiced</div><input type="text" id="inv-date" placeholder="e.g. Apr 5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Vendor</div>
@@ -1336,6 +1336,13 @@
           <select id="inv-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
             <option value="casting">Casting</option><option value="setting">Setting</option><option value="dealer">Dealer</option><option value="findings">Findings</option><option value="other">Other</option>
           </select>
+        </div>
+        <div style="margin-bottom:10px">
+          <div class="field-label">Status</div>
+          <div class="toggle-group">
+            <button class="toggle-btn active" id="inv-status-outstanding" onclick="setInvFormStatus('outstanding',this)">Outstanding</button>
+            <button class="toggle-btn" id="inv-status-paid" onclick="setInvFormStatus('paid',this)">Paid</button>
+          </div>
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -7499,21 +7506,38 @@ function setInvoiceFilter(filter,btn){
   document.querySelectorAll('#screen-invoices .toggle-group .toggle-btn').forEach(function(b){b.style.background='var(--surface2)';b.style.color='var(--text)';b.style.borderColor='var(--border)';});
   btn.style.background='var(--teal-dim)';btn.style.color='#fafaf7';btn.style.borderColor='var(--teal-dim)';renderInvoices();
 }
+function setInvFormStatus(status, btn) {
+  document.getElementById('inv-status-outstanding').classList.remove('active');
+  document.getElementById('inv-status-paid').classList.remove('active');
+  if(btn) btn.classList.add('active');
+}
 function openInvoiceForm(editId){
   _editingInvoiceId=editId||null;var form=document.getElementById('invoiceForm');if(!form)return;form.style.display='block';
   var invVendor=document.getElementById('inv-vendor');if(invVendor)invVendor.innerHTML=buildVendorOptions('',true);
   _invoiceLineCounter=0;
   document.getElementById('inv-number').value='';
-  document.getElementById('inv-date').value=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('inv-line-items').innerHTML='';
   if(document.getElementById('inv-type'))document.getElementById('inv-type').value='casting';
+  // Reset status toggle
+  var os=document.getElementById('inv-status-outstanding');var ps=document.getElementById('inv-status-paid');
+  if(os)os.classList.add('active');if(ps)ps.classList.remove('active');
   if(editId){
     var inv=getInvoices().find(function(i){return i.id===editId;});
     if(inv){
       document.getElementById('inv-number').value=inv.invoiceNumber||'';
-      document.getElementById('inv-date').value=inv.date||'';
+      (function(){
+        var d=inv.date||'';
+        // Convert "Apr 5, 2026" format to YYYY-MM-DD for date input
+        if(d && !d.match(/^\d{4}-/)){try{var p=new Date(d);if(!isNaN(p)){d=p.toISOString().split('T')[0];}}catch(e){}}
+        document.getElementById('inv-date').value=d;
+      })();
       if(invVendor)invVendor.value=inv.vendor||'';
       if(document.getElementById('inv-type'))document.getElementById('inv-type').value=inv.type||'other';
+      // Restore status
+      var os2=document.getElementById('inv-status-outstanding');var ps2=document.getElementById('inv-status-paid');
+      if(inv.status==='paid'){if(os2)os2.classList.remove('active');if(ps2)ps2.classList.add('active');}
+      else{if(os2)os2.classList.add('active');if(ps2)ps2.classList.remove('active');}
       (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
     }
   }else{addInvoiceLineItem();}
@@ -7545,7 +7569,9 @@ function addInvoiceLineItem(prefill){
 
 function saveInvoice(){
   var num=document.getElementById('inv-number').value.trim();
-  var date=document.getElementById('inv-date').value.trim();
+  var rawDate=document.getElementById('inv-date').value.trim();
+  var date=rawDate;
+  if(rawDate&&rawDate.match(/^\d{4}-\d{2}-\d{2}$/)){try{var dp=new Date(rawDate+'T12:00:00');date=dp.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){}}
   var vendorSel=document.getElementById('inv-vendor').value;
   var vendor=vendorSel==='__new__'?(document.getElementById('inv-vendor-other').value.trim()||''):vendorSel;
   if(!vendor||vendor==='__new__'){showToast('Select a vendor');return;}
@@ -7670,7 +7696,7 @@ function scanInvoicePhoto(input){
         openInvoiceForm();
         setTimeout(function(){
           if(inv.invoiceNumber)document.getElementById('inv-number').value=inv.invoiceNumber;
-          if(inv.date)document.getElementById('inv-date').value=inv.date;
+          if(inv.date){try{var pd=new Date(inv.date);if(!isNaN(pd)){document.getElementById('inv-date').value=pd.toISOString().split('T')[0];}else{document.getElementById('inv-date').value=inv.date;}}catch(e){document.getElementById('inv-date').value=inv.date;}}
           if(inv.type&&document.getElementById('inv-type'))document.getElementById('inv-type').value=inv.type;
           if(inv.vendor){var vs=document.getElementById('inv-vendor');if(vs){var found=Array.from(vs.options).find(function(o){return o.text.toLowerCase()===inv.vendor.toLowerCase();});if(found){vs.value=found.value;}else{addVendor(inv.vendor);setTimeout(function(){vs.innerHTML=buildVendorOptions(inv.vendor,true);vs.value=inv.vendor;},200);}}}
           document.getElementById('inv-line-items').innerHTML='';window._invoiceLineCounter=0;(inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
@@ -8206,14 +8232,19 @@ function openInvoiceForm(editId) {
   var iv=document.getElementById('inv-vendor'); if(iv) iv.innerHTML=buildVendorOptions('',true);
   _invoiceLineCounter=0;
   document.getElementById('inv-number').value='';
-  document.getElementById('inv-date').value=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('inv-line-items').innerHTML='';
   var it=document.getElementById('inv-type'); if(it) it.value='casting';
   if(editId){
     var inv=getInvoices().find(function(i){return i.id===editId;});
     if(inv){
       document.getElementById('inv-number').value=inv.invoiceNumber||'';
-      document.getElementById('inv-date').value=inv.date||'';
+      (function(){
+        var d=inv.date||'';
+        // Convert "Apr 5, 2026" format to YYYY-MM-DD for date input
+        if(d && !d.match(/^\d{4}-/)){try{var p=new Date(d);if(!isNaN(p)){d=p.toISOString().split('T')[0];}}catch(e){}}
+        document.getElementById('inv-date').value=d;
+      })();
       if(iv) iv.value=inv.vendor||'';
       if(it) it.value=inv.type||'other';
       (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
@@ -8235,7 +8266,9 @@ function addInvoiceLineItem(prefill) {
 }
 function saveInvoice() {
   var num=document.getElementById('inv-number').value.trim();
-  var date=document.getElementById('inv-date').value.trim();
+  var rawDate=document.getElementById('inv-date').value.trim();
+  var date=rawDate;
+  if(rawDate&&rawDate.match(/^\d{4}-\d{2}-\d{2}$/)){try{var dp=new Date(rawDate+'T12:00:00');date=dp.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){}}
   var vs=document.getElementById('inv-vendor').value;
   var vendor=vs==='__new__'?(document.getElementById('inv-vendor-other').value.trim()||''):vs;
   if(!vendor||vendor==='__new__'){showToast('Select a vendor');return;}
@@ -8254,7 +8287,8 @@ function saveInvoice() {
     var inv=invoices.find(function(i){return i.id===_editingInvoiceId;});
     if(inv){inv.invoiceNumber=num;inv.date=date;inv.vendor=vendor;inv.type=invType;inv.lineItems=lineItems;}
   } else {
-    invoices.unshift({id:Date.now(),invoiceNumber:num,vendor:vendor,date:date,type:invType,status:'outstanding',lineItems:lineItems});
+    var invStatus=(document.getElementById('inv-status-paid')&&document.getElementById('inv-status-paid').classList.contains('active'))?'paid':'outstanding';
+  invoices.unshift({id:Date.now(),invoiceNumber:num,vendor:vendor,date:date,type:invType,status:invStatus,lineItems:lineItems});
   }
   window._invoices=invoices; persistInvoices(); closeInvoiceForm(); renderInvoices(); showToast('Invoice saved');
 }
@@ -8373,7 +8407,7 @@ function scanInvoicePhoto(input) {
         openInvoiceForm();
         setTimeout(function(){
           if(inv.invoiceNumber)document.getElementById('inv-number').value=inv.invoiceNumber;
-          if(inv.date)document.getElementById('inv-date').value=inv.date;
+          if(inv.date){try{var pd=new Date(inv.date);if(!isNaN(pd)){document.getElementById('inv-date').value=pd.toISOString().split('T')[0];}else{document.getElementById('inv-date').value=inv.date;}}catch(e){document.getElementById('inv-date').value=inv.date;}}
           if(inv.type){var it=document.getElementById('inv-type');if(it)it.value=inv.type;}
           if(inv.vendor){
             var iv=document.getElementById('inv-vendor');
