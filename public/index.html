@@ -1282,7 +1282,7 @@
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;max-width:100%;overflow:hidden"></div>
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Vendor</div>
@@ -1324,7 +1324,7 @@
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;max-width:100%;overflow:hidden"></div>
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Vendor</div>
@@ -1382,7 +1382,7 @@
         <div style="margin-bottom:10px">
           <div class="field-label">Casting vendor</div>
           <select id="prod-caster" onchange="document.getElementById('prod-caster-new').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
-            <option value="">-- Select</option><option value="Carrera Casting">Carrera Casting</option><option value="Omega">Omega</option><option value="Pafco">Pafco</option><option value="JM">JM</option><option value="__new__">+ Add new...</option>
+            <option value="">-- Select</option><option value="Carrera">Carrera</option><option value="Omega">Omega</option><option value="Pafco">Pafco</option><option value="JM">JM</option><option value="__new__">+ Add new...</option>
           </select>
           <input type="text" id="prod-caster-new" placeholder="New casting vendor" style="display:none;width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
         </div>
@@ -5256,7 +5256,7 @@ function updateActuals(id, e, pieceIdx) {
         <div class="field-label">Casting company</div>
         <select id="af-caster-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
           <option value="">— Select</option>
-          <option value="Carrera Casting" ${q.castingCompany==='Carrera Casting'?'selected':''}>Carrera Casting</option>
+          <option value="Carrera" ${q.castingCompany==='Carrera'?'selected':''}>Carrera</option>
           <option value="Omega" ${q.castingCompany==='Omega'?'selected':''}>Omega</option>
           <option value="Pafco" ${q.castingCompany==='Pafco'?'selected':''}>Pafco</option>
           <option value="JM" ${q.castingCompany==='JM'?'selected':''}>JM</option>
@@ -7911,7 +7911,7 @@ function openProductionForm(editId){
     var spec=getProduction().find(function(s){return s.id===editId;});
     if(spec){
       pieceSel.value=spec.linkedId||'__custom__';document.getElementById('prod-name').value=spec.name||'';document.getElementById('prod-linked').value=spec.linkedId||'';
-      var casterSel=document.getElementById('prod-caster');if(casterSel){var knownCasters=['Carrera Casting','Omega','Pafco','JM'];if(spec.caster&&knownCasters.indexOf(spec.caster)!==-1){casterSel.value=spec.caster;}else if(spec.caster){var opt=document.createElement('option');opt.value=spec.caster;opt.textContent=spec.caster;casterSel.insertBefore(opt,casterSel.lastElementChild);casterSel.value=spec.caster;}}
+      var casterSel=document.getElementById('prod-caster');if(casterSel){var knownCasters=['Carrera','Omega','Pafco','JM'];if(spec.caster&&knownCasters.indexOf(spec.caster)!==-1){casterSel.value=spec.caster;}else if(spec.caster){var opt=document.createElement('option');opt.value=spec.caster;opt.textContent=spec.caster;casterSel.insertBefore(opt,casterSel.lastElementChild);casterSel.value=spec.caster;}}
       document.getElementById('prod-notes').value=spec.notes||'';
       if(document.getElementById('prod-group'))document.getElementById('prod-group').value=spec.group||'';
       if(document.getElementById('prod-stone-cost'))document.getElementById('prod-stone-cost').value=spec.stoneCost||'';
@@ -8224,73 +8224,6 @@ function setInvoiceFilter(filter, btn) {
   });
   btn.style.background='var(--teal-dim)'; btn.style.color='#fafaf7'; btn.style.borderColor='var(--teal-dim)';
   renderInvoices();
-}
-function openInvoiceForm(editId) {
-  _editingInvoiceId = editId||null;
-  var form=document.getElementById('invoiceForm'); if(!form)return;
-  form.style.display='block';
-  var iv=document.getElementById('inv-vendor'); if(iv) iv.innerHTML=buildVendorOptions('',true);
-  _invoiceLineCounter=0;
-  document.getElementById('inv-number').value='';
-  document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
-  document.getElementById('inv-line-items').innerHTML='';
-  var it=document.getElementById('inv-type'); if(it) it.value='casting';
-  if(editId){
-    var inv=getInvoices().find(function(i){return i.id===editId;});
-    if(inv){
-      document.getElementById('inv-number').value=inv.invoiceNumber||'';
-      (function(){
-        var d=inv.date||'';
-        // Convert "Apr 5, 2026" format to YYYY-MM-DD for date input
-        if(d && !d.match(/^\d{4}-/)){try{var p=new Date(d);if(!isNaN(p)){d=p.toISOString().split('T')[0];}}catch(e){}}
-        document.getElementById('inv-date').value=d;
-      })();
-      if(iv) iv.value=inv.vendor||'';
-      if(it) it.value=inv.type||'other';
-      (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
-    }
-  } else { addInvoiceLineItem(); }
-  form.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function closeInvoiceForm() {
-  var f=document.getElementById('invoiceForm'); if(f)f.style.display='none'; _editingInvoiceId=null;
-}
-function addInvoiceLineItem(prefill) {
-  var id=++_invoiceLineCounter; var c=document.getElementById('inv-line-items'); if(!c)return;
-  var div=document.createElement('div'); div.id='inv-li-'+id;
-  div.style.cssText='background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px;margin-bottom:8px';
-  var cats=['casting','setting','findings','dealer','cad','other'];
-  var co=cats.map(function(c){return '<option value="'+c+'"'+(prefill&&prefill.category===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
-  div.innerHTML='<div style="display:flex;gap:8px;margin-bottom:8px;align-items:start"><input type="text" id="inv-li-desc-'+id+'" value="'+(prefill&&prefill.description||'')+'" placeholder="Description" style="flex:1;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"><button onclick="document.getElementById(\'inv-li-'+id+'\').remove()" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 0">x</button></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><div class="field-label">Category</div><select id="inv-li-cat-'+id+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+co+'</select></div><div><div class="field-label">Amount ($)</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div></div>';
-  c.appendChild(div);
-}
-function saveInvoice() {
-  var num=document.getElementById('inv-number').value.trim();
-  var rawDate=document.getElementById('inv-date').value.trim();
-  var date=rawDate;
-  if(rawDate&&rawDate.match(/^\d{4}-\d{2}-\d{2}$/)){try{var dp=new Date(rawDate+'T12:00:00');date=dp.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}catch(e){}}
-  var vs=document.getElementById('inv-vendor').value;
-  var vendor=vs==='__new__'?(document.getElementById('inv-vendor-other').value.trim()||''):vs;
-  if(!vendor||vendor==='__new__'){showToast('Select a vendor');return;}
-  if(vs==='__new__'&&vendor)addVendor(vendor);
-  var invType=document.getElementById('inv-type')?document.getElementById('inv-type').value:'other';
-  var lineItems=[];
-  document.querySelectorAll('#inv-line-items > div[id^="inv-li-"]').forEach(function(div){
-    var liId=div.id.replace('inv-li-','');
-    var de=document.getElementById('inv-li-desc-'+liId); var ce=document.getElementById('inv-li-cat-'+liId); var ae=document.getElementById('inv-li-amt-'+liId);
-    var desc=de?de.value.trim():''; var cat=ce?ce.value:'other'; var amt=ae?(parseFloat(ae.value)||0):0;
-    if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:cat,amount:amt,pushed:false,pushedTo:null,pushedField:null});
-  });
-  if(!lineItems.length){showToast('Add at least one line item');return;}
-  var invoices=getInvoices();
-  if(_editingInvoiceId){
-    var inv=invoices.find(function(i){return i.id===_editingInvoiceId;});
-    if(inv){inv.invoiceNumber=num;inv.date=date;inv.vendor=vendor;inv.type=invType;inv.lineItems=lineItems;}
-  } else {
-    var invStatus=(document.getElementById('inv-status-paid')&&document.getElementById('inv-status-paid').classList.contains('active'))?'paid':'outstanding';
-  invoices.unshift({id:Date.now(),invoiceNumber:num,vendor:vendor,date:date,type:invType,status:invStatus,lineItems:lineItems});
-  }
-  window._invoices=invoices; persistInvoices(); closeInvoiceForm(); renderInvoices(); showToast('Invoice saved');
 }
 function toggleInvoiceStatus(id) {
   var invoices=getInvoices(); var inv=invoices.find(function(i){return i.id===id;}); if(!inv)return;
