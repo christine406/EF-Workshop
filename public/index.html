@@ -1278,29 +1278,6 @@
         </div>
         <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New invoice</button>
       </div>
-      <div id="invoiceForm" style="display:none;background:var(--surface2);border-radius:4px;padding:14px;margin-bottom:16px">
-        <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box;max-width:100%;overflow:hidden"></div>
-        </div>
-        <div style="margin-bottom:10px">
-          <div class="field-label">Vendor</div>
-          <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'))" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></select>
-          <div id="inv-vendor-other-row" style="display:none;margin-top:6px"><input type="text" id="inv-vendor-other" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('inv-vendor'),this)"></div>
-        </div>
-        <div style="margin-bottom:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-            <div class="field-label" style="margin-bottom:0">Line items</div>
-            <button onclick="addInvoiceLineItem()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:2px;cursor:pointer">+ Add line</button>
-          </div>
-          <div id="inv-line-items"></div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button onclick="saveInvoice()" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:3px;cursor:pointer">Save invoice</button>
-          <button onclick="closeInvoiceForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:12px 16px;border-radius:3px;cursor:pointer">Cancel</button>
-        </div>
-      </div>
       <div id="invoiceList"></div>
     </div>
   </div>
