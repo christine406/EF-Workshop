@@ -1272,9 +1272,9 @@
       <div class="section-label">Invoices</div>
       <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
         <div class="toggle-group" style="flex:1">
-          <button class="toggle-btn active" onclick="setInvoiceFilter('all',this)">All</button>
-          <button class="toggle-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
-          <button class="toggle-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
+          <button class="toggle-btn inv-filter-btn active" onclick="setInvoiceFilter('all',this)">All</button>
+          <button class="toggle-btn inv-filter-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
+          <button class="toggle-btn inv-filter-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
         </div>
         <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New invoice</button>
       </div>
@@ -1311,9 +1311,9 @@
       <div class="section-label">Invoices</div>
       <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
         <div class="toggle-group" style="flex:1">
-          <button class="toggle-btn active" onclick="setInvoiceFilter('all',this)">All</button>
-          <button class="toggle-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
-          <button class="toggle-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
+          <button class="toggle-btn inv-filter-btn active" onclick="setInvoiceFilter('all',this)">All</button>
+          <button class="toggle-btn inv-filter-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
+          <button class="toggle-btn inv-filter-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
         </div>
         <button onclick="document.getElementById('inv-scan-input').click()" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:3px;cursor:pointer;white-space:nowrap">Scan</button>
         <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New</button>
@@ -7503,8 +7503,9 @@ function getInvoices(){return window._invoices||[];}
 function persistInvoices(){if(window._fb)window._fb.saveInvoices(window._invoices);}
 function setInvoiceFilter(filter,btn){
   _invoiceFilter=filter;
-  document.querySelectorAll('#screen-invoices .toggle-group .toggle-btn').forEach(function(b){b.style.background='var(--surface2)';b.style.color='var(--text)';b.style.borderColor='var(--border)';});
-  btn.style.background='var(--teal-dim)';btn.style.color='#fafaf7';btn.style.borderColor='var(--teal-dim)';renderInvoices();
+  document.querySelectorAll('.inv-filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderInvoices();
 }
 function setInvFormStatus(status, btn) {
   document.getElementById('inv-status-outstanding').classList.remove('active');
@@ -7585,9 +7586,10 @@ function saveInvoice(){
     if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:cat,amount:amt,pushed:false,pushedTo:null,pushedField:null});
   });
   if(!lineItems.length){showToast('Add at least one line item');return;}
+  var invStatus=(document.getElementById('inv-status-paid')&&document.getElementById('inv-status-paid').classList.contains('active'))?'paid':'outstanding';
   var invoices=getInvoices();
-  if(_editingInvoiceId){var inv=invoices.find(function(i){return i.id===_editingInvoiceId;});if(inv){inv.invoiceNumber=num;inv.date=date;inv.vendor=vendor;inv.type=invType;inv.lineItems=lineItems;}}
-  else{invoices.unshift({id:Date.now(),invoiceNumber:num,vendor:vendor,date:date,type:invType,status:'outstanding',lineItems:lineItems});}
+  if(_editingInvoiceId){var inv=invoices.find(function(i){return i.id===_editingInvoiceId;});if(inv){inv.invoiceNumber=num;inv.date=date;inv.vendor=vendor;inv.type=invType;inv.status=invStatus;inv.lineItems=lineItems;}}
+  else{invoices.unshift({id:Date.now(),invoiceNumber:num,vendor:vendor,date:date,type:invType,status:invStatus,lineItems:lineItems});}
   window._invoices=invoices;persistInvoices();closeInvoiceForm();renderInvoices();showToast('Invoice saved');
 }
 function toggleInvoiceStatus(id){var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;inv.status=inv.status==='paid'?'outstanding':'paid';window._invoices=invoices;persistInvoices();renderInvoices();}
@@ -8219,10 +8221,8 @@ function getInvoices() { return window._invoices || []; }
 function persistInvoices() { if (window._fb) window._fb.saveInvoices(window._invoices); }
 function setInvoiceFilter(filter, btn) {
   _invoiceFilter = filter;
-  document.querySelectorAll('#screen-invoices .toggle-group .toggle-btn').forEach(function(b){
-    b.style.background='var(--surface2)'; b.style.color='var(--text)'; b.style.borderColor='var(--border)';
-  });
-  btn.style.background='var(--teal-dim)'; btn.style.color='#fafaf7'; btn.style.borderColor='var(--teal-dim)';
+  document.querySelectorAll('.inv-filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
   renderInvoices();
 }
 function toggleInvoiceStatus(id) {
