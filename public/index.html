@@ -4722,6 +4722,21 @@ function buildQuoteCard(q) {
     html += '</div>';
   }
 
+  // Invoice connections
+  if (q.invoiceLinks && q.invoiceLinks.length) {
+    const fieldLabels2 = { actualStoneCost:'Stone', actualMeleeCost:'Melee', actualMetalCost:'Metal', actualLabor:'Labor', actualDesignFee:'Design fee', actualChainCost:'Chain' };
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Invoice connections</div>';
+    q.invoiceLinks.forEach(lnk => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">'
+        + '<div style="flex:1;padding-right:10px">'
+        + '<div style="font-size:13px;color:var(--text)">' + (lnk.vendor||'') + (lnk.invoiceNumber ? ' #' + lnk.invoiceNumber : '') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (lnk.description||'') + (lnk.amount ? ' · ' + (fieldLabels2[lnk.field]||'') + ' $' + (lnk.amount||0).toLocaleString() : ' · note') + ' · ' + (lnk.date||'') + '</div>'
+        + '</div></div>';
+    });
+    html += '</div>';
+  }
+
   // Project notes / reminders
   if (q.projectNotes && q.projectNotes.length) {
     const open = q.projectNotes.filter(n => !n.done);
@@ -7009,7 +7024,9 @@ function deleteProjectNote(quoteId, noteId) {
   q.projectNotes = q.projectNotes.filter(n => n.id !== noteId);
   window._savedQuotes = quotes;
   persistQuotes();
-  renderSaved();
+  // Remove from DOM directly — avoid re-render which collapses the card
+  const row = document.querySelector('[data-note-id="' + noteId + '"]');
+  if (row) row.remove();
 }
 
 function reconcileFieldEntry(id) {
@@ -7623,11 +7640,17 @@ function pushLineItemToProject(invoiceId,lineItemId){
       q[field]=addMode==='replace'?li.amount:(q[field]||0)+li.amount;
       if(!q.costPushes)q.costPushes=[];
       q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+      if(!q.invoiceLinks)q.invoiceLinks=[];
+      q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:li.description||li.category,amount:li.amount,field:field,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
       window._savedQuotes=quotes;persistQuotes();renderSaved();
       li.pushed=true;li.pushType='cost';
     } else {
       // Note only — just link, no cost pushed
       li.pushed=true;li.pushType='note';
+      // Also write a lightweight note to the project so it shows on the card
+      if(!q.invoiceLinks)q.invoiceLinks=[];
+      q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:li.description||li.category,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+      window._savedQuotes=quotes;persistQuotes();renderSaved();
     }
     li.pushedTo=q.client;li.pushedProjectId=q.id;
     window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();
