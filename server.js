@@ -262,60 +262,64 @@ app.get('/api/gold-price', async (req, res) => {
 app.get('/api/gia-lookup', async (req, res) => {
   const reportNo = req.query.report;
   if (!reportNo) return res.status(400).json({ error: 'No report number' });
-
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'API key not configured' });
 
-  // Fetch the GIA report check page
-  const giaUrl = `https://www.gia.edu/report-check?reportno=${encodeURIComponent(reportNo)}`;
-
   try {
-    const html = await new Promise((resolve, reject) => {
-      const req2 = https.request({
+    // Fetch the GIA report page
+    const giaHtml = await new Promise((resolve, reject) => {
+      const r2 = https.request({
         hostname: 'www.gia.edu',
-        path: `/report-check?reportno=${encodeURIComponent(reportNo)}`,
+        path: '/report-check?reportno=' + encodeURIComponent(reportNo),
         method: 'GET',
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          'Accept': 'text/html',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml',
+          'Accept-Language': 'en-US,en;q=0.9',
         },
-        timeout: 8000
+        timeout: 10000
       }, (r) => {
         let data = '';
         r.on('data', c => data += c);
         r.on('end', () => resolve(data));
       });
-      req2.on('error', reject);
-      req2.on('timeout', () => { req2.destroy(); reject(new Error('timeout')); });
-      req2.end();
+      r2.on('error', reject);
+      r2.on('timeout', () => { r2.destroy(); reject(new Error('timeout')); });
+      r2.end();
     });
 
-    // Use Claude to parse the HTML for the gem data
+    const prompt = 'Extract diamond grading from this GIA report page. The page may be JS-rendered and mostly empty. Return ONLY JSON with these keys (null if not found): carat (number string), color (letter grade), clarity (grade), cut (shape name), found (boolean). Page content: ' + giaHtml.substring(0, 6000);
+
     const payload = JSON.stringify({
-      model: 'claude-haiku-4-5-20251001', max_tokens: 300,
-      messages: [{ role: 'user', content: [
-        { type: 'text', text: 'Extract diamond grading data from this GIA report page HTML. Return ONLY a JSON object with these keys (null if not found): {"carat":"weight as number string e.g. 1.52","color":"grade e.g. G","clarity":"grade e.g. VS1","cut":"shape e.g. Round Brilliant","found":true/false}. HTML: ' + html.substring(0, 8000) }
-      ]}]
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }]
     });
 
     const claudeRes = await new Promise((resolve, reject) => {
-      const claudeReq = https.request({
+      const cr = https.request({
         hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'Content-Length': Buffer.byteLength(payload) }
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'Content-Length': Buffer.byteLength(payload)
+        }
       }, (r) => {
         let data = '';
         r.on('data', c => data += c);
         r.on('end', () => resolve(JSON.parse(data)));
       });
-      claudeReq.on('error', reject);
-      claudeReq.write(payload);
-      claudeReq.end();
+      cr.on('error', reject);
+      cr.write(payload);
+      cr.end();
     });
 
-    const text = claudeRes.content?.[0]?.text || '';
-    const match = text.match(/\{[\s\S]*\}/);
+    const text = claudeRes.content && claudeRes.content[0] && claudeRes.content[0].text || '';
+    const match = text.match(/\{[\s\S]*?\}/);
     if (!match) return res.json({ found: false });
-    res.json(JSON.parse(match[0]));
+    const parsed = JSON.parse(match[0]);
+    res.json(parsed);
   } catch(e) {
     res.status(500).json({ error: e.message });
   }

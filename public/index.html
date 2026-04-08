@@ -4764,9 +4764,9 @@ function buildQuoteCard(q) {
     html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
     html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Notes & reminders</div>';
     [...open, ...done].forEach(n => {
-      html += '<div style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;' + (n.done ? 'opacity:0.4;' : '') + '">'
+      html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
         + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:var(--teal-dim);cursor:pointer;flex-shrink:0">'
-        + '<div style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
+        + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;opacity:0.5;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
         + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
         + '</div>';
     });
@@ -5961,7 +5961,7 @@ async function lookupGIAByNumber() {
     const res = await fetch('/api/gia-lookup?report=' + encodeURIComponent(giaNum));
     const data = await res.json();
     if (!data.found && !data.carat) {
-      statusEl.textCnnerHTML = 'Not found automatically — <a href="https://www.gia.edu/report-check?reportno=' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+      statusEl.innerHTML = 'Not found automatically — <a href="https://www.gia.edu/report-check?reportno=' + giaNum + '" target="_blank" rel="noopener" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
       statusEl.style.color = '#ccc07a';
       return;
     }
@@ -7029,7 +7029,12 @@ function checkOffProjectNote(quoteId, noteId) {
   if (note) { note.done = !note.done; }
   window._savedQuotes = quotes;
   persistQuotes();
-  renderSaved();
+  // Update DOM directly — avoid re-render which collapses the card
+  const checkbox = document.querySelector('[data-note-id="' + noteId + '"] input[type="checkbox"]');
+  const textEl = document.querySelector('[data-note-id="' + noteId + '"] .note-text');
+  if (checkbox) checkbox.checked = !!note.done;
+  if (textEl) textEl.style.textDecoration = note.done ? 'line-through' : 'none';
+  if (textEl) textEl.style.opacity = note.done ? '0.5' : '1';
 }
 
 function deleteProjectNote(quoteId, noteId) {
