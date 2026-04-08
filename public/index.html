@@ -4957,6 +4957,13 @@ function togglePLExclusion(id, e) {
 }
 
 function renderSaved() {
+  // Snapshot which cards are currently open so we can restore after re-render
+  const openIds = new Set();
+  document.querySelectorAll('.quote-item').forEach(div => {
+    const body = div.querySelector('.card-body');
+    if (body && body.style.display !== 'none') openIds.add(div.dataset.id);
+  });
+
   renderPL();
   const list = document.getElementById('savedList');
   const allQuotes = getSavedQuotes();
@@ -5054,6 +5061,18 @@ function renderSaved() {
       div.dataset.id = q.id;
       div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
       list.appendChild(div);
+    });
+  }
+
+  // Restore previously open cards
+  if (openIds.size > 0) {
+    document.querySelectorAll('.quote-item').forEach(div => {
+      if (openIds.has(div.dataset.id)) {
+        const body = div.querySelector('.card-body');
+        const arrow = div.querySelector('.tap-arrow');
+        if (body) body.style.display = 'block';
+        if (arrow) arrow.textContent = 'tap to collapse ▴';
+      }
     });
   }
 }
