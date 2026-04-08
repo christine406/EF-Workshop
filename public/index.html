@@ -1276,11 +1276,8 @@
           <button class="toggle-btn inv-filter-btn" onclick="setInvoiceFilter('outstanding',this)">Outstanding</button>
           <button class="toggle-btn inv-filter-btn" onclick="setInvoiceFilter('paid',this)">Paid</button>
         </div>
-        <button onclick="document.getElementById('inv-scan-input').click()" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:3px;cursor:pointer;white-space:nowrap">Scan</button>
         <button onclick="openInvoiceForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 14px;border-radius:3px;cursor:pointer;white-space:nowrap">+ New</button>
       </div>
-      <input type="file" id="inv-scan-input" accept="image/*" style="display:none" onchange="scanInvoicePhoto(this)">
-      <div id="inv-scan-status" style="display:none;background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:12px;font-size:13px;color:var(--teal-dim);text-align:center">Reading invoice...</div>
       <div id="invoiceForm" style="display:none;background:var(--surface2);border-radius:4px;padding:14px;margin-bottom:16px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
@@ -7561,34 +7558,84 @@ function pushLineItemToProject(invoiceId,lineItemId){
   var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;});if(!li)return;
   var quotes=getSavedQuotes();var projects=quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed';}).sort(function(a,b){return b.id-a.id;});
   if(!projects.length){showToast('No active projects');return;}
+
   var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   var modal=document.createElement('div');modal.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:400px';
-  var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Push to project';modal.appendChild(t);
-  var d=document.createElement('div');d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';d.textContent=(li.description||li.category)+' - '+fmt(li.amount);modal.appendChild(d);
-  var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';projSel.innerHTML='<option value="">-- Select project</option>';
-  projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;projSel.appendChild(o);});modal.appendChild(projSel);
-  var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Cost field?';modal.appendChild(fl);
-  var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
-  var fieldSel=document.createElement('select');fieldSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
-  [['actualStoneCost','Stone cost'],['actualMeleeCost','Melee / materials'],['actualMetalCost','Casting / metal'],['actualLabor','Labor / setting / CAD'],['actualChainCost','Findings / chain'],['actualDesignFee','Design fee']].forEach(function(pair){var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];if(catToField[li.category]===pair[0])o.selected=true;fieldSel.appendChild(o);});modal.appendChild(fieldSel);
+
+  var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Connect to project';modal.appendChild(t);
+  var d=document.createElement('div');d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';d.textContent=(li.description||li.category)+(li.amount?' · '+fmt(li.amount):'');modal.appendChild(d);
+
+  // Project picker
+  var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:14px';
+  projSel.innerHTML='<option value="">-- Select project</option>';
+  projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;projSel.appendChild(o);});
+  modal.appendChild(projSel);
+
+  // Mode: Note only vs Add cost
+  var modeLabel=document.createElement('div');modeLabel.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase';modeLabel.textContent='Connect as';modal.appendChild(modeLabel);
   var modeWrap=document.createElement('div');modeWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
-  var modeAdd=document.createElement('button');var modeRepl=document.createElement('button');var ms='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
-  modeAdd.textContent='Add to existing';modeAdd.style.cssText=ms+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
-  modeRepl.textContent='Replace';modeRepl.style.cssText=ms+';background:var(--surface2);color:var(--text);border:1px solid var(--border)';
-  var pushMode='add';
-  modeAdd.addEventListener('click',function(){pushMode='add';modeAdd.style.background='var(--teal-dim)';modeAdd.style.color='#fafaf7';modeAdd.style.borderColor='var(--teal-dim)';modeRepl.style.background='var(--surface2)';modeRepl.style.color='var(--text)';modeRepl.style.borderColor='var(--border)';});
-  modeRepl.addEventListener('click',function(){pushMode='replace';modeRepl.style.background='var(--teal-dim)';modeRepl.style.color='#fafaf7';modeRepl.style.borderColor='var(--teal-dim)';modeAdd.style.background='var(--surface2)';modeAdd.style.color='var(--text)';modeAdd.style.borderColor='var(--border)';});
-  modeWrap.appendChild(modeAdd);modeWrap.appendChild(modeRepl);modal.appendChild(modeWrap);
+  var ms='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer;border:1px solid';
+  var modeNote=document.createElement('button');modeNote.textContent='Note only';modeNote.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  var modeCost=document.createElement('button');modeCost.textContent='Add cost';modeCost.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';
+  var pushMode='note';
+  var costSection=document.createElement('div');costSection.style.display='none';
+
+  modeNote.addEventListener('click',function(){
+    pushMode='note';
+    modeNote.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+    modeCost.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';
+    costSection.style.display='none';
+  });
+  modeCost.addEventListener('click',function(){
+    pushMode='add';
+    modeCost.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+    modeNote.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';
+    costSection.style.display='block';
+  });
+  modeWrap.appendChild(modeNote);modeWrap.appendChild(modeCost);modal.appendChild(modeWrap);
+
+  // Cost section (hidden by default)
+  var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
+  var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Cost field';
+  var fieldSel=document.createElement('select');fieldSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
+  [['actualStoneCost','Stone cost'],['actualMeleeCost','Melee / materials'],['actualMetalCost','Casting / metal'],['actualLabor','Labor / setting / CAD'],['actualChainCost','Findings / chain'],['actualDesignFee','Design fee']].forEach(function(pair){var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];if(catToField[li.category]===pair[0])o.selected=true;fieldSel.appendChild(o);});
+  var addReplWrap=document.createElement('div');addReplWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
+  var modeAdd=document.createElement('button');var modeRepl=document.createElement('button');
+  modeAdd.textContent='Add to existing';modeAdd.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  modeRepl.textContent='Replace';modeRepl.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';
+  var addMode='add';
+  modeAdd.addEventListener('click',function(){addMode='add';modeAdd.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';modeRepl.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';});
+  modeRepl.addEventListener('click',function(){addMode='replace';modeRepl.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';modeAdd.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';});
+  addReplWrap.appendChild(modeAdd);addReplWrap.appendChild(modeRepl);
+  costSection.appendChild(fl);costSection.appendChild(fieldSel);costSection.appendChild(addReplWrap);
+  modal.appendChild(costSection);
+
+  // Buttons
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
-  var pushBtn=document.createElement('button');pushBtn.textContent='Push';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
+  var pushBtn=document.createElement('button');pushBtn.textContent='Connect';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
   pushBtn.addEventListener('click',function(){
-    var projId=parseInt(projSel.value);if(!projId){showToast('Select a project');return;}var field=fieldSel.value;
-    var q=quotes.find(function(q){return q.id===projId;});
-    if(q){q[field]=pushMode==='replace'?li.amount:(q[field]||0)+li.amount;if(!q.costPushes)q.costPushes=[];q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:pushMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});window._savedQuotes=quotes;persistQuotes();renderSaved();}
-    li.pushed=true;li.pushedTo=q?q.client:null;li.pushedField=field;window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();showToast('Pushed to '+(q?q.client:'project'));
+    var projId=parseInt(projSel.value);if(!projId){showToast('Select a project');return;}
+    var q=quotes.find(function(q){return q.id===projId;});if(!q)return;
+
+    if(pushMode==='add'){
+      // Add cost to actuals
+      var field=fieldSel.value;
+      q[field]=addMode==='replace'?li.amount:(q[field]||0)+li.amount;
+      if(!q.costPushes)q.costPushes=[];
+      q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+      window._savedQuotes=quotes;persistQuotes();renderSaved();
+      li.pushed=true;li.pushType='cost';
+    } else {
+      // Note only — just link, no cost pushed
+      li.pushed=true;li.pushType='note';
+    }
+    li.pushedTo=q.client;li.pushedProjectId=q.id;
+    window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();
+    showToast('Connected to '+q.client);
   });
   var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:3px;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
-  btnRow.appendChild(pushBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
+  btnRow.appendChild(pushBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);
+  overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
 
 function renderInvoices(){
@@ -7627,7 +7674,11 @@ function renderInvoices(){
           var liDiv=document.createElement('div');liDiv.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';
           var liL=document.createElement('div');liL.style.cssText='flex:1;padding-right:10px';
           var liDesc=document.createElement('div');liDesc.style.cssText='font-size:13px;color:var(--text)';liDesc.textContent=li.description||'--';liL.appendChild(liDesc);
-          if(li.pushed){var pushedEl=document.createElement('div');pushedEl.style.cssText='font-size:11px;color:var(--green-bright);margin-top:2px';pushedEl.textContent='Pushed to '+(li.pushedTo||'project');liL.appendChild(pushedEl);}
+          if(li.pushed){
+            var pushedEl=document.createElement('div');pushedEl.style.cssText='font-size:11px;margin-top:2px;color:'+(li.pushType==='note'?'var(--teal-dim)':'var(--green-bright)');
+            pushedEl.textContent=(li.pushType==='note'?'Note on ':'Cost added to ')+(li.pushedTo||'project');
+            liL.appendChild(pushedEl);
+          }
           var liR=document.createElement('div');liR.style.cssText='display:flex;align-items:center;gap:8px;flex-shrink:0';
           var liAmt=document.createElement('div');liAmt.style.cssText='font-size:13px;color:var(--text)';liAmt.textContent=fmt(li.amount);liR.appendChild(liAmt);
           if(!li.pushed){var pushBtn2=document.createElement('button');pushBtn2.textContent='Push';pushBtn2.style.cssText='background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:2px;cursor:pointer';(function(invId,liId){pushBtn2.addEventListener('click',function(){pushLineItemToProject(invId,liId);});})(inv.id,li.id);liR.appendChild(pushBtn2);}
@@ -7642,33 +7693,6 @@ function renderInvoices(){
       });
     });
   });
-}
-
-// =================== INVOICE SCAN ===================
-function scanInvoicePhoto(input){
-  var file=input.files&&input.files[0];if(!file)return;
-  var status=document.getElementById('inv-scan-status');if(status){status.style.display='block';status.textContent='Reading invoice...';}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var b64=e.target.result.split(',')[1];var mediaType=file.type||'image/jpeg';
-    fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mediaType,data:b64}},{type:'text',text:'Extract invoice data. Return ONLY JSON: {invoiceNumber,vendor,date(like "Apr 5, 2026"),type(casting/setting/dealer/findings/other),lineItems:[{description,category(casting/setting/findings/dealer/cad/other),amount}]}'}]}]})})
-    .then(function(r){return r.json();}).then(function(data){
-      var text=(data.content||[]).map(function(c){return c.text||'';}).join('');
-      try{
-        var inv=JSON.parse(text.replace(/```json|```/g,'').trim());
-        openInvoiceForm();
-        setTimeout(function(){
-          if(inv.invoiceNumber)document.getElementById('inv-number').value=inv.invoiceNumber;
-          if(inv.date){try{var pd=new Date(inv.date);if(!isNaN(pd)){document.getElementById('inv-date').value=pd.toISOString().split('T')[0];}else{document.getElementById('inv-date').value=inv.date;}}catch(e){document.getElementById('inv-date').value=inv.date;}}
-          if(inv.type&&document.getElementById('inv-type'))document.getElementById('inv-type').value=inv.type;
-          if(inv.vendor){var vs=document.getElementById('inv-vendor');if(vs){var found=Array.from(vs.options).find(function(o){return o.text.toLowerCase()===inv.vendor.toLowerCase();});if(found){vs.value=found.value;}else{addVendor(inv.vendor);setTimeout(function(){vs.innerHTML=buildVendorOptions(inv.vendor,true);vs.value=inv.vendor;},200);}}}
-          document.getElementById('inv-line-items').innerHTML='';window._invoiceLineCounter=0;(inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
-          if(status)status.style.display='none';showToast('Invoice scanned - review and save');
-        },300);
-      }catch(err){if(status)status.textContent='Could not read - fill in manually.';setTimeout(function(){if(status)status.style.display='none';},3000);}
-    }).catch(function(){if(status)status.textContent='Scan failed.';setTimeout(function(){if(status)status.style.display='none';},3000);});
-    input.value='';
-  };reader.readAsDataURL(file);
 }
 
 // =================== PRODUCTION ===================
@@ -8194,56 +8218,6 @@ function deleteInvoice(id) {
   if(!confirm('Delete this invoice?'))return;
   window._invoices=getInvoices().filter(function(i){return i.id!==id;}); persistInvoices(); renderInvoices();
 }
-function pushLineItemToProject(invoiceId, lineItemId) {
-  var invoices=getInvoices(); var inv=invoices.find(function(i){return i.id===invoiceId;}); if(!inv)return;
-  var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;}); if(!li)return;
-  var quotes=getSavedQuotes();
-  var projects=quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed';}).sort(function(a,b){return b.id-a.id;});
-  if(!projects.length){showToast('No active projects');return;}
-  var overlay=document.createElement('div'); overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  var modal=document.createElement('div'); modal.style.cssText='background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;width:100%;max-width:400px';
-  var t=document.createElement('div'); t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px'; t.textContent='Push to project'; modal.appendChild(t);
-  var d=document.createElement('div'); d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';
-  d.textContent=(li.description||li.category)+' - '+new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(li.amount||0);
-  modal.appendChild(d);
-  var ps=document.createElement('select'); ps.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
-  ps.innerHTML='<option value="">-- Select project</option>';
-  projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;ps.appendChild(o);}); modal.appendChild(ps);
-  var fl=document.createElement('div'); fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase'; fl.textContent='Which cost field?'; modal.appendChild(fl);
-  var ctf={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
-  var fs2=document.createElement('select'); fs2.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:3px;outline:none;margin-bottom:10px';
-  [['actualStoneCost','Stone cost'],['actualMeleeCost','Melee / materials'],['actualMetalCost','Casting / metal'],['actualLabor','Labor / setting / CAD'],['actualChainCost','Findings / chain'],['actualDesignFee','Design fee']].forEach(function(pair){
-    var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];if(ctf[li.category]===pair[0])o.selected=true;fs2.appendChild(o);
-  }); modal.appendChild(fs2);
-  var mw=document.createElement('div'); mw.style.cssText='display:flex;gap:6px;margin-bottom:14px';
-  var ma=document.createElement('button'); var mr=document.createElement('button');
-  var ms='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:2px;cursor:pointer';
-  ma.textContent='Add to existing'; ma.style.cssText=ms+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
-  mr.textContent='Replace'; mr.style.cssText=ms+';background:var(--surface2);color:var(--text);border:1px solid var(--border)';
-  var ipm='add';
-  ma.addEventListener('click',function(){ipm='add';ma.style.background='var(--teal-dim)';ma.style.color='#fafaf7';ma.style.borderColor='var(--teal-dim)';mr.style.background='var(--surface2)';mr.style.color='var(--text)';mr.style.borderColor='var(--border)';});
-  mr.addEventListener('click',function(){ipm='replace';mr.style.background='var(--teal-dim)';mr.style.color='#fafaf7';mr.style.borderColor='var(--teal-dim)';ma.style.background='var(--surface2)';ma.style.color='var(--text)';ma.style.borderColor='var(--border)';});
-  mw.appendChild(ma); mw.appendChild(mr); modal.appendChild(mw);
-  var br=document.createElement('div'); br.style.cssText='display:flex;gap:8px';
-  var pb=document.createElement('button'); pb.textContent='Push'; pb.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:3px;cursor:pointer';
-  pb.addEventListener('click',function(){
-    var projId=parseInt(ps.value); if(!projId){showToast('Select a project');return;}
-    var field=fs2.value; var q=quotes.find(function(q){return q.id===projId;});
-    if(q){
-      q[field]=ipm==='replace'?li.amount:(q[field]||0)+li.amount;
-      if(!q.costPushes)q.costPushes=[];
-      q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:ipm,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
-      window._savedQuotes=quotes; persistQuotes(); renderSaved();
-    }
-    li.pushed=true; li.pushedTo=q?q.client:null; li.pushedField=field;
-    window._invoices=invoices; persistInvoices(); overlay.remove(); renderInvoices();
-    showToast('Pushed to '+(q?q.client:'project'));
-  });
-  var cb=document.createElement('button'); cb.textContent='Cancel'; cb.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:3px;cursor:pointer';
-  cb.addEventListener('click',function(){overlay.remove();});
-  br.appendChild(pb); br.appendChild(cb); modal.appendChild(br); overlay.appendChild(modal);
-  overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); document.body.appendChild(overlay);
-}
 function renderInvoices() {
   var list=document.getElementById('invoiceList'); if(!list)return;
   var invoices=getInvoices();
@@ -8286,38 +8260,6 @@ function renderInvoices() {
       });
     });
   });
-}
-function scanInvoicePhoto(input) {
-  var file=input.files&&input.files[0]; if(!file)return;
-  var status=document.getElementById('inv-scan-status');
-  if(status){status.style.display='block';status.textContent='Reading invoice...';}
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var b64=e.target.result.split(',')[1]; var mt=file.type||'image/jpeg';
-    fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:[{type:'image',source:{type:'base64',media_type:mt,data:b64}},{type:'text',text:'Extract invoice data. Return ONLY JSON: {invoiceNumber,vendor,date,type(casting/setting/dealer/findings/other),lineItems:[{description,category(casting/setting/findings/dealer/cad/other),amount}]}. No explanation.'}]}]})}).then(function(r){return r.json();}).then(function(data){
-      var text=(data.content||[]).map(function(c){return c.text||'';}).join('');
-      try{
-        var inv=JSON.parse(text.replace(/```json|```/g,'').trim());
-        openInvoiceForm();
-        setTimeout(function(){
-          if(inv.invoiceNumber)document.getElementById('inv-number').value=inv.invoiceNumber;
-          if(inv.date){try{var pd=new Date(inv.date);if(!isNaN(pd)){document.getElementById('inv-date').value=pd.toISOString().split('T')[0];}else{document.getElementById('inv-date').value=inv.date;}}catch(e){document.getElementById('inv-date').value=inv.date;}}
-          if(inv.type){var it=document.getElementById('inv-type');if(it)it.value=inv.type;}
-          if(inv.vendor){
-            var iv=document.getElementById('inv-vendor');
-            if(iv){var found=Array.from(iv.options).find(function(o){return o.text.toLowerCase()===inv.vendor.toLowerCase();});
-              if(found){iv.value=found.value;}else{addVendor(inv.vendor);setTimeout(function(){iv.innerHTML=buildVendorOptions(inv.vendor,true);iv.value=inv.vendor;},200);}
-            }
-          }
-          document.getElementById('inv-line-items').innerHTML=''; window._invoiceLineCounter=0;
-          (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
-          if(status)status.style.display='none'; showToast('Invoice scanned - review and save');
-        },300);
-      }catch(err){if(status)status.textContent='Could not read - fill in manually.';setTimeout(function(){if(status)status.style.display='none';},3000);}
-    }).catch(function(){if(status)status.textContent='Scan failed.';setTimeout(function(){if(status)status.style.display='none';},3000);});
-    input.value='';
-  };
-  reader.readAsDataURL(file);
 }
 
 // =================== PRODUCTION ===================
