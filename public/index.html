@@ -7070,7 +7070,10 @@ function deleteProjectNote(quoteId, noteId) {
   quoteId = Number(quoteId); noteId = Number(noteId);
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === quoteId);
-  if (!q || !q.projectNotes) return;
+  if (!q) return;
+  if (!q.projectNotes) return;
+  // Normalize in case Firebase returned an object instead of array
+  if (!Array.isArray(q.projectNotes)) q.projectNotes = Object.values(q.projectNotes);
   q.projectNotes = q.projectNotes.filter(n => Number(n.id) !== noteId);
   window._savedQuotes = quotes;
   persistQuotes();
@@ -8563,6 +8566,14 @@ function startProdOrder(specId) {
   onValue(ref(db, 'quotes'), snap => {
     const val = snap.val();
     window._savedQuotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    // Normalize nested arrays that Firebase converts to objects
+    (window._savedQuotes || []).forEach(q => {
+      if (q.projectNotes && !Array.isArray(q.projectNotes)) q.projectNotes = Object.values(q.projectNotes);
+      if (q.costPushes && !Array.isArray(q.costPushes)) q.costPushes = Object.values(q.costPushes);
+      if (q.invoiceLinks && !Array.isArray(q.invoiceLinks)) q.invoiceLinks = Object.values(q.invoiceLinks);
+      if (q.stones && !Array.isArray(q.stones)) q.stones = Object.values(q.stones);
+      if (q.pieces && !Array.isArray(q.pieces)) q.pieces = Object.values(q.pieces);
+    });
     // One-time fix: reset actualStoneCost on multi-piece pieces where it was incorrectly pre-filled as 0
     // but the piece has stones with real cost data
     let fixedAny = false;
