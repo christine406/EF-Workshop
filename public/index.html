@@ -687,6 +687,14 @@
         <div class="field-label" id="clientNameLabel">Client name</div>
         <input type="text" id="clientName" placeholder="e.g. Sarah M.">
       </div>
+      <!-- Multi-piece: piece name field + visual separator -->
+      <div id="multiPieceNameWrap" style="display:none;margin-top:12px;padding-top:12px;border-top:2px solid var(--gold)">
+        <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px" id="multiPieceLabel">Piece 1</div>
+        <div class="field">
+          <div class="field-label">Client name for this piece</div>
+          <input type="text" id="pieceClientName" placeholder="e.g. Christine — engagement ring" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;box-sizing:border-box">
+        </div>
+      </div>
       <div class="field-row" id="fingerSizeRow" style="margin-top:8px;display:none">
         <div class="field">
           <div class="field-label">Finger size</div>
@@ -992,7 +1000,7 @@
         <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">✦ Staged pieces</div>
         <div id="pieceList"></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;display:none">
         <button class="btn-primary" onclick="saveMultiPieceSet('bespoke')" style="font-size:11px;padding:10px 6px">Save set — Bespoke</button>
         <button class="btn-primary" onclick="saveMultiPieceSet('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save set — Semi-custom</button>
         <button class="btn-primary" onclick="saveMultiPieceSet('collection')" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save set — Collection</button>
@@ -1010,7 +1018,7 @@
 
     <!-- MULTI MODE: stage piece button -->
     <div id="multiModeStagingButton" style="display:none;padding:0 16px 8px">
-      <button onclick="stagePiece()" style="width:100%;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:3px;cursor:pointer">Stage this piece</button>
+      <button onclick="stagePiece()" id="stagePieceBtn" style="width:100%;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:3px;cursor:pointer">Save piece 1 — add piece 2</button>
     </div>
 
     <div style="padding: 0 16px 8px">
@@ -2896,19 +2904,21 @@ let _quoteMode = 'single'; // 'single' | 'multi'
 
 function setQuoteMode(mode, btn) {
   _quoteMode = mode;
-  // Toggle button styles
   document.getElementById('modeToggleSingle').className = 'toggle-btn' + (mode === 'single' ? ' active' : '');
   document.getElementById('modeToggleMulti').className = 'toggle-btn' + (mode === 'multi' ? ' active' : '');
-  // Update client name label
   document.getElementById('clientNameLabel').textContent = mode === 'multi' ? 'Project title' : 'Client name';
   document.getElementById('clientName').placeholder = mode === 'multi' ? 'e.g. Madeleine & Paul wedding set' : 'e.g. Sarah M.';
-  // Show/hide save buttons
   document.getElementById('singleModeSaveButtons').style.display = mode === 'single' ? 'block' : 'none';
   document.getElementById('multiModeStagingButton').style.display = mode === 'multi' ? 'block' : 'none';
-  // Reset staging if switching modes
+  const pieceNameWrap = document.getElementById('multiPieceNameWrap');
+  if (pieceNameWrap) pieceNameWrap.style.display = mode === 'multi' ? 'block' : 'none';
   if (mode === 'single') {
     _stagedPieces = [];
     renderPieceStaging();
+  } else {
+    // Update piece label to show current piece number
+    const lbl = document.getElementById('multiPieceLabel');
+    if (lbl) lbl.textContent = 'Piece ' + (_stagedPieces.length + 1);
   }
 }
 
@@ -2937,6 +2947,7 @@ function stagePiece() {
 
   const piece = {
     id: Date.now(),
+    name: document.getElementById('pieceClientName')?.value?.trim() || '',
     pieceType: pieceType || 'piece',
     purity, grams, laborEst: labor, designFee,
     stones: [...stones], meleeCost: parseFloat(document.getElementById('meleeCost')?.value) || 0,
@@ -2956,7 +2967,14 @@ function stagePiece() {
   document.getElementById('clientName').value = projectTitle;
   setQuoteMode('multi', null);
   renderPieceStaging();
-  showToast('Piece staged — build next piece or save set');
+  // Clear piece name field and update piece label
+  const pieceNameEl = document.getElementById('pieceClientName');
+  if (pieceNameEl) pieceNameEl.value = '';
+  const lbl = document.getElementById('multiPieceLabel');
+  if (lbl) lbl.textContent = 'Piece ' + (_stagedPieces.length + 1);
+  const stageBtn = document.getElementById('stagePieceBtn');
+  if (stageBtn) stageBtn.textContent = 'Save piece ' + (_stagedPieces.length + 1) + ' — add piece ' + (_stagedPieces.length + 2);
+  showToast('Piece ' + _stagedPieces.length + ' saved — build next piece or save set');
 }
 
 function saveMultiPieceSet(quoteType) {
@@ -3294,9 +3312,9 @@ function renderPieceStaging() {
   wrap.style.display = 'block';
   const setTotal = _stagedPieces.reduce((s, p) => s + p.total, 0);
   list.innerHTML = _stagedPieces.map((p, i) => {
-    const typeLabel = p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece';
+    const label = p.name || (p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1));
     return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">'
-      + '<div><span style="font-size:13px;color:var(--text)">' + typeLabel + (p.fingerSize ? ' · size ' + p.fingerSize : '') + '</span>'
+      + '<div><span style="font-size:13px;color:var(--text)">' + label + (p.fingerSize ? ' · size ' + p.fingerSize : '') + '</span>'
       + '<span style="font-size:11px;color:var(--text-dim);margin-left:8px">' + p.purity + (p.grams ? ' · ' + p.grams + 'g' : '') + '</span></div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
       + '<span style="font-size:14px;color:var(--gold)">$' + p.total.toLocaleString() + '</span>'
@@ -3304,8 +3322,23 @@ function renderPieceStaging() {
       + '</div></div>';
   }).join('')
   + '<div style="display:flex;justify-content:space-between;padding-top:8px;font-size:13px">'
-  + '<span style="color:var(--text-dim)">Set total</span>'
+  + '<span style="color:var(--text-dim)">Set total so far</span>'
   + '<span style="color:var(--gold);font-size:16px">$' + setTotal.toLocaleString() + '</span></div>';
+
+  // Show save set buttons only when 2+ pieces staged
+  const saveBtns = wrap.querySelector('.save-set-btns');
+  if (_stagedPieces.length >= 2) {
+    if (!saveBtns) {
+      const btnDiv = document.createElement('div');
+      btnDiv.className = 'save-set-btns';
+      btnDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px';
+      btnDiv.innerHTML = '<button onclick="saveMultiPieceSet(\'bespoke\')" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 6px;border-radius:3px;cursor:pointer">Save set — Bespoke</button>'
+        + '<button onclick="saveMultiPieceSet(\'semi-custom\')" style="background:#7a5a20;color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 6px;border-radius:3px;cursor:pointer">Save set — Semi-custom</button>';
+      wrap.appendChild(btnDiv);
+    }
+  } else if (saveBtns) {
+    saveBtns.remove();
+  }
 }
 
 function removeStagedPiece(idx) {
