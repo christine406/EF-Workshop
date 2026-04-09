@@ -4500,7 +4500,7 @@ function buildMultiPieceCard(q) {
     + '<div style="font-size:12px;color:var(--text-dim)" class="tap-arrow">▾</div>'
     + '</div></div></div>';
 
-  html += '<div class="card-body" style="display:none;margin-top:10px">';
+  html += '<div class="card-body" style="display:none;margin-top:10px;background:rgba(100,180,180,0.06);border-radius:4px;padding:10px;border:1px solid rgba(100,180,180,0.15)">';
 
   // Pieces breakdown
   html += '<div style="background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:8px">';
@@ -4687,7 +4687,7 @@ function buildQuoteCard(q) {
     + '</div>';
 
   // BODY — hidden by default
-  html += '<div class="card-body" style="display:none;margin-top:10px">';
+  html += '<div class="card-body" style="display:none;margin-top:10px;background:rgba(100,180,180,0.06);border-radius:4px;padding:10px;border:1px solid rgba(100,180,180,0.15)">';
 
   // Discount + pricing breakdown
   html += '<div style="padding:10px;background:var(--surface2);border-radius:3px;font-size:13px;margin-bottom:8px">';
@@ -7785,7 +7785,7 @@ function renderInvoices(){
       var vn=document.createElement('span');vn.textContent=vendor;var vt=document.createElement('span');vt.textContent=fmt(vendorTotal);vh.appendChild(vn);vh.appendChild(vt);list.appendChild(vh);
       invs.forEach(function(inv){
         var isPaid=inv.status==='paid';var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
-        var card=document.createElement('div');card.dataset.invId=inv.id;card.style.cssText='background:'+(isPaid?'rgba(100,180,130,0.07)':'rgba(220,150,150,0.08)')+';border:1px solid '+(isPaid?'rgba(100,180,130,0.25)':'rgba(220,150,150,0.25)')+';border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;margin-bottom:6px;overflow:hidden';
+        var card=document.createElement('div');card.dataset.invId=inv.id;card.style.cssText='background:'+(isPaid?'rgba(100,180,130,0.07)':'rgba(160,124,197,0.08)')+';border:1px solid '+(isPaid?'rgba(100,180,130,0.25)':'rgba(160,124,197,0.2)')+';border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;margin-bottom:6px;overflow:hidden';
         var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:12px;cursor:pointer;user-select:none';
         var hdrL=document.createElement('div');hdrL.innerHTML='<div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' #'+inv.invoiceNumber:'')+'</div>';
         var hdrR=document.createElement('div');hdrR.style.cssText='text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px';
