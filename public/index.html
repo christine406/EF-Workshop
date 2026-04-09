@@ -1291,7 +1291,7 @@
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Type</div>
-          <select id="inv-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+          <select id="inv-type" onchange="syncLineItemCategories()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
             <option value="casting">Casting</option><option value="setting">Setting</option><option value="dealer">Dealer</option><option value="findings">Findings</option><option value="other">Other</option>
           </select>
         </div>
@@ -7553,6 +7553,16 @@ function setInvoiceFilter(filter,btn){
   btn.classList.add('active');
   renderInvoices();
 }
+function syncLineItemCategories() {
+  var t = document.getElementById('inv-type');
+  if (!t) return;
+  var type = t.value; // casting, setting, dealer, findings, other
+  document.querySelectorAll('#inv-line-items select[id^="inv-li-cat-"]').forEach(function(sel) {
+    // Map invoice type to line item category
+    var map = {casting:'casting', setting:'setting', dealer:'dealer', findings:'findings', other:'other'};
+    if (map[type]) sel.value = map[type];
+  });
+}
 function setInvFormStatus(status, btn) {
   document.getElementById('inv-status-outstanding').classList.remove('active');
   document.getElementById('inv-status-paid').classList.remove('active');
@@ -7606,7 +7616,8 @@ function addInvoiceLineItem(prefill){
   
   var botRow=document.createElement('div');botRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
   var cats=['casting','setting','findings','dealer','cad','other'];
-  var catOpts=cats.map(function(c){return'<option value="'+c+'"'+(prefill&&prefill.category===c?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
+  var currentType=document.getElementById('inv-type')?document.getElementById('inv-type').value:'';
+  var catOpts=cats.map(function(c){var sel=(prefill&&prefill.category===c)||(!prefill&&c===currentType);return'<option value="'+c+'"'+(sel?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
   var catWrap=document.createElement('div');catWrap.innerHTML='<div class="field-label">Category</div><select id="inv-li-cat-'+id+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+catOpts+'</select>';
   var amtWrap=document.createElement('div');amtWrap.innerHTML='<div class="field-label">Amount</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
   botRow.appendChild(catWrap);botRow.appendChild(amtWrap);
@@ -7644,7 +7655,7 @@ function deleteInvoice(id){if(!confirm('Delete this invoice?'))return;window._in
 function pushLineItemToProject(invoiceId,lineItemId){
   var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===invoiceId;});if(!inv)return;
   var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;});if(!li)return;
-  var quotes=getSavedQuotes();var projects=quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed';}).sort(function(a,b){return b.id-a.id;});
+  var quotes=getSavedQuotes();var projects=quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed'||q.status==='collection-quote'||q.status==='quote';}).sort(function(a,b){return b.id-a.id;});
   if(!projects.length){showToast('No active projects');return;}
 
   var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
@@ -7756,14 +7767,16 @@ function renderInvoices(){
       var vn=document.createElement('span');vn.textContent=vendor;var vt=document.createElement('span');vt.textContent=fmt(vendorTotal);vh.appendChild(vn);vh.appendChild(vt);list.appendChild(vh);
       invs.forEach(function(inv){
         var isPaid=inv.status==='paid';var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
-        var card=document.createElement('div');card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;padding:12px;margin-bottom:6px';
-        var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px';
+        var card=document.createElement('div');card.dataset.invId=inv.id;card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;margin-bottom:6px;overflow:hidden';
+        var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:12px;cursor:pointer;user-select:none';
         var hdrL=document.createElement('div');hdrL.innerHTML='<div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' #'+inv.invoiceNumber:'')+'</div>';
-        var hdrR=document.createElement('div');hdrR.style.cssText='text-align:right';
+        var hdrR=document.createElement('div');hdrR.style.cssText='text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px';
         var amtEl=document.createElement('div');amtEl.style.cssText='font-size:16px;color:'+(isPaid?'var(--green-bright)':typeColors[type])+';font-weight:500';amtEl.textContent=fmt(total);
-        var statusEl=document.createElement('div');statusEl.style.cssText='font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--text-dim)')+';margin-top:2px';statusEl.textContent=isPaid?'Paid':'Outstanding';
-        hdrR.appendChild(amtEl);hdrR.appendChild(statusEl);hdrRow.appendChild(hdrL);hdrRow.appendChild(hdrR);card.appendChild(hdrRow);
-        var body=document.createElement('div');
+        var statusEl=document.createElement('div');statusEl.style.cssText='font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--text-dim)');statusEl.textContent=isPaid?'Paid':'Outstanding';
+        hdrR.appendChild(amtEl);hdrR.appendChild(statusEl);hdrRow.appendChild(hdrL);hdrRow.appendChild(hdrR);
+        var body=document.createElement('div');body.style.cssText='display:none;padding:0 12px 12px';
+        hdrRow.addEventListener('click',function(){body.style.display=body.style.display==='none'?'block':'none';});
+        card.appendChild(hdrRow);
         (inv.lineItems||[]).forEach(function(li){
           var liDiv=document.createElement('div');liDiv.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';
           var liL=document.createElement('div');liL.style.cssText='flex:1;padding-right:10px';
@@ -7783,7 +7796,7 @@ function renderInvoices(){
         var paidBtn=document.createElement('button');paidBtn.textContent=isPaid?'Mark outstanding':'Mark paid';paidBtn.style.cssText='background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){paidBtn.addEventListener('click',function(){toggleInvoiceStatus(invId);});})(inv.id);
         var editBtn2=document.createElement('button');editBtn2.textContent='Edit';editBtn2.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){editBtn2.addEventListener('click',function(){openInvoiceForm(invId);});})(inv.id);
         var delBtn2=document.createElement('button');delBtn2.textContent='Delete';delBtn2.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){delBtn2.addEventListener('click',function(){deleteInvoice(invId);});})(inv.id);
-        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);card.appendChild(actions);list.appendChild(card);
+        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);body.appendChild(actions);list.appendChild(card);
       });
     });
   });
