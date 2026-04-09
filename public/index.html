@@ -4534,7 +4534,10 @@ function savePieceEdit(setId, pieceIdx) {
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
   const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
-  const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : (q.isMultiPiece && q.pieces?.[0]?.pieceType ? (PIECE_EMOJIS[q.pieces[0].pieceType] || '') : '');
+  // Collect unique occasion emojis from all pieces
+  const pieceEmojis = (q.pieces||[]).map(p => p.occasion ? (OCCASION_EMOJIS[p.occasion] || '') : (PIECE_EMOJIS[p.pieceType] || '')).filter(Boolean);
+  const uniqueEmojis = [...new Set(pieceEmojis)];
+  const occasionEmoji = uniqueEmojis.join(' ');
   // For multi-piece: total is always the sum of piece totals
   const setTotal = (q.pieces||[]).reduce((s,p) => s+(p.total||0), 0) || q.total;
   const discAmtHeader = q.discountValue ? (q.discountType === 'pct' ? Math.round(((q.clientPrice > 0 ? q.clientPrice : setTotal) * q.discountValue) / 100) : q.discountValue) : 0;
@@ -4560,7 +4563,7 @@ function buildMultiPieceCard(q) {
   // Pieces breakdown
   html += '<div style="background:#fafaf7;border-radius:3px;padding:10px;margin-bottom:8px">';
   (q.pieces || []).forEach((p, i) => {
-    const pieceEmoji = PIECE_EMOJIS[p.pieceType] || '';
+    const pieceEmoji = (p.occasion ? (OCCASION_EMOJIS[p.occasion] || '') : '') || (PIECE_EMOJIS[p.pieceType] || '');
     const typeLabel = p.name || ((pieceEmoji ? pieceEmoji + ' ' : '') + (p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1)));
     const editId = 'piece-edit-' + q.id + '-' + i;
     const costsId = 'piece-costs-' + q.id + '-' + i;
