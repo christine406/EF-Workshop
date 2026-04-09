@@ -4097,7 +4097,7 @@ function saveQuoteEdit(id) {
       p.actualTotal = q.actualTotal;
       // Piece-specific client price field
       const piecePriceEl = document.getElementById('eq-clientprice-piece-' + id);
-      if (piecePriceEl) p.clientPrice = parseFloat(piecePriceEl.value) || 0;
+      if (piecePriceEl) p.clientPrice = piecePriceEl.value !== '' ? (parseFloat(piecePriceEl.value) || 0) : null;
       else p.clientPrice = q.clientPrice;
       // Recalculate set total
       set.total = set.pieces.reduce((s, pc) => s + (pc.total || 0), 0);
@@ -4468,8 +4468,10 @@ function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
   const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '') : (q.isMultiPiece && q.pieces?.[0]?.pieceType ? (PIECE_EMOJIS[q.pieces[0].pieceType] || '') : '');
-  const displayAmount = q.clientPrice > 0 ? q.clientPrice : q.total;
-  const displayAmountColor = q.clientPrice > 0 ? 'color:var(--teal-dim)' : 'color:var(--gold)';
+  const discAmtHeader = q.discountValue ? (q.discountType === 'pct' ? Math.round(((q.clientPrice > 0 ? q.clientPrice : q.total) * q.discountValue) / 100) : q.discountValue) : 0;
+  const discBaseHeader = (q.clientPrice > 0) ? q.clientPrice : q.total;
+  const displayAmount = discAmtHeader > 0 ? (discBaseHeader - discAmtHeader) : (q.clientPrice > 0 ? q.clientPrice : q.total);
+  const displayAmountColor = (q.clientPrice > 0 || discAmtHeader > 0) ? 'color:var(--teal-dim)' : 'color:var(--gold)';
 
   let html = '<div class="quote-item-header" style="cursor:pointer;align-items:flex-start" onclick="toggleCard(this)">'
     + '<div>'
@@ -4542,10 +4544,12 @@ function buildMultiPieceCard(q) {
     + '<div style="display:flex;gap:6px;align-items:center">'
     + '<div style="font-size:12px;color:var(--text-dim)">Set discount via Edit</div></div></div>';
 
-  const discAmt = q.discountType === 'pct' ? Math.round(q.total * (q.discountValue||0) / 100) : (q.discountValue||0);
-  const discounted = q.total - discAmt;
-  if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;color:var(--text-dim)"><span>After discount</span><span style="color:var(--teal-dim)">$' + discounted.toLocaleString() + '</span></div>';
-  if (q.clientPrice > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">Client price</span><span style="color:var(--teal-dim);font-size:16px">$' + q.clientPrice.toLocaleString() + '</span></div>';
+  const discBaseM = (q.clientPrice > 0) ? q.clientPrice : q.total;
+  const discAmt = q.discountType === 'pct' ? Math.round(discBaseM * (q.discountValue||0) / 100) : (q.discountValue||0);
+  const discounted = discBaseM - discAmt;
+  if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;color:var(--text-dim)"><span>Price before discount</span><span>$' + discBaseM.toLocaleString() + '</span></div>';
+  if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">After discount</span><span style="color:var(--teal-dim);font-size:16px">$' + discounted.toLocaleString() + '</span></div>';
+  if (!discAmt && q.clientPrice > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">Client price</span><span style="color:var(--teal-dim);font-size:16px">$' + q.clientPrice.toLocaleString() + '</span></div>';
   html += '</div>';
 
   // Action buttons
@@ -4605,9 +4609,12 @@ function buildQuoteCard(q) {
   if (q.isMultiPiece) return buildMultiPieceCard(q);
 
   const archived = ['archived-quote','archived-project','archived-collection'];
-  const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(q.total * q.discountValue / 100) : q.discountValue) : 0;
-  const discountedPrice = q.total - discAmt;
-  const clientPrice = q.clientPrice || discountedPrice;
+  // Base price for discount: use clientPrice if set, otherwise quote total
+  const discBase = (q.clientPrice > 0) ? q.clientPrice : q.total;
+  const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(discBase * q.discountValue / 100) : q.discountValue) : 0;
+  const discountedPrice = discBase - discAmt;
+  // Final displayed price: if discount applied use discountedPrice, elif clientPrice use that, else total
+  const clientPrice = discAmt > 0 ? discountedPrice : (q.clientPrice > 0 ? q.clientPrice : discountedPrice);
   const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : (q.metalEstimate || 0);
   const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
@@ -4634,14 +4641,19 @@ function buildQuoteCard(q) {
 
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
-  const discLabel = discAmt ? '<div style="font-size:13px;color:var(--teal-dim)">after disc: $' + discountedPrice.toLocaleString() + '</div>' : '';
   const hasActualTotal = q.actualTotal && q.actualTotal !== q.total;
-  const displayAmount = q.clientPrice ? q.clientPrice : (q.actualTotal || q.total);
+  // Large number = final price (after discount if any, else clientPrice if set, else total)
+  const displayAmount = discAmt > 0 ? discountedPrice : (q.clientPrice > 0 ? q.clientPrice : (q.actualTotal || q.total));
   const displayAmountStr = displayAmount ? '$' + displayAmount.toLocaleString() : 'Not determined';
   const displayAmountColor = displayAmount ? '' : 'color:var(--text-dim);font-size:14px';
-  const clientPriceLabel = q.clientPrice
-    ? (q.total ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">initial quote: $' + q.total.toLocaleString() + '</div>' : '')
-    : (hasActualTotal ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">initial quote: $' + q.total.toLocaleString() + '</div>' : '');
+  // Smaller line underneath shows what the price was before
+  let discLabel = '';
+  if (discAmt > 0) {
+    discLabel = '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">price before discount: $' + discBase.toLocaleString() + '</div>';
+  }
+  const clientPriceLabel = (!discAmt && q.clientPrice > 0 && q.total)
+    ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">initial quote: $' + q.total.toLocaleString() + '</div>'
+    : (!discAmt && hasActualTotal ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">initial quote: $' + q.total.toLocaleString() + '</div>' : '');
 
   // HEADER — always visible, tap to expand
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
