@@ -1291,7 +1291,7 @@
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Type</div>
-          <select id="inv-type" onchange="syncLineItemCategories()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+          <select id="inv-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
             <option value="casting">Casting</option><option value="setting">Setting</option><option value="dealer">Dealer</option><option value="findings">Findings</option><option value="other">Other</option>
           </select>
         </div>
@@ -7614,13 +7614,9 @@ function addInvoiceLineItem(prefill){
   remBtn.addEventListener('click',function(){div.remove();});
   topRow.appendChild(descIn);topRow.appendChild(remBtn);
   
-  var botRow=document.createElement('div');botRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
-  var cats=['casting','setting','findings','dealer','cad','other'];
-  var currentType=document.getElementById('inv-type')?document.getElementById('inv-type').value:'';
-  var catOpts=cats.map(function(c){var sel=(prefill&&prefill.category===c)||(!prefill&&c===currentType);return'<option value="'+c+'"'+(sel?' selected':'')+'>'+c.charAt(0).toUpperCase()+c.slice(1)+'</option>';}).join('');
-  var catWrap=document.createElement('div');catWrap.innerHTML='<div class="field-label">Category</div><select id="inv-li-cat-'+id+'" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">'+catOpts+'</select>';
-  var amtWrap=document.createElement('div');amtWrap.innerHTML='<div class="field-label">Amount</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
-  botRow.appendChild(catWrap);botRow.appendChild(amtWrap);
+  var botRow=document.createElement('div');
+  var amtWrap=document.createElement('div');amtWrap.innerHTML='<div class="field-label">Amount ($)</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:120px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">';
+  botRow.appendChild(amtWrap);
   
   div.appendChild(topRow);div.appendChild(botRow);container.appendChild(div);
 }
@@ -7638,9 +7634,9 @@ function saveInvoice(){
   var lineItems=[];
   document.querySelectorAll('#inv-line-items > div[id^="inv-li-"]').forEach(function(div){
     var liId=div.id.replace('inv-li-','');
-    var descEl=document.getElementById('inv-li-desc-'+liId);var catEl=document.getElementById('inv-li-cat-'+liId);var amtEl=document.getElementById('inv-li-amt-'+liId);
-    var desc=descEl?descEl.value.trim():'';var cat=catEl?catEl.value:'other';var amt=amtEl?(parseFloat(amtEl.value)||0):0;
-    if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:cat,amount:amt,pushed:false,pushedTo:null,pushedField:null});
+    var descEl=document.getElementById('inv-li-desc-'+liId);var amtEl=document.getElementById('inv-li-amt-'+liId);
+    var desc=descEl?descEl.value.trim():'';var amt=amtEl?(parseFloat(amtEl.value)||0):0;
+    if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:invType,amount:amt,pushed:false,pushedTo:null,pushedField:null});
   });
   if(!lineItems.length){showToast('Add at least one line item');return;}
   var invStatus=(document.getElementById('inv-status-paid')&&document.getElementById('inv-status-paid').classList.contains('active'))?'paid':'outstanding';
