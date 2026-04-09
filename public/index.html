@@ -2642,7 +2642,10 @@ function recalcAndSaveActualTotal(q) {
   var laborRetail2 = laborCost2 * 1.4;
   var rest2 = Math.round(metalCost2*1.35)+Math.round(chainCost2*1.35)+Math.round(laborRetail2)+Math.round(meleeRetail2)+designFee2;
   var recalc2 = Math.round((stoneRetail2 + rest2*1.13)/50)*50;
-  q.actualTotal = q.clientPrice > 0 ? q.clientPrice : (recalc2 || q.total);
+  // Only update if we got a meaningful number — don't overwrite with 0 if actuals are sparse
+  if (recalc2 > 0 || q.clientPrice > 0) {
+    q.actualTotal = q.clientPrice > 0 ? q.clientPrice : (recalc2 || q.total);
+  }
 }
 function stoneMarkupProject(cost) {
   if (cost <= 5000) return 2.1;
@@ -4503,7 +4506,7 @@ function buildMultiPieceCard(q) {
   html += '<div class="card-body" style="display:none;margin-top:10px;background:rgba(100,180,180,0.06);border-radius:4px;padding:10px;border:1px solid rgba(100,180,180,0.15)">';
 
   // Pieces breakdown
-  html += '<div style="background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:8px">';
+  html += '<div style="background:#fafaf7;border-radius:3px;padding:10px;margin-bottom:8px">';
   (q.pieces || []).forEach((p, i) => {
     const pieceEmoji = PIECE_EMOJIS[p.pieceType] || '';
     const typeLabel = p.name || ((pieceEmoji ? pieceEmoji + ' ' : '') + (p.pieceType ? (p.pieceType.charAt(0).toUpperCase() + p.pieceType.slice(1)) : 'Piece ' + (i+1)));
@@ -4535,7 +4538,7 @@ function buildMultiPieceCard(q) {
       + '<button onclick="editPieceActualsAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Actuals</button>'
       + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
-      + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:var(--surface2);border-radius:3px;padding:8px 10px">'
+      + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:#fafaf7;border-radius:3px;padding:8px 10px">'
       + (hasActuals ? '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">Actual costs</div>' : '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Estimated costs</div>')
       + costLines.map(l => '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text);margin-bottom:3px"><span>' + l.split(':')[0] + '</span><span>' + l.split(':')[1] + '</span></div>').join('')
       + '<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);margin-top:4px;padding-top:4px"><span style="color:var(--text-dim)">Total cost</span><span style="color:var(--text)">$' + totalCost.toLocaleString() + '</span></div>'
@@ -4552,7 +4555,7 @@ function buildMultiPieceCard(q) {
   html += '</div>';
 
   // Discount + client price
-  html += '<div style="padding:10px;background:var(--surface2);border-radius:3px;font-size:13px;margin-bottom:8px">'
+  html += '<div style="padding:10px;background:#fafaf7;border-radius:3px;font-size:13px;margin-bottom:8px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
     + '<span style="color:var(--text-dim)">Discount</span>'
     + '<div style="display:flex;gap:6px;align-items:center">'
@@ -8567,7 +8570,8 @@ function startProdOrder(specId) {
       if (q.stones && !Array.isArray(q.stones)) q.stones = Object.values(q.stones);
       if (q.pieces && !Array.isArray(q.pieces)) q.pieces = Object.values(q.pieces);
       // Recalc actualTotal for any project with actual costs so card header stays current
-      const hasActuals = q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null || q.actualMeleeCost != null || q.actualChainCost != null;
+      // Skip multi-piece sets (pieces handle their own totals) and projects with no actuals entered
+      const hasActuals = !q.isMultiPiece && (q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null || q.actualMeleeCost != null);
       if (hasActuals && typeof recalcAndSaveActualTotal === 'function') recalcAndSaveActualTotal(q);
     });
     // One-time fix: reset actualStoneCost on multi-piece pieces where it was incorrectly pre-filled as 0
