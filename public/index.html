@@ -4538,8 +4538,8 @@ function buildMultiPieceCard(q) {
   const pieceEmojis = (q.pieces||[]).map(p => p.occasion ? (OCCASION_EMOJIS[p.occasion] || '') : (PIECE_EMOJIS[p.pieceType] || '')).filter(Boolean);
   const uniqueEmojis = [...new Set(pieceEmojis)];
   const occasionEmoji = uniqueEmojis.join(' ');
-  // For multi-piece: total is always the sum of piece totals
-  const setTotal = (q.pieces||[]).reduce((s,p) => s+(p.total||0), 0) || q.total;
+  // For multi-piece: sum actualTotal per piece if available, else original total
+  const setTotal = (q.pieces||[]).reduce((s,p) => s + (p.actualTotal || p.clientPrice || p.total || 0), 0) || q.total;
   const discAmtHeader = q.discountValue ? (q.discountType === 'pct' ? Math.round(((q.clientPrice > 0 ? q.clientPrice : setTotal) * q.discountValue) / 100) : q.discountValue) : 0;
   const discBaseHeader = (q.clientPrice > 0) ? q.clientPrice : setTotal;
   const displayAmount = discAmtHeader > 0 ? (discBaseHeader - discAmtHeader) : (q.clientPrice > 0 ? q.clientPrice : setTotal);
