@@ -3610,6 +3610,7 @@ function saveQuote(quoteType = 'client') {
   });
   if (invChanged) { window._inventory = inv; persistInventory(); }
 
+  clearQuote();
   showToast(quoteType === 'collection' ? 'Collection quote saved' : 'Quote saved');
   renderSaved();
 
