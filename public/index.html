@@ -2630,6 +2630,20 @@ async function scanGIAForQuoteStone(input, stoneId) {
   input.value = '';
 }
 
+function recalcAndSaveActualTotal(q) {
+  var stoneCost2 = q.actualStoneCost != null ? q.actualStoneCost : (q.stones ? q.stones.reduce(function(s,st){return s+(st.cost||0);},0) : 0);
+  var meleeCost2 = q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0);
+  var metalCost2 = q.actualMetalCost != null ? q.actualMetalCost : (q.metalEstimate || 0);
+  var laborCost2 = q.actualLabor != null ? q.actualLabor : (q.laborEst || 0);
+  var chainCost2 = q.chainCost || 0;
+  var designFee2 = q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || 0);
+  var stoneRetail2 = stoneCost2 * stoneMarkupProject(stoneCost2);
+  var meleeRetail2 = meleeCost2 * 1.75;
+  var laborRetail2 = laborCost2 * 1.4;
+  var rest2 = Math.round(metalCost2*1.35)+Math.round(chainCost2*1.35)+Math.round(laborRetail2)+Math.round(meleeRetail2)+designFee2;
+  var recalc2 = Math.round((stoneRetail2 + rest2*1.13)/50)*50;
+  q.actualTotal = q.clientPrice > 0 ? q.clientPrice : (recalc2 || q.total);
+}
 function stoneMarkupProject(cost) {
   if (cost <= 5000) return 2.1;
   if (cost <= 10000) return 1.8;
@@ -4832,7 +4846,7 @@ function renderPL() {
 
   let totalRevenue = 0, totalCost = 0, totalProfit = 0;
   const rows = eligible.map(q => {
-    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.total || 0);
+    const revenue = q.clientPrice > 0 ? q.clientPrice : (q.actualTotal || q.total || 0);
     let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
     if (q.isMultiPiece) {
       // Sum costs across all pieces — use piece's stones array as fallback for stone cost
@@ -4899,7 +4913,7 @@ function renderPL() {
     allEligible.forEach(q => {
       const excluded = !!q.excludeFromPL;
       const hasFinal = q.actualMetalCost != null || q.actualLabor != null;
-      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.total || 0);
+      const revenue = q.clientPrice > 0 ? q.clientPrice : (q.actualTotal || q.total || 0);
       const usingQuotedRetail = !(q.clientPrice > 0);
       let stoneCost, metalCost, laborCost, chainCost, designFee, meleeCost;
       if (q.isMultiPiece) {
@@ -7728,7 +7742,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
       q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
       if(!q.invoiceLinks)q.invoiceLinks=[];
       q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:li.description||li.category,amount:li.amount,field:field,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
-      window._savedQuotes=quotes;persistQuotes();refreshCardInPlace(projId);
+      recalcAndSaveActualTotal(q);window._savedQuotes=quotes;persistQuotes();refreshCardInPlace(projId);
       li.pushed=true;li.pushType='cost';
     } else {
       // Note only — just link, no cost pushed
@@ -7736,7 +7750,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
       // Also write a lightweight note to the project so it shows on the card
       if(!q.invoiceLinks)q.invoiceLinks=[];
       q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:li.description||li.category,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
-      window._savedQuotes=quotes;persistQuotes();refreshCardInPlace(projId);
+      recalcAndSaveActualTotal(q);window._savedQuotes=quotes;persistQuotes();refreshCardInPlace(projId);
     }
     li.pushedTo=q.client;li.pushedProjectId=q.id;
     window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();
