@@ -3108,6 +3108,11 @@ function renderExtraPieces() {
       + '<button onclick="removeExtraPiece(' + p.id + ')" style="background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0;line-height:1">×</button>'
       + '</div>';
 
+    // Client name for this piece
+    html += '<div style="margin-bottom:10px"><div class="field-label">Client name for this piece</div>'
+      + '<input type="text" placeholder="e.g. Christine — ring" value="' + (p.name||'') + '" oninput="updateExtraPiece(' + p.id + ',\'name\',this.value)" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;box-sizing:border-box">'
+      + '</div>';
+
     // Piece type + Purity
     html += '<div class="field-row">'
       + '<div class="field"><div class="field-label">Piece type</div>'
@@ -3206,6 +3211,7 @@ function getExtraPiecesForSave() {
     const total = Math.round(rawTotal / 50) * 50;
     return {
       id: p.id,
+      name: p.name || '',
       pieceType: p.pieceType || 'piece',
       purity: p.purity || '18k',
       grams: parseFloat(p.grams) || 0,
