@@ -1769,7 +1769,9 @@ document.getElementById('weightCategory').addEventListener('change', function() 
   const opt = this.options[this.selectedIndex];
   if (opt && opt.dataset.min) {
     const mid = ((parseFloat(opt.dataset.min) + parseFloat(opt.dataset.max)) / 2).toFixed(1);
-    document.getElementById('metalGrams').value = mid;
+    const gramsEl = document.getElementById('metalGrams');
+    gramsEl.value = mid;
+    gramsEl.dispatchEvent(new Event('input'));
     document.getElementById('gramHint').textContent = `Range: ${opt.dataset.min}–${opt.dataset.max}g · using midpoint ${mid}g`;
   } else {
     document.getElementById('gramHint').textContent = '';
@@ -2976,6 +2978,7 @@ function stagePiece() {
     const el = document.getElementById(id);
     if (el) { el.value = ''; el.dispatchEvent(new Event('input')); }
   });
+  const wcEl = document.getElementById('weightCategory'); if (wcEl) wcEl.value = '';
   const lbl = document.getElementById('multiPieceLabel');
   if (lbl) lbl.textContent = 'Piece ' + (_stagedPieces.length + 1);
   const stageBtn = document.getElementById('stagePieceBtn');
@@ -3645,6 +3648,8 @@ function clearQuote() {
   setMetalMode('estimate');
   document.getElementById('clientName').value = '';
   document.getElementById('metalGrams').value = '';
+  document.getElementById('gramHint').textContent = '';
+  if (document.getElementById('weightCategory')) document.getElementById('weightCategory').value = '';
   document.getElementById('projectOccasion').value = '';
   document.getElementById('laborCost').value = '700';
   document.getElementById('designFee').value = '0';
