@@ -4691,7 +4691,7 @@ function buildQuoteCard(q) {
   html += '<div class="card-body" style="display:none;margin-top:10px;background:rgba(100,180,180,0.06);border-radius:4px;padding:10px;border:1px solid rgba(100,180,180,0.15)">';
 
   // Discount + pricing breakdown
-  html += '<div style="padding:10px;background:#ffffff;border-radius:3px;font-size:13px;margin-bottom:8px">';
+  html += '<div style="padding:10px;background:#fafaf7;border-radius:3px;font-size:13px;margin-bottom:8px">';
   html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">';
   html += '<span style="color:var(--text-dim);flex:1">Discount</span>';
   html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:3px;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
@@ -4708,7 +4708,7 @@ function buildQuoteCard(q) {
   html += '</div>';
 
   if (q.actualTotal) {
-    html += '<div style="margin-bottom:8px;padding:8px;background:#ffffff;border-radius:3px;font-size:13px">';
+    html += '<div style="margin-bottom:8px;padding:8px;background:#fafaf7;border-radius:3px;font-size:13px">';
     if (q.castingCompany) html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Casting</span><span>' + q.castingCompany + '</span></div>';
     html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Quoted</span><span>' + (q.total ? '$' + q.total.toLocaleString() : '<span style="color:var(--text-dim);font-style:italic">not determined</span>') + '</span></div>';
     html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Actual retail</span><span>$' + q.actualTotal.toLocaleString() + '</span></div>';
@@ -4728,7 +4728,7 @@ function buildQuoteCard(q) {
   const showChainCost = q.chainCost || 0;
   const totalCosts = showStoneCost + showMetalCost + showLaborCost + showMeleeCost + showChainCost;
   if (totalCosts > 0 || showDesignFee != null) {
-    html += '<div style="margin-bottom:8px;background:#ffffff;border-radius:3px;padding:8px 10px">';
+    html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:3px;padding:8px 10px">';
     html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">'
       + (hasActuals ? 'Actual costs' : 'Est. costs') + '</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:12px">';
