@@ -4673,6 +4673,25 @@ function buildMultiPieceCard(q) {
     html += '</div>';
   }
 
+  // Cost pushes (field log & invoice pushes)
+  if (q.costPushes && q.costPushes.length) {
+    const cpLabels = { actualStoneCost:'Stone cost', actualMeleeCost:'Melee / materials', actualMetalCost:'Casting / metal', actualLabor:'Labor / setting / CAD', actualDesignFee:'Design fee', actualChainCost:'Findings / chain' };
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Cost pushes</div>';
+    q.costPushes.forEach(p => {
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">'
+        + '<div style="flex:1;padding-right:10px">'
+        + '<div style="font-size:13px;color:var(--text)">' + (p.description||'') + (p.piece ? ' → ' + p.piece : '') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (cpLabels[p.field]||p.field||'') + ' · ' + (p.mode==='replace'?'replaced':'added') + ' · ' + p.date + (p.source==='invoice'&&p.invoiceVendor?' · '+p.invoiceVendor:'') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+        + '<div style="font-size:13px;color:var(--gold);font-weight:500">$' + (p.amount||0).toLocaleString() + '</div>'
+        + '<span onclick="event.stopPropagation();deleteCostPush(' + q.id + ',' + p.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;padding:2px 4px">✕</span>'
+        + '</div></div>';
+    });
+    html += '</div>';
+  }
+
   // Project notes
   if (q.projectNotes && q.projectNotes.length) {
     const open = q.projectNotes.filter(n => !n.done);
@@ -5384,9 +5403,9 @@ function updateActuals(id, e, pieceIdx) {
     <div style="background:var(--surface2);border-radius:3px;padding:10px;margin-bottom:14px">
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
-        <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(q.stones?.reduce((s,st)=>s+(st.cost||0),0)||q.actualStoneCost||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${q.metalEstimate ? '$' + q.metalEstimate.toLocaleString() : '—'}${q.purity ? ' · ' + q.purity : ''}</div>
-        <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(q.laborEst||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(src.stones?.reduce((s,st)=>s+(st.cost||0),0)||src.actualStoneCost||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${src.metalEstimate ? '$' + src.metalEstimate.toLocaleString() : '—'}${src.purity ? ' · ' + src.purity : ''}</div>
+        <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(src.laborEst||0).toLocaleString()}</div>
         <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(src.total || q.total || 0).toLocaleString()}</div>
       </div>
     </div>
@@ -5395,40 +5414,40 @@ function updateActuals(id, e, pieceIdx) {
         <div class="field-label">Casting company</div>
         <select id="af-caster-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;appearance:none">
           <option value="">— Select</option>
-          <option value="Carrera" ${q.castingCompany==='Carrera'?'selected':''}>Carrera</option>
-          <option value="Omega" ${q.castingCompany==='Omega'?'selected':''}>Omega</option>
-          <option value="Pafco" ${q.castingCompany==='Pafco'?'selected':''}>Pafco</option>
-          <option value="JM" ${q.castingCompany==='JM'?'selected':''}>JM</option>
+          <option value="Carrera" ${(src.castingCompany||q.castingCompany)==='Carrera'?'selected':''}>Carrera</option>
+          <option value="Omega" ${(src.castingCompany||q.castingCompany)==='Omega'?'selected':''}>Omega</option>
+          <option value="Pafco" ${(src.castingCompany||q.castingCompany)==='Pafco'?'selected':''}>Pafco</option>
+          <option value="JM" ${(src.castingCompany||q.castingCompany)==='JM'?'selected':''}>JM</option>
         </select>
       </div>
       <div>
         <div class="field-label">Final casting cost ($)</div>
-        <input type="number" id="af-metal-${id}" value="${q.actualMetalCost != null ? q.actualMetalCost : (q.metalEstimate || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-metal-${id}" value="${src.actualMetalCost != null ? src.actualMetalCost : (src.metalEstimate || src.metalCost || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Stone cost ($)</div>
-        <input type="number" id="af-stone-${id}" value="${q.actualStoneCost != null ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st)=>s+(st.cost||0),0) : '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-stone-${id}" value="${src.actualStoneCost != null ? src.actualStoneCost : (src.stones?.reduce((s,st)=>s+(st.cost||0),0) || src.stoneCost || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Final labor cost ($)</div>
-        <input type="number" id="af-labor-${id}" value="${q.actualLabor != null ? q.actualLabor : (q.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-labor-${id}" value="${src.actualLabor != null ? src.actualLabor : (src.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Additional materials / melee ($)</div>
-        <input type="number" id="af-melee-${id}" value="${q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-melee-${id}" value="${src.actualMeleeCost != null ? src.actualMeleeCost : (src.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Design fee ($)</div>
-        <input type="number" id="af-design-${id}" value="${q.actualDesignFee != null ? q.actualDesignFee : (q.designFee || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-design-${id}" value="${src.actualDesignFee != null ? src.actualDesignFee : (src.designFee || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
       <div>
         <div class="field-label">Findings / chain cost ($)</div>
-        <input type="number" id="af-chain-cost-${id}" value="${q.actualChainCost != null ? q.actualChainCost : (q.chainCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-chain-cost-${id}" value="${src.actualChainCost != null ? src.actualChainCost : (src.chainCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
           style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none">
       </div>
     </div>
@@ -5572,11 +5591,14 @@ function saveActuals(id) {
     q._pieceIdx = parseInt(storedPieceIdx);
   }
 
-  // Use original quote values as fallback when fields are left blank
-  const origStoneCost = q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : (q.actualStoneCost || 0);
-  const origMetalCost = q.metalEstimate || 0;
-  const origLaborCost = q.laborEst || 0;
-  const origDesignFee = q.designFee || 0;
+  // Use src (the piece for multi-piece, or q for single) as the fallback source
+  const src2 = (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) ? q.pieces[q._pieceIdx] : q;
+
+  // Use original values as fallback when fields are left blank
+  const origStoneCost = src2.stones ? src2.stones.reduce((s,st) => s + (st.cost||0), 0) : (src2.actualStoneCost || 0);
+  const origMetalCost = src2.metalEstimate || src2.metalCost || 0;
+  const origLaborCost = src2.laborEst || 0;
+  const origDesignFee = src2.designFee || 0;
 
   const stoneField = document.getElementById('af-stone-' + id)?.value;
   const metalField = document.getElementById('af-metal-' + id)?.value;
@@ -7335,12 +7357,18 @@ function reconcileFieldEntry(id) {
 
     const doFinalize = (targetQ, pieceName) => {
       targetQ[field] = pushMode === 'replace' ? amt : (targetQ[field] || 0) + amt;
+      const pushDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
       if (!q.costPushes) q.costPushes = [];
       q.costPushes.unshift({
         id: Date.now(), amount: amt, field: field,
         description: entry.description + (pieceName ? ' → ' + pieceName : ''),
-        mode: pushMode, source: 'field-log',
-        date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
+        mode: pushMode, source: 'field-log', piece: pieceName || null,
+        date: pushDate,
+      });
+      if (!q.invoiceLinks) q.invoiceLinks = [];
+      q.invoiceLinks.unshift({
+        id: Date.now()+1, description: entry.description, amount: amt, field: field,
+        piece: pieceName || null, date: pushDate, source: 'field-log',
       });
       recalcAndSaveActualTotal(q);
       window._savedQuotes = quotes;
