@@ -5529,17 +5529,7 @@ function saveActuals(id) {
   const chainCostFieldVal = parseFloat(document.getElementById('af-chain-cost-' + id)?.value);
   const chainCost = chainPickerWholesale > 0 ? chainPickerWholesale : (isNaN(chainCostFieldVal) ? (q.chainCost || 0) : chainCostFieldVal);
 
-  q.actualStoneCost = stoneCost;
-  q.actualMetalCost = metalCost;
-  q.actualLabor = laborCost;
-  q.actualDesignFee = designFee;
-  q.actualMeleeCost = meleeCost;
-  q.castingCompany = castingCompany;
-  q.chainCost = chainCost;
-  q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : (q.chainName || '');
-  q.clientPrice = clientPrice;
-
-  // Recalculate actual retail using same markup formula as quote builder
+  // Recalculate retail for single-piece use
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
   const meleeRetail = meleeCost * 1.75;
   const laborRetail = laborCost * 1.4;
@@ -5547,9 +5537,7 @@ function saveActuals(id) {
   const rawTotal = stoneRetail + rest * 1.13;
   const recalcRetail = Math.round(rawTotal / 50) * 50;
 
-  q.actualTotal = clientPrice > 0 ? clientPrice : recalcRetail;
-
-  // If this is a piece in a set, copy actuals back to the piece
+  // If this is a piece in a set, write actuals ONLY to the piece, not to q
   if (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) {
     const p = q.pieces[q._pieceIdx];
     p.actualStoneCost = stoneCost;
@@ -5558,10 +5546,33 @@ function saveActuals(id) {
     p.actualDesignFee = designFee;
     p.actualMeleeCost = meleeCost;
     p.actualChainCost = chainCost;
-    p.actualTotal = q.actualTotal;
     p.clientPrice = clientPrice;
-    q.total = (q.pieces || []).reduce((s, pc) => s + (pc.total || 0), 0);
+    // Recalc this piece's actualTotal
+    const pStoneRetail = stoneCost * stoneMarkupProject(stoneCost);
+    const pMeleeRetail = meleeCost * 1.75;
+    const pLaborRetail = laborCost * 1.4;
+    const pRest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(pLaborRetail) + Math.round(pMeleeRetail) + designFee;
+    const pRecalc = Math.round((pStoneRetail + pRest * 1.13) / 50) * 50;
+    p.actualTotal = clientPrice > 0 ? clientPrice : pRecalc;
+    // Set-level total = sum of all piece totals (use actualTotal per piece if available, else original total)
+    q.total = (q.pieces || []).reduce((s, pc) => s + (pc.actualTotal || pc.total || 0), 0);
+    q.actualTotal = q.total;
+    // Clear piece-level fields from q so they don't contaminate
     delete q._pieceIdx;
+    delete q.actualStoneCost; delete q.actualMetalCost; delete q.actualLabor;
+    delete q.actualDesignFee; delete q.actualMeleeCost; delete q.castingCompany;
+  } else {
+    // Single piece — write directly to q
+    q.actualStoneCost = stoneCost;
+    q.actualMetalCost = metalCost;
+    q.actualLabor = laborCost;
+    q.actualDesignFee = designFee;
+    q.actualMeleeCost = meleeCost;
+    q.castingCompany = castingCompany;
+    q.chainCost = chainCost;
+    q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : (q.chainName || '');
+    q.clientPrice = clientPrice;
+    q.actualTotal = clientPrice > 0 ? clientPrice : recalcRetail;
   }
 
   window._savedQuotes = quotes;
