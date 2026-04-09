@@ -4557,16 +4557,19 @@ function buildMultiPieceCard(q) {
   html += '</div>';
 
   // Discount + client price
-  html += '<div style="padding:10px;background:#fafaf7;border-radius:3px;font-size:13px;margin-bottom:8px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-    + '<span style="color:var(--text-dim)">Discount</span>'
-    + '<div style="display:flex;gap:6px;align-items:center">'
-    + '<div style="font-size:12px;color:var(--text-dim)">Set discount via Edit</div></div></div>';
-
-  const discBaseM = (q.clientPrice > 0) ? q.clientPrice : q.total;
-  const discAmt = q.discountType === 'pct' ? Math.round(discBaseM * (q.discountValue||0) / 100) : (q.discountValue||0);
+  const discBaseM = (q.clientPrice > 0) ? q.clientPrice : setTotal;
+  const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(discBaseM * q.discountValue / 100) : q.discountValue) : 0;
   const discounted = discBaseM - discAmt;
-  if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;color:var(--text-dim)"><span>Price before discount</span><span>$' + discBaseM.toLocaleString() + '</span></div>';
+  html += '<div style="padding:10px;background:#fafaf7;border-radius:3px;font-size:13px;margin-bottom:8px">';
+  html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">';
+  html += '<span style="color:var(--text-dim);flex:1">Discount</span>';
+  html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:3px;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
+  html += '<select id="dtype-' + q.id + '" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:4px 6px;border-radius:3px;outline:none;appearance:none" onchange="applyDiscount(' + q.id + ', this.previousElementSibling.value, this.value)">';
+  html += '<option value="pct" ' + ((q.discountType||'pct')==='pct' ? 'selected' : '') + '>%</option>';
+  html += '<option value="flat" ' + (q.discountType==='flat' ? 'selected' : '') + '>$</option>';
+  html += '</select></div>';
+  html += '<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--text-dim)">Set total</span><span>$' + setTotal.toLocaleString() + '</span></div>';
+  if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;color:var(--text-dim);margin-bottom:4px"><span>Price before discount</span><span>$' + discBaseM.toLocaleString() + '</span></div>';
   if (discAmt > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">After discount</span><span style="color:var(--teal-dim);font-size:16px">$' + discounted.toLocaleString() + '</span></div>';
   if (!discAmt && q.clientPrice > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">Client price</span><span style="color:var(--teal-dim);font-size:16px">$' + q.clientPrice.toLocaleString() + '</span></div>';
   html += '</div>';
