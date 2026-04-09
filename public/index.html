@@ -2970,6 +2970,12 @@ function stagePiece() {
   // Clear piece name field and update piece label
   const pieceNameEl = document.getElementById('pieceClientName');
   if (pieceNameEl) pieceNameEl.value = '';
+  // Force all numeric fields to blank so the user can re-enter the same value
+  // and oninput fires correctly even if the number hasn't changed
+  ['metalGrams','laborCost','designFee','meleeCost'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.dispatchEvent(new Event('input')); }
+  });
   const lbl = document.getElementById('multiPieceLabel');
   if (lbl) lbl.textContent = 'Piece ' + (_stagedPieces.length + 1);
   const stageBtn = document.getElementById('stagePieceBtn');
