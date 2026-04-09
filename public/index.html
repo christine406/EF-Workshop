@@ -5486,7 +5486,7 @@ function saveActuals(id) {
   const laborCost = laborField !== '' && laborField != null ? parseFloat(laborField) : origLaborCost;
   const designFee = (designField !== '' && designField != null) ? (parseFloat(designField) || 0) : origDesignFee;
   const meleeCost = meleeField !== '' && meleeField != null ? parseFloat(meleeField) : (q.meleeCost || 0);
-  const clientPrice = clientField !== '' && clientField != null ? parseFloat(clientField) || 0 : (q.clientPrice || 0);
+  const clientPrice = (clientField !== '' && clientField != null) ? (parseFloat(clientField) || 0) : null;
 
   const castingCompany = document.getElementById('af-caster-' + id)?.value || q.castingCompany || '';
   const chainEl = document.getElementById('af-chain-' + id);
