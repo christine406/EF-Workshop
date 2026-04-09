@@ -4664,11 +4664,11 @@ function buildMultiPieceCard(q) {
   if (q.invoiceLinks && q.invoiceLinks.length) {
     const fl2 = { actualStoneCost:'Stone', actualMeleeCost:'Melee', actualMetalCost:'Metal', actualLabor:'Labor', actualDesignFee:'Design fee', actualChainCost:'Chain' };
     html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Invoice connections</div>';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Connections</div>';
     q.invoiceLinks.forEach(lnk => {
       html += '<div style="padding:5px 0;border-bottom:1px solid var(--border)">'
         + '<div style="font-size:13px;color:var(--text)">' + (lnk.vendor||'') + (lnk.invoiceNumber ? ' #' + lnk.invoiceNumber : '') + '</div>'
-        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (lnk.description||'') + (lnk.amount ? ' · ' + (fl2[lnk.field]||'') + ' $' + (lnk.amount||0).toLocaleString() : ' · note') + ' · ' + (lnk.date||'') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (lnk.description||'') + (lnk.amount ? ' · ' + (fl2[lnk.field]||'') + ' $' + (lnk.amount||0).toLocaleString() : ' · note') + (lnk.piece ? ' → ' + lnk.piece : '') + ' · ' + (lnk.source === 'field-log' ? 'field log' : 'invoice') + ' · ' + (lnk.date||'') + '</div>'
         + '</div>';
     });
     html += '</div>';
@@ -4893,12 +4893,12 @@ function buildQuoteCard(q) {
   if (q.invoiceLinks && q.invoiceLinks.length) {
     const fieldLabels2 = { actualStoneCost:'Stone', actualMeleeCost:'Melee', actualMetalCost:'Metal', actualLabor:'Labor', actualDesignFee:'Design fee', actualChainCost:'Chain' };
     html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Invoice connections</div>';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Connections</div>';
     q.invoiceLinks.forEach(lnk => {
       html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(--border)">'
         + '<div style="flex:1;padding-right:10px">'
         + '<div style="font-size:13px;color:var(--text)">' + (lnk.vendor||'') + (lnk.invoiceNumber ? ' #' + lnk.invoiceNumber : '') + '</div>'
-        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (lnk.description||'') + (lnk.amount ? ' · ' + (fieldLabels2[lnk.field]||'') + ' $' + (lnk.amount||0).toLocaleString() : ' · note') + ' · ' + (lnk.date||'') + '</div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (lnk.description||'') + (lnk.amount ? ' · ' + (fieldLabels2[lnk.field]||'') + ' $' + (lnk.amount||0).toLocaleString() : ' · note') + (lnk.piece ? ' → ' + lnk.piece : '') + ' · ' + (lnk.source === 'field-log' ? 'field log' : 'invoice') + ' · ' + (lnk.date||'') + '</div>'
         + '</div></div>';
     });
     html += '</div>';
