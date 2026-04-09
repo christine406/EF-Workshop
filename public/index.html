@@ -7763,7 +7763,7 @@ function renderInvoices(){
       var vn=document.createElement('span');vn.textContent=vendor;var vt=document.createElement('span');vt.textContent=fmt(vendorTotal);vh.appendChild(vn);vh.appendChild(vt);list.appendChild(vh);
       invs.forEach(function(inv){
         var isPaid=inv.status==='paid';var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
-        var card=document.createElement('div');card.dataset.invId=inv.id;card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;margin-bottom:6px;overflow:hidden';
+        var card=document.createElement('div');card.dataset.invId=inv.id;card.style.cssText='background:'+(isPaid?'rgba(100,180,130,0.07)':'rgba(220,150,150,0.08)')+';border:1px solid '+(isPaid?'rgba(100,180,130,0.25)':'rgba(220,150,150,0.25)')+';border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;margin-bottom:6px;overflow:hidden';
         var hdrRow=document.createElement('div');hdrRow.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:12px;cursor:pointer;user-select:none';
         var hdrL=document.createElement('div');hdrL.innerHTML='<div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' #'+inv.invoiceNumber:'')+'</div>';
         var hdrR=document.createElement('div');hdrR.style.cssText='text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:2px';
