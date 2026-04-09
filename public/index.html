@@ -8311,64 +8311,6 @@ if (!window._invoices) window._invoices = [];
 var _invoiceFilter = 'all', _invoiceLineCounter = 0, _editingInvoiceId = null;
 function getInvoices() { return window._invoices || []; }
 function persistInvoices() { if (window._fb) window._fb.saveInvoices(window._invoices); }
-function setInvoiceFilter(filter, btn) {
-  _invoiceFilter = filter;
-  document.querySelectorAll('.inv-filter-btn').forEach(function(b){b.classList.remove('active');});
-  btn.classList.add('active');
-  renderInvoices();
-}
-function toggleInvoiceStatus(id) {
-  var invoices=getInvoices(); var inv=invoices.find(function(i){return i.id===id;}); if(!inv)return;
-  inv.status=inv.status==='paid'?'outstanding':'paid'; window._invoices=invoices; persistInvoices(); renderInvoices();
-}
-function deleteInvoice(id) {
-  if(!confirm('Delete this invoice?'))return;
-  window._invoices=getInvoices().filter(function(i){return i.id!==id;}); persistInvoices(); renderInvoices();
-}
-function renderInvoices() {
-  var list=document.getElementById('invoiceList'); if(!list)return;
-  var invoices=getInvoices();
-  if(_invoiceFilter==='outstanding')invoices=invoices.filter(function(i){return i.status!=='paid';});
-  else if(_invoiceFilter==='paid')invoices=invoices.filter(function(i){return i.status==='paid';});
-  if(!invoices.length){list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No invoices yet.</div>';return;}
-  list.innerHTML='';
-  var typeOrder=['casting','setting','dealer','findings','other'];
-  var typeLabels={casting:'Casting',setting:'Setting',dealer:'Dealers',findings:'Findings',other:'Other'};
-  var typeColors={casting:'#a07cc5',setting:'var(--teal-dim)',dealer:'var(--gold)',findings:'#7aaa8a',other:'var(--text-dim)'};
-  var byType={}; typeOrder.forEach(function(t){byType[t]={};});
-  invoices.forEach(function(inv){
-    var t=inv.type||'other'; if(!byType[t])byType[t]={};
-    var v=inv.vendor||'Unknown'; if(!byType[t][v])byType[t][v]=[]; byType[t][v].push(inv);
-  });
-  var fmt=function(n){return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);};
-  typeOrder.forEach(function(type){
-    var vendors=byType[type]; if(!vendors||!Object.keys(vendors).length)return;
-    var typeTotal=0; Object.values(vendors).forEach(function(invs){invs.forEach(function(inv){typeTotal+=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);});});
-    var th=document.createElement('div'); th.style.cssText='font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:'+typeColors[type]+';padding:10px 0 6px;border-bottom:2px solid '+typeColors[type]+';margin-bottom:10px;margin-top:14px;display:flex;justify-content:space-between;align-items:center';
-    th.innerHTML='<span>'+typeLabels[type]+'</span><span>'+fmt(typeTotal)+'</span>'; list.appendChild(th);
-    Object.keys(vendors).sort().forEach(function(vendor){
-      var invs=vendors[vendor]; var vt=invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
-      var vh=document.createElement('div'); vh.style.cssText='font-size:12px;color:var(--text-dim);padding:5px 0;margin-bottom:4px;display:flex;justify-content:space-between';
-      vh.innerHTML='<span>'+vendor+'</span><span>'+fmt(vt)+'</span>'; list.appendChild(vh);
-      invs.forEach(function(inv){
-        var isPaid=inv.status==='paid'; var total=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);
-        var card=document.createElement('div'); card.style.cssText='background:var(--surface);border:1px solid var(--border);border-left:3px solid '+(isPaid?'var(--green-bright)':typeColors[type])+';border-radius:4px;padding:12px;margin-bottom:6px';
-        var hdr=document.createElement('div'); hdr.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px';
-        hdr.innerHTML='<div><div style="font-size:14px;color:var(--text)">'+(inv.date||'')+(inv.invoiceNumber?' #'+inv.invoiceNumber:'')+'</div></div><div style="text-align:right"><div style="font-size:16px;color:'+(isPaid?'var(--green-bright)':typeColors[type])+';font-weight:500">'+fmt(total)+'</div><div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+(isPaid?'var(--green-bright)':'var(--text-dim)')+';margin-top:2px">'+(isPaid?'Paid':'Outstanding')+'</div></div>';
-        var body=document.createElement('div');
-        (inv.lineItems||[]).forEach(function(li){
-          var ld=document.createElement('div'); ld.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid var(--border)';
-          ld.innerHTML='<div style="flex:1;padding-right:10px"><div style="font-size:13px;color:var(--text)">'+(li.description||'--')+'</div>'+(li.pushed?'<div style="font-size:11px;color:var(--green-bright);margin-top:2px">Pushed to '+(li.pushedTo||'project')+'</div>':'')+'</div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><div style="font-size:13px;color:var(--text)">'+fmt(li.amount||0)+'</div>'+(!li.pushed?'<button onclick="pushLineItemToProject('+inv.id+','+li.id+')" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:2px;cursor:pointer">Push</button>':'')+'</div>';
-          body.appendChild(ld);
-        });
-        var acts=document.createElement('div'); acts.style.cssText='display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap';
-        acts.innerHTML='<button onclick="toggleInvoiceStatus('+inv.id+')" style="background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">'+(isPaid?'Mark outstanding':'Mark paid')+'</button><button onclick="openInvoiceForm('+inv.id+')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Edit</button><button onclick="deleteInvoice('+inv.id+')" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer">Delete</button>';
-        card.appendChild(hdr); card.appendChild(body); card.appendChild(acts); list.appendChild(card);
-      });
-    });
-  });
-}
-
 // =================== PRODUCTION ===================
 if (!window._production) window._production = [];
 var _editingProdId=null, _prodStoneCounter=0, _prodFindingCounter=0, _prodMoldCounter=0;
