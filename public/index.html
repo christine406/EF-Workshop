@@ -5321,7 +5321,8 @@ function convertToProject(id, e) {
     q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
 
     // Auto pre-fill actuals from quoted costs if not already set
-    if (q.actualStoneCost == null) q.actualStoneCost = q.stoneCost || 0;
+    const quotedStoneCost = (q.stones||[]).reduce((s,st) => s+(st.cost||0), 0) || q.stoneCost || 0;
+    if (q.actualStoneCost == null) q.actualStoneCost = quotedStoneCost;
     if (q.actualMeleeCost == null) q.actualMeleeCost = q.meleeCost || 0;
     if (q.actualMetalCost == null) q.actualMetalCost = q.metalEstimate ? Math.round(q.metalEstimate / 1.35) : 0;
     if (q.actualLabor == null) q.actualLabor = q.laborEst || 0;
@@ -5595,7 +5596,8 @@ function saveActuals(id) {
   const src2 = (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) ? q.pieces[q._pieceIdx] : q;
 
   // Use original values as fallback when fields are left blank
-  const origStoneCost = src2.stones ? src2.stones.reduce((s,st) => s + (st.cost||0), 0) : (src2.actualStoneCost || 0);
+  const stonesArrayCost = src2.stones ? src2.stones.reduce((s,st) => s + (st.cost||0), 0) : 0;
+  const origStoneCost = stonesArrayCost || src2.actualStoneCost || src2.stoneCost || 0;
   const origMetalCost = src2.metalEstimate || src2.metalCost || 0;
   const origLaborCost = src2.laborEst || 0;
   const origDesignFee = src2.designFee || 0;
