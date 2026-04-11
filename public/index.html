@@ -6743,8 +6743,10 @@ function renderStoneInventory() {
 
     const div = document.createElement('div');
     const isUnavailable = s.status === 'in-use' || s.status === 'unavailable' || s.status === 'sold-by-dealer';
-    const cardBg = isUnavailable ? '#f9eaea' : 'var(--surface)';
-    div.style.cssText = 'background:' + cardBg + ';border:1px solid var(--border);border-left:3px solid ' + (hasPending ? '#ccc07a' : statusColors[s.status || 'available']) + ';border-radius:4px;padding:12px;margin-bottom:8px';
+    const isInQuote = s.usedInQuoteId && !s.usedInProjectId;
+    const cardBg = isUnavailable ? '#f9eaea' : isInQuote ? 'rgba(160,124,197,0.08)' : 'var(--surface)';
+    const cardBorder = isInQuote ? 'rgba(160,124,197,0.4)' : 'var(--border)';
+    div.style.cssText = 'background:' + cardBg + ';border:1px solid ' + cardBorder + ';border-left:3px solid ' + (hasPending ? '#ccc07a' : statusColors[s.status || 'available']) + ';border-radius:4px;padding:12px;margin-bottom:8px';
 
     let html = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
