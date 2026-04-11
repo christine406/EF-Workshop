@@ -1108,6 +1108,19 @@
           <input type="number" id="stoneFilterMaxCt" step="0.01" min="0" placeholder="any" oninput="renderStoneInventory()">
         </div>
       </div>
+      <div class="field-row" style="margin-top:6px">
+        <div class="field">
+          <div class="field-label">Sort by</div>
+          <select id="stoneFilterSort" onchange="renderStoneInventory()" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;appearance:none">
+            <option value="date-desc">Date added — newest first</option>
+            <option value="date-asc">Date added — oldest first</option>
+            <option value="ct-desc">Carat — high to low</option>
+            <option value="ct-asc">Carat — low to high</option>
+            <option value="cut">Cut / shape</option>
+            <option value="dealer">Dealer</option>
+          </select>
+        </div>
+      </div>
     </div>
 
 
@@ -6521,6 +6534,16 @@ function renderStoneInventory() {
     if (s.carat && s.carat < minCt) return false;
     if (s.carat && s.carat > maxCt) return false;
     return true;
+  });
+
+  const sortBy = document.getElementById('stoneFilterSort')?.value || 'date-desc';
+  stones.sort((a, b) => {
+    if (sortBy === 'ct-desc') return (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0);
+    if (sortBy === 'ct-asc') return (parseFloat(a.carat)||0) - (parseFloat(b.carat)||0);
+    if (sortBy === 'cut') return (a.cut||'').localeCompare(b.cut||'');
+    if (sortBy === 'dealer') return (a.dealer||'').localeCompare(b.dealer||'');
+    if (sortBy === 'date-asc') return (a.id||0) - (b.id||0);
+    return (b.id||0) - (a.id||0); // date-desc default
   });
 
   if (!stones.length) {
