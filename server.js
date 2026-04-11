@@ -338,7 +338,7 @@ app.post('/api/scan-gia', async (req, res) => {
     model: 'claude-opus-4-5-20251101', max_tokens: 500,
     messages: [{ role: 'user', content: [
       { type: 'image', source: { type: 'base64', media_type: mediaType || 'image/jpeg', data: imageData } },
-      { type: 'text', text: 'This is a GIA diamond grading report or parcel label. Extract the following and return ONLY a JSON object with these exact keys (use null if not found): {"gia":"report number","carat":"weight as number e.g. 2.06","color":"grade e.g. K","clarity":"grade e.g. VS2","cut":"shape e.g. Old Mine Cut","fluorescence":"e.g. None or Strong Blue","dimensions":"measurements e.g. 8.20 x 7.95 x 5.10 mm"}. Return only the JSON, nothing else.' }
+      { type: 'text', text: 'This is a GIA diamond grading report or parcel label. Extract the following and return ONLY a JSON object with these exact keys (use null if not found): {"gia":"report number","carat":"weight as number e.g. 2.06","color":"grade e.g. K","clarity":"grade e.g. VS2","cut":"map the shape to one of these exact values: Old Mine Cut, Old European Cut, Round Brilliant, Oval, Emerald Cut, Cushion, Pear, Marquise, Asscher, Princess, Other — e.g. Round Brilliant or Old Mine Cut","fluorescence":"e.g. None or Strong Blue","dimensions":"measurements e.g. 8.20 x 7.95 x 5.10 mm"}. For cut/shape: Round=Round Brilliant, Oval Modified Brilliant or Oval Brilliant=Oval, Emerald=Emerald Cut, Cushion Modified Brilliant=Cushion, Pear Modified Brilliant=Pear, Antique Cushion or Mine Cut=Old Mine Cut, European Cut=Old European Cut. Return only the JSON, nothing else.' }
     ]}]
   });
   const options = {
