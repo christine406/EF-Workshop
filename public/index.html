@@ -1009,10 +1009,13 @@
 
     <!-- SINGLE MODE: save buttons -->
     <div id="singleModeSaveButtons">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 16px 8px" id="mainSaveButtons">
-        <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Save — Bespoke</button>
-        <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Save — Semi-custom</button>
-        <button class="btn-primary" onclick="showCollectionModal()" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Save — Collection</button>
+      <div style="padding:0 16px 4px">
+        <button class="btn-primary" onclick="saveQuote('quote')" style="width:100%;font-size:11px;padding:10px 6px;background:var(--surface2);color:var(--text-dim);border:1px solid var(--border)">Save as quote (decide type later)</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:4px 16px 8px" id="mainSaveButtons">
+        <button class="btn-primary" onclick="saveQuote('bespoke')" style="font-size:11px;padding:10px 6px">Bespoke project</button>
+        <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Semi-custom</button>
+        <button class="btn-primary" onclick="showCollectionModal()" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Collection</button>
       </div>
     </div>
 
@@ -1116,8 +1119,6 @@
             <option value="date-asc">Date added — oldest first</option>
             <option value="ct-desc">Carat — high to low</option>
             <option value="ct-asc">Carat — low to high</option>
-            <option value="cut">Cut / shape</option>
-            <option value="dealer">Dealer</option>
           </select>
         </div>
       </div>
@@ -1164,7 +1165,7 @@
           </div>
           <div class="field">
             <div class="field-label">Cut / shape</div>
-            <select id="si-cut">
+            <select id="si-cut" onchange="document.getElementById('si-cut-other').style.display=this.value==='Other'?'block':'none'">
               <option>Old Mine Cut</option>
               <option>Old European Cut</option>
               <option>Round Brilliant</option>
@@ -1177,6 +1178,7 @@
               <option>Princess</option>
               <option>Other</option>
             </select>
+            <input type="text" id="si-cut-other" placeholder="Describe cut" style="display:none;margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box">
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
@@ -3008,7 +3010,7 @@ function saveMultiPieceSet(quoteType) {
     id: Date.now(),
     client,
     quoteType,
-    status: quoteType === 'collection' ? 'collection-quote' : 'quote',
+    status: quoteType === 'collection' ? 'collection-quote' : quoteType === 'quote' ? 'quote' : 'project',
     isMultiPiece: true,
     pieces: _stagedPieces.map(p => ({ ...p })),
     total: setTotal,
@@ -3354,8 +3356,8 @@ function renderPieceStaging() {
       const btnDiv = document.createElement('div');
       btnDiv.className = 'save-set-btns';
       btnDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px';
-      btnDiv.innerHTML = '<button onclick="saveMultiPieceSet(\'bespoke\')" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 6px;border-radius:3px;cursor:pointer">Save set — Bespoke</button>'
-        + '<button onclick="saveMultiPieceSet(\'semi-custom\')" style="background:#7a5a20;color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 6px;border-radius:3px;cursor:pointer">Save set — Semi-custom</button>';
+      btnDiv.innerHTML = '<button onclick="saveMultiPieceSet(\'bespoke\')" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 6px;border-radius:3px;cursor:pointer">Bespoke project</button>'
+        + '<button onclick="saveMultiPieceSet(\'semi-custom\')" style="background:#7a5a20;color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 6px;border-radius:3px;cursor:pointer">Semi-custom</button>';
       wrap.appendChild(btnDiv);
     }
   } else if (saveBtns) {
@@ -3522,12 +3524,13 @@ function saveQuote(quoteType = 'client') {
   const rawTotal = Math.round(stoneCalc.total) + (metalMarkupSave + chainMarkupSave + Math.round(laborRetail) + designFee) * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
 
+  const isProject = quoteType === 'bespoke' || quoteType === 'semi-custom';
   const quote = {
     id: Date.now(),
     client,
     quoteType,
     occasion,
-    status: quoteType === 'collection' ? 'collection-quote' : 'quote',
+    status: quoteType === 'collection' ? 'collection-quote' : isProject ? 'project' : 'quote',
     purity,
     grams,
     laborEst: labor,
@@ -3547,6 +3550,17 @@ function saveQuote(quoteType = 'client') {
     actualLabor: null,
     actualStones: null,
   };
+
+  // If saving directly as a project, pre-fill actuals from quoted costs
+  if (isProject) {
+    const quotedStoneCost = (stones||[]).reduce((s,st) => s+(st.cost||0), 0);
+    quote.actualStoneCost = quotedStoneCost || 0;
+    quote.actualMeleeCost = quote.meleeCost || 0;
+    quote.actualMetalCost = quote.metalEstimate ? Math.round(quote.metalEstimate / 1.35) : 0;
+    quote.actualLabor = labor || 0;
+    quote.actualDesignFee = designFee || 0;
+    quote.actualChainCost = chainWholesaleCost || 0;
+  }
 
   // If extra pieces exist, convert to multi-piece set
   const extraPieces = getExtraPiecesForSave();
@@ -6196,7 +6210,16 @@ function fillStoneFormFromGIA(data) {
         if (raw.includes('princess')) return Array.from(cutSel.options).find(o => o.value === 'Princess');
         return null;
       })();
-    if (matchingOpt) cutSel.value = matchingOpt.value;
+    if (matchingOpt) {
+      cutSel.value = matchingOpt.value;
+      const otherInput = document.getElementById('si-cut-other');
+      if (otherInput) otherInput.style.display = 'none';
+    } else {
+      // No match — put it in the Other text field
+      cutSel.value = 'Other';
+      const otherInput = document.getElementById('si-cut-other');
+      if (otherInput) { otherInput.style.display = 'block'; otherInput.value = data.cut; }
+    }
   }
   if (data.fluorescence) {
     const fluSel = document.getElementById('si-fluorescence');
@@ -6309,7 +6332,12 @@ function editInventoryStone(id) {
 
   // Pre-fill all fields
   document.getElementById('si-category').value = s.category || 'owned-available';
-  document.getElementById('si-cut').value = s.cut || 'Old Mine Cut';
+  const stdCuts = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
+  const stoneCutVal = s.cut || 'Old Mine Cut';
+  const cutIsStd = stdCuts.includes(stoneCutVal);
+  document.getElementById('si-cut').value = cutIsStd ? stoneCutVal : 'Other';
+  const siCutOther = document.getElementById('si-cut-other');
+  if (siCutOther) { siCutOther.style.display = cutIsStd ? 'none' : 'block'; siCutOther.value = cutIsStd ? '' : stoneCutVal; }
   document.getElementById('si-carat').value = s.carat || '';
   document.getElementById('si-color').value = s.color || '';
   document.getElementById('si-clarity').value = s.clarity || '';
@@ -6343,7 +6371,9 @@ function saveInventoryStone() {
   const form = document.getElementById('addStoneForm');
   const editingId = form?.dataset?.editingId;
   const category = document.getElementById('si-category').value;
-  const cut = document.getElementById('si-cut').value;
+  const cutSel = document.getElementById('si-cut').value;
+  const cutOther = document.getElementById('si-cut-other')?.value?.trim();
+  const cut = cutSel === 'Other' && cutOther ? cutOther : cutSel;
   const carat = parseFloat(document.getElementById('si-carat').value) || 0;
   const color = document.getElementById('si-color').value.trim();
   const clarity = document.getElementById('si-clarity').value.trim();
@@ -6531,6 +6561,20 @@ function renderStoneInventory() {
   const list = document.getElementById('inventoryList');
   if (!list) return;
 
+  // Populate filter cut dropdown with any custom cuts from inventory
+  const cutFilterSel = document.getElementById('stoneFilterCut');
+  if (cutFilterSel) {
+    const stdCuts2 = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
+    const allCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))].filter(c => !stdCuts2.includes(c));
+    allCuts.forEach(c => { if (!Array.from(cutFilterSel.options).find(o => o.value === c)) { const o = document.createElement('option'); o.value = c; o.textContent = c; cutFilterSel.appendChild(o); } });
+  }
+  // Populate dealer filter dynamically from inventory
+  const dealerFilterSel = document.getElementById('stoneFilterDealer');
+  if (dealerFilterSel) {
+    const stdDealers = ['American Gem Corp','Virat','Galapo','Julius Klein','Other'];
+    const allDealers = [...new Set(getInventory().map(s => s.dealer).filter(Boolean))].filter(d => !stdDealers.includes(d));
+    allDealers.forEach(d => { if (!Array.from(dealerFilterSel.options).find(o => o.value === d)) { const o = document.createElement('option'); o.value = d; o.textContent = d; dealerFilterSel.appendChild(o); } });
+  }
   const cut = document.getElementById('stoneFilterCut')?.value || '';
   const dealer = document.getElementById('stoneFilterDealer')?.value || '';
   const minCt = parseFloat(document.getElementById('stoneFilterMinCt')?.value) || 0;
