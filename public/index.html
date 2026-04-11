@@ -3796,16 +3796,21 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   form.addEventListener('click', e => e.stopPropagation());
   overlay.appendChild(form);
   // Pre-compute stone details from stoneDetail or linked inventory stone
-  const _linkedInv = getInventory().find(i => i.usedInProjectId === id);
-  const _sd = q.stoneDetail || (_linkedInv ? _linkedInv : (q.stones && q.stones.length ? q.stones[0] : {}));
+  const _linkedInv = getInventory().find(i => i.usedInProjectId === id || i.usedInQuoteId === id);
+  // Normalize stones array in case Firebase returned it as an object
+  const _stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+  const _firstStone = _stonesArr.length ? _stonesArr[0] : null;
+  // If the first stone has an inventoryId, look it up for full details
+  const _invStoneForFirst = _firstStone?.inventoryId ? getInventory().find(i => i.id === _firstStone.inventoryId) : null;
+  const _sd = q.stoneDetail || _invStoneForFirst || _linkedInv || _firstStone || {};
   const _epGia = _sd.gia || '';
-  const _epCarat = _sd.carat || '';
-  const _epColor = _sd.color || '';
-  const _epClarity = _sd.clarity || '';
-  const _epCut = _sd.cut || '';
-  const _epDealer = _sd.dealer || '';
-  const _epAntique = _sd.antique || false;
-  const _linkedLabel = _linkedInv ? '<div style="font-size:11px;color:var(--teal-dim);margin-bottom:6px">↗ Linked from inventory</div>' : '';
+  const _epCarat = _sd.carat || _firstStone?.carat || '';
+  const _epColor = _sd.color || _firstStone?.color || '';
+  const _epClarity = _sd.clarity || _firstStone?.clarity || '';
+  const _epCut = _sd.cut || _firstStone?.cut || '';
+  const _epDealer = _sd.dealer || _firstStone?.dealer || '';
+  const _epAntique = _sd.antique || _firstStone?.antique || false;
+  const _linkedLabel = (_linkedInv || _invStoneForFirst) ? '<div style="font-size:11px;color:var(--teal-dim);margin-bottom:6px">↗ Linked from inventory</div>' : '';
   form.innerHTML = _pieceIdx !== undefined ? `
     <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Edit piece ${_pieceIdx + 1}</div>
     <div style="margin-bottom:10px">
