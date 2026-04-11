@@ -1115,10 +1115,10 @@
         <div class="field">
           <div class="field-label">Sort by</div>
           <select id="stoneFilterSort" onchange="renderStoneInventory()" style="width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:3px;outline:none;appearance:none">
+            <option value="ct-asc">Carat — low to high</option>
+            <option value="ct-desc">Carat — high to low</option>
             <option value="date-desc">Date added — newest first</option>
             <option value="date-asc">Date added — oldest first</option>
-            <option value="ct-desc">Carat — high to low</option>
-            <option value="ct-asc">Carat — low to high</option>
           </select>
         </div>
       </div>
@@ -1494,7 +1494,27 @@
     <div class="section">
       <div class="section-label">💎 Loose stone sale</div>
       <button class="add-stone-btn" onclick="toggleLoosePicker()" id="loosePickerToggle" style="margin-bottom:10px">📦 Pick from inventory</button>
-      <div id="loosePickerList" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:3px;margin-bottom:12px;max-height:220px;overflow-y:auto"></div>
+      <div id="loosePickerControls" style="display:none;margin-bottom:8px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+          <select id="looseFilterCut" onchange="renderLoosePickerList()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:3px;outline:none;appearance:none">
+            <option value="">All cuts</option>
+            <option>Old Mine Cut</option><option>Old European Cut</option><option>Round Brilliant</option>
+            <option>Oval</option><option>Emerald Cut</option><option>Cushion</option><option>Pear</option>
+            <option>Marquise</option><option>Asscher</option><option>Princess</option><option>Other</option>
+          </select>
+          <select id="looseFilterDealer" onchange="renderLoosePickerList()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:3px;outline:none;appearance:none">
+            <option value="">All dealers</option>
+            <option>American Gem Corp</option><option>Virat</option><option>Galapo</option><option>Julius Klein</option><option>Other</option>
+          </select>
+        </div>
+        <select id="looseFilterSort" onchange="renderLoosePickerList()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:3px;outline:none;appearance:none;margin-bottom:6px">
+          <option value="ct-asc">Carat — low to high</option>
+          <option value="ct-desc">Carat — high to low</option>
+          <option value="date-desc">Date added — newest first</option>
+          <option value="date-asc">Date added — oldest first</option>
+        </select>
+      </div>
+      <div id="loosePickerList" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:3px;margin-bottom:12px;max-height:260px;overflow-y:auto"></div>
       <div id="looseSelectedStone" style="display:none;background:var(--surface2);border:1px solid var(--teal-dim);border-radius:3px;padding:10px;margin-bottom:10px;font-size:13px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div>
@@ -1528,6 +1548,10 @@
       <div class="result-row total">
         <div class="result-label">Retail price</div>
         <div class="result-value" id="looseTotalDisplay">—</div>
+      </div>
+      <div class="result-row" id="looseProfitRow" style="display:none">
+        <div class="result-label" style="color:var(--green-bright)">Est. profit</div>
+        <div class="result-value" id="looseProfitDisplay" style="color:var(--green-bright)">—</div>
       </div>
     </div>
     <div id="looseMarkSoldWrap" style="padding:0 16px 16px">
@@ -6902,24 +6926,48 @@ let _looseSelectedStoneId = null;
 
 function toggleLoosePicker() {
   const list = document.getElementById('loosePickerList');
+  const controls = document.getElementById('loosePickerControls');
   const isOpen = list.style.display !== 'none';
-  if (isOpen) { list.style.display = 'none'; return; }
+  if (isOpen) { list.style.display = 'none'; if (controls) controls.style.display = 'none'; return; }
+  if (controls) controls.style.display = 'block';
+  renderLoosePickerList();
+}
+
+function renderLoosePickerList() {
+  const list = document.getElementById('loosePickerList');
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
-  const available = getInventory().filter(s =>
+  const cut = document.getElementById('looseFilterCut')?.value || '';
+  const dealer = document.getElementById('looseFilterDealer')?.value || '';
+  const sortBy = document.getElementById('looseFilterSort')?.value || 'ct-asc';
+  let available = getInventory().filter(s =>
     !archivedStatuses.includes(s.status) &&
-    s.category !== 'owned-reserved'
+    s.category !== 'owned-reserved' &&
+    (!cut || s.cut === cut) &&
+    (!dealer || s.dealer === dealer)
   );
-  if (!available.length) {
-    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">🚫 No available stones in inventory</div>';
-    list.style.display = 'block';
-    return;
-  }
-  window._pickerExpanded = {};
-  renderGroupedPicker(list, available, (s) => {
-    selectLooseStone(s);
-    list.style.display = 'none';
+  available.sort((a, b) => {
+    if (sortBy === 'ct-asc') return (parseFloat(a.carat)||0) - (parseFloat(b.carat)||0);
+    if (sortBy === 'ct-desc') return (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0);
+    if (sortBy === 'date-asc') return (a.id||0) - (b.id||0);
+    return (b.id||0) - (a.id||0);
   });
   list.style.display = 'block';
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">No stones match</div>';
+    return;
+  }
+  list.innerHTML = '';
+  available.forEach(s => {
+    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center';
+    row.innerHTML = '<div><div style="font-size:13px;color:var(--text)">' + desc + '</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (s.dealer||'') + (s.gia ? ' · GIA ' + s.gia : '') + '</div></div>'
+      + (s.cost ? '<div style="font-size:13px;color:var(--gold);flex-shrink:0;margin-left:10px">$' + s.cost.toLocaleString() + '</div>' : '');
+    row.addEventListener('click', () => { selectLooseStone(s); });
+    row.addEventListener('mouseenter', () => row.style.background = 'var(--surface2)');
+    row.addEventListener('mouseleave', () => row.style.background = '');
+    list.appendChild(row);
+  });
 }
 
 function selectLooseStone(s) {
@@ -6930,6 +6978,8 @@ function selectLooseStone(s) {
   document.getElementById('looseCost').value = s.cost || '';
   document.getElementById('looseDesc').value = desc;
   document.getElementById('loosePickerList').style.display = 'none';
+  const lpc = document.getElementById('loosePickerControls');
+  if (lpc) lpc.style.display = 'none';
   document.getElementById('looseMarkSoldWrap').style.display = 'block';
   calcLoose();
 }
@@ -7016,9 +7066,16 @@ function calcLoose() {
   else if (cost <= 20000) mult = 1.45;
   else mult = 1.35;
 
+  const retail = Math.round(cost * mult);
+  const profit = retail - cost;
   document.getElementById('looseCostDisplay').textContent = '$' + cost.toLocaleString();
   document.getElementById('looseMultDisplay').textContent = '×' + mult;
-  document.getElementById('looseTotalDisplay').textContent = '$' + Math.round(cost * mult).toLocaleString();
+  document.getElementById('looseTotalDisplay').textContent = '$' + retail.toLocaleString();
+  const profitRow = document.getElementById('looseProfitRow');
+  if (profitRow) {
+    profitRow.style.display = 'flex';
+    document.getElementById('looseProfitDisplay').textContent = '$' + profit.toLocaleString();
+  }
 }
 
 // =================== NAV ===================
