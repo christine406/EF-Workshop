@@ -111,6 +111,7 @@
     margin: 0 auto;
     background: #fafaf7;
     min-height: 100vh;
+    overflow-x: hidden;
   }
   .command-center.active { display: flex; }
 
@@ -192,12 +193,14 @@
 
   /* DD CHECKLIST */
   .dd-checklist {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
+    width: calc(100% + 40px);
+    margin-left: -20px;
+    margin-right: -20px;
     margin-top: 24px;
-    padding: 18px 20px;
+    padding: 18px 20px 20px;
     background: #f5f0e7;
     box-sizing: border-box;
+    overflow: visible;
   }
 
   .dd-checklist-header {
@@ -336,6 +339,7 @@
     margin-top: 0;
     padding: 18px 20px 24px;
     background: #fafaf7;
+    box-sizing: border-box;
   }
 
   .dev-notes-label {
