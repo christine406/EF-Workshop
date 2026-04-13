@@ -45,6 +45,7 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   button { border-radius: 0 !important; }
+  #goldDisplay { background: transparent !important; }
   select { border-radius: 0 !important; background-color: #fafaf7 !important; border-color: var(--teal-dim) !important; }
   input[type="text"], input[type="number"], input[type="url"], input[type="email"], input[type="password"], input[type="tel"], textarea {
     border-radius: 0 !important;
@@ -1076,7 +1077,7 @@
       <div style="display:flex;align-items:baseline;gap:2px">
         <span style="font-size:20px;font-weight:500;color:#741435">$</span>
         <input id="goldDisplay" type="number" step="0.01" min="0"
-          style="background:none;border:none;border-bottom:1px solid #ccc07a;font-family:var(--font-mono);font-size:20px;font-weight:500;color:#741435;width:130px;padding:2px 0;outline:none"
+          style="background:transparent;border:none;border-bottom:1px solid #ccc07a;font-family:var(--font-mono);font-size:20px;font-weight:500;color:#741435;width:130px;padding:2px 0;outline:none"
           oninput="goldSpotOz=parseFloat(this.value)||0;calculate()" placeholder="0.00">
       </div>
       <div class="gold-price-sub" id="goldSub">loading...</div>
