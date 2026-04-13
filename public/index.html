@@ -27,8 +27,8 @@
     --surface2: #eeede9;
     --border: #e8d9b8;
     --border-light: #dccfa8;
-    --gold: #7f0034;
-    --gold-dim: #9e1040;
+    --gold: #741435;
+    --gold-dim: #741435;
     --gold-faint: #e8d9b8;
     --gold-faint-text: #5a3a10;
     --text: #2a1a1e;
@@ -39,7 +39,7 @@
     --teal: #8dadaf;
     --teal-dim: #6b9496;
     --teal-faint: #e8f2f2;
-    --red: #8b3a3a;
+    --red: #741435;
     --font-mono: 'Inconsolata', monospace;
   }
 
@@ -207,7 +207,7 @@
     margin-right: -20px;
     margin-top: 24px;
     padding: 18px 20px 20px;
-    background: #ffffff;
+    background: #fafaf7;
     box-sizing: border-box;
     overflow: visible;
   }
@@ -233,7 +233,7 @@
     font-size: 12px;
     font-weight: 400;
     color: #f5f0e7;
-    background: #630f2f;
+    background: #741435;
     border: none;
     border-radius: 0;
     padding: 3px 8px;
@@ -505,7 +505,7 @@
     font-size: 12px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: #7f0034;
+    color: #741435;
   }
 
   .gold-price-value {
@@ -524,7 +524,7 @@
   .gold-refresh {
     background: none;
     border: 1px solid #ccc07a;
-    color: #7f0034;
+    color: #741435;
     padding: 4px 8px;
     font-family: var(--font-mono);
     font-size: 12px;
@@ -635,9 +635,9 @@
 
   .add-stone-btn {
     width: 100%;
-    background: none;
-    border: 1px dashed var(--border-light);
-    color: var(--text-dim);
+    background: #741435;
+    border: none;
+    color: #ffffff;
     font-family: var(--font-mono);
     font-size: 13px;
     letter-spacing: 0.12em;
@@ -1064,9 +1064,9 @@
     <div>
       <div class="gold-price-label">💰 Gold spot / troy oz</div>
       <div style="display:flex;align-items:baseline;gap:2px">
-        <span style="font-size:20px;font-weight:500;color:#7f0034">$</span>
+        <span style="font-size:20px;font-weight:500;color:#741435">$</span>
         <input id="goldDisplay" type="number" step="0.01" min="0"
-          style="background:none;border:none;border-bottom:1px solid #ccc07a;font-family:var(--font-mono);font-size:20px;font-weight:500;color:#7f0034;width:130px;padding:2px 0;outline:none"
+          style="background:none;border:none;border-bottom:1px solid #ccc07a;font-family:var(--font-mono);font-size:20px;font-weight:500;color:#741435;width:130px;padding:2px 0;outline:none"
           oninput="goldSpotOz=parseFloat(this.value)||0;calculate()" placeholder="0.00">
       </div>
       <div class="gold-price-sub" id="goldSub">loading...</div>
@@ -1181,7 +1181,7 @@
               <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#7a5a20">Metal estimate</div>
               <div style="font-size:11px;color:#9a7a40;margin-top:2px">spot × purity × grams × 1.25 casting × 1.05 sprue × 1.35</div>
             </div>
-            <div style="font-size:18px;color:#7f0034;font-weight:400" id="metalEstDisplay">—</div>
+            <div style="font-size:18px;color:#741435;font-weight:400" id="metalEstDisplay">—</div>
           </div>
         </div>
       </div>
@@ -1269,7 +1269,7 @@
     </div>
 
     <!-- SETTING & LABOR -->
-    <div class="section">
+    <div class="section" style="background:#fafaf7">
       <div class="section-label">🔧 Setting &amp; Labor</div>
       <div class="field-row">
         <div class="field">
@@ -1528,11 +1528,11 @@
     </div>
 
 
-    <div class="section" style="border-top:none">
+    <div class="section" style="border-top:none;background:#fafaf7">
       <button class="add-stone-btn" onclick="openAddStoneForm()" id="addStoneBtnLabel" style="margin-bottom:12px">+ Add stone</button>
 
       <!-- ADD STONE FORM -->
-      <div id="addStoneForm" style="display:none;background:#f7f2ea;border:1px solid #e0d8cc;border-radius:0;padding:14px;margin-bottom:12px">
+      <div id="addStoneForm" style="display:none;background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:14px;margin-bottom:12px">
         <div style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Stone details</div>
 
         <!-- QUICK FILL ROW -->
@@ -3653,7 +3653,7 @@ function renderExtraPieces() {
     html += '<div id="extra-result-' + p.id + '" style="display:none;margin-top:10px;background:#e8d9b8;border:1px solid #ccc07a;border-radius:0;padding:10px">'
       + '<div style="display:flex;justify-content:space-between;font-size:13px">'
       + '<span style="color:#7a5a20">Piece ' + (idx+2) + ' retail</span>'
-      + '<span style="color:#7f0034;font-size:16px" id="extra-total-' + p.id + '">—</span>'
+      + '<span style="color:#741435;font-size:16px" id="extra-total-' + p.id + '">—</span>'
       + '</div>'
       + '<div style="font-size:11px;color:#9a7a40;margin-top:4px" id="extra-breakdown-' + p.id + '"></div>'
       + '</div>';
@@ -4751,7 +4751,7 @@ function openAddPieceToSet(setId, e) {
     + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="' + fid + '-labor" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
     + '<div class="field"><div class="field-label">Design fee ($)</div><input type="number" id="' + fid + '-design" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field"><div class="field-label">Notes</div><input type="text" id="' + fid + '-notes" placeholder="Stone details, design notes..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div id="' + fid + '-result" style="display:none;background:#e8d9b8;border:1px solid #ccc07a;border-radius:0;padding:8px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between"><span style="color:#7a5a20">Retail</span><span id="' + fid + '-total" style="color:#7f0034;font-size:16px">—</span></div>'
+    + '<div id="' + fid + '-result" style="display:none;background:#e8d9b8;border:1px solid #ccc07a;border-radius:0;padding:8px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between"><span style="color:#7a5a20">Retail</span><span id="' + fid + '-total" style="color:#741435;font-size:16px">—</span></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px">'
     + '<button onclick="saveNewPieceToSet(' + setId + ')" class="btn-primary" style="flex:1;padding:9px;font-size:11px">Add to set</button>'
     + '<button onclick="document.getElementById(&quot;add-piece-form-' + setId + '&quot;).style.display=&quot;none&quot;" class="btn-secondary" style="padding:9px;font-size:11px">Cancel</button>'
@@ -6591,7 +6591,7 @@ function renderStonesTable() {
     const statusColor = statusColors[s.status] || 'var(--text-dim)';
     const linkedProject = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
     html += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArchived ? '0.45' : '1') + '">'
-      + '<td style="padding:8px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#560c25">🌹</span>' : '') + (s.gia ? '<div style="font-size:10px;color:var(--text-dim)">GIA ' + s.gia + '</div>' : '') + '</td>'
+      + '<td style="padding:8px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#741435">🌹</span>' : '') + (s.gia ? '<div style="font-size:10px;color:var(--text-dim)">GIA ' + s.gia + '</div>' : '') + '</td>'
       + '<td style="padding:8px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
       + '<td style="padding:8px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
       + '<td style="padding:8px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
@@ -6603,7 +6603,7 @@ function renderStonesTable() {
   });
 
   html += '</tbody></table></div>';
-  html += '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><span style="color:#560c25">🌹</span> antique &nbsp;·&nbsp; ' + sorted.length + ' stones total</div>';
+  html += '<div style="margin-top:8px;font-size:11px;color:var(--text-dim)"><span style="color:#741435">🌹</span> antique &nbsp;·&nbsp; ' + sorted.length + ' stones total</div>';
   el.innerHTML = html;
 }
 
@@ -7139,7 +7139,7 @@ function renderStoneInventory() {
       const stColor = s.status === 'in-use' ? 'var(--teal-dim)' : isArch ? 'var(--text-dim)' : s.status === 'available' ? 'var(--green-bright)' : 'var(--text-dim)';
       const linkedProj = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
       thtml += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArch ? '0.45' : '1') + '">'
-        + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#560c25">🌹</span>' : '') + '</td>'
+        + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#741435">🌹</span>' : '') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
@@ -7210,7 +7210,7 @@ function renderStoneInventory() {
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:4px">
         <span style="font-size:12px;background:#e8d9b8;color:#5a4a2a;padding:2px 6px;border-radius:0;letter-spacing:0.08em;text-transform:uppercase">${catLabels[s.category] || s.category}</span>
-        ${s.antique ? '<span style="font-size:12px;background:#630f2f;color:#f5f0e7;padding:3px 8px;border-radius:0;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : ''}
+        ${s.antique ? '<span style="font-size:12px;background:#741435;color:#f5f0e7;padding:3px 8px;border-radius:0;letter-spacing:0.08em;text-transform:uppercase">🌹 Antique</span>' : ''}
         ${hasPending ? '<span style="font-size:12px;background:#ccc07a;color:#3a2800;padding:2px 7px;border-radius:0;letter-spacing:0.08em;text-transform:uppercase">⏳ Pending · ' + pendingInquiries.length + '</span>' : ''}
         ${s.usedInQuoteId && !s.usedInProjectId ? '<span style="font-size:11px;background:#f0e8d0;color:#7a5a20;padding:2px 7px;border-radius:0;letter-spacing:0.06em">In quote · ' + (s.usedInQuoteClient || 'unknown') + '</span>' : ''}
         ${s.usedInProjectId ? (function(){ const proj = getSavedQuotes().find(q => q.id === s.usedInProjectId); return proj ? '<span style="font-size:11px;background:var(--surface2);color:var(--teal-dim);border:1px solid var(--teal-dim);padding:2px 7px;border-radius:0;letter-spacing:0.06em">project: ' + proj.client + '</span>' : ''; })() : ''}
@@ -7759,7 +7759,7 @@ function renderDataScreen() {
     const antiqueCount = stones.filter(x => x.antique).length;
     html += '<div style="padding:10px 0;border-bottom:1px solid var(--border)">'
       + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'
-      + '<div style="font-size:14px;color:var(--text)">' + cut + (antiqueCount === stones.length ? ' <span style="font-size:10px;color:#560c25;letter-spacing:0.08em;text-transform:uppercase">antique</span>' : antiqueCount > 0 ? ' <span style="font-size:10px;color:var(--text-dim)">(' + antiqueCount + ' antique)</span>' : '') + '</div>'
+      + '<div style="font-size:14px;color:var(--text)">' + cut + (antiqueCount === stones.length ? ' <span style="font-size:10px;color:#741435;letter-spacing:0.08em;text-transform:uppercase">antique</span>' : antiqueCount > 0 ? ' <span style="font-size:10px;color:var(--text-dim)">(' + antiqueCount + ' antique)</span>' : '') + '</div>'
       + '<div style="font-size:14px;color:var(--gold);font-weight:500">$' + Math.round(avg).toLocaleString() + '/ct avg</div>'
       + '</div>'
       + '<div style="display:flex;gap:12px">'
@@ -7807,7 +7807,7 @@ function renderDataScreen() {
     const cpctColor = Math.abs(pctDiff) < 10 ? 'var(--text)' : pctDiff < -10 ? 'var(--green-bright)' : '#ccc07a';
     const statusLabel = archivedStatuses.includes(s.status) ? 'archived' : s.status === 'unavailable' ? 'reserved' : s.status === 'in-use' ? 'in use' : s.status;
     html += '<tr style="border-bottom:1px solid var(--border)">'
-      + '<td style="padding:7px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#560c25">✦</span>' : '') + '</td>'
+      + '<td style="padding:7px 4px;color:var(--text)">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#741435">✦</span>' : '') + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + parseFloat(s.carat).toFixed(2) + ' ct</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
       + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.clarity || '—') + '</td>'
