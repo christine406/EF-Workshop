@@ -188,6 +188,88 @@
   }
   .cc-btn.accent-gold:active { background: #eef4f4; }
 
+  /* DEV NOTES */
+  .dev-notes {
+    width: 100%;
+    margin-top: 24px;
+    padding: 0 4px;
+  }
+
+  .dev-notes-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .dev-notes-list {
+    list-style: none;
+    margin-bottom: 10px;
+  }
+
+  .dev-notes-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-mid);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.4;
+  }
+
+  .dev-notes-list li:last-child { border-bottom: none; }
+
+  .dev-note-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .dev-note-del:active { color: var(--red); }
+
+  .dev-notes-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .dev-notes-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    padding: 8px 10px;
+    outline: none;
+  }
+  .dev-notes-input:focus { border-color: var(--teal-dim); }
+
+  .dev-notes-add {
+    background: none;
+    border: 1px solid var(--teal-dim);
+    color: var(--teal-dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 0;
+    white-space: nowrap;
+  }
+  .dev-notes-add:active { background: var(--teal-faint); }
+
   /* BACK BUTTON (in section header) */
   .header-back {
     display: none;
@@ -791,6 +873,16 @@
       <div class="cc-btn-icon">📊</div>
       <div class="cc-btn-label">Data</div>
     </button>
+  </div>
+
+  <!-- DEV NOTES -->
+  <div class="dev-notes">
+    <span class="dev-notes-label">app update notes</span>
+    <ul class="dev-notes-list" id="devNotesList"></ul>
+    <div class="dev-notes-input-row">
+      <input class="dev-notes-input" id="devNoteInput" type="text" placeholder="note something to fix or add…" onkeydown="if(event.key==='Enter')addDevNote()">
+      <button class="dev-notes-add" onclick="addDevNote()">+ add</button>
+    </div>
   </div>
 </div>
 
@@ -5970,6 +6062,7 @@ function saveDirectAsPiece() {
   // Scroll to quote tab to show the staging area
   // Start on command center — no showScreen call on init
   document.getElementById('goldBar').style.display = 'none';
+  renderDevNotes();
   renderPieceStaging();
 
   // Clear the direct form
@@ -7266,6 +7359,42 @@ function goHome() {
   const goldDot2 = document.getElementById('goldDot');
   if (goldDot2) goldDot2.style.display = '';
   window.scrollTo(0, 0);
+}
+
+// =================== DEV NOTES ===================
+function loadDevNotes() {
+  try { return JSON.parse(localStorage.getItem('ef_dev_notes') || '[]'); } catch(e) { return []; }
+}
+function saveDevNotes(notes) {
+  localStorage.setItem('ef_dev_notes', JSON.stringify(notes));
+}
+function renderDevNotes() {
+  const list = document.getElementById('devNotesList');
+  if (!list) return;
+  const notes = loadDevNotes();
+  if (notes.length === 0) {
+    list.innerHTML = '<li style="color:var(--text-dim);font-size:11px;border:none">nothing yet</li>';
+    return;
+  }
+  list.innerHTML = notes.map((n, i) =>
+    `<li><button class="dev-note-del" onclick="deleteDevNote(${i})" title="done">×</button><span>${n.text}</span></li>`
+  ).join('');
+}
+function addDevNote() {
+  const input = document.getElementById('devNoteInput');
+  const text = (input.value || '').trim();
+  if (!text) return;
+  const notes = loadDevNotes();
+  notes.unshift({ text, date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) });
+  saveDevNotes(notes);
+  input.value = '';
+  renderDevNotes();
+}
+function deleteDevNote(idx) {
+  const notes = loadDevNotes();
+  notes.splice(idx, 1);
+  saveDevNotes(notes);
+  renderDevNotes();
 }
 
 // =================== TOAST ===================
