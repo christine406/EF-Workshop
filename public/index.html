@@ -8791,13 +8791,33 @@ function addProdStoneRow(prefill){
   dealerNewIn.addEventListener('blur',function(){commitNewVendor(dealerSel,dealerNewIn);});
   dealerNewRow.appendChild(dealerNewIn);
   var notesIn=document.createElement('input');notesIn.type='text';notesIn.id='ps-notes-'+id;notesIn.value=prefill&&prefill.notes||'';notesIn.placeholder='Notes e.g. must be eye clean';notesIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';
+  // Stone type toggle: main vs melee
+  var isMelee = !!(prefill&&prefill.isMelee);
+  var tb2='font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:2px;cursor:pointer;border:1px solid ';
+  var ta2=tb2+'var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  var ti2=tb2+'var(--border);background:none;color:var(--text-dim)';
+  var typeToggleRow=document.createElement('div');typeToggleRow.style.cssText='display:flex;gap:6px;margin-top:6px;margin-bottom:4px';
+  var mainBtn=document.createElement('button');mainBtn.type='button';mainBtn.id='ps-type-main-'+id;mainBtn.textContent='Main stone';mainBtn.style.cssText=isMelee?ti2:ta2;
+  var meleeBtn=document.createElement('button');meleeBtn.type='button';meleeBtn.id='ps-type-melee-'+id;meleeBtn.textContent='Melee / 1.75x';meleeBtn.style.cssText=isMelee?ta2:ti2;
+  var isMeleeInput=document.createElement('input');isMeleeInput.type='hidden';isMeleeInput.id='ps-ismelee-'+id;isMeleeInput.value=isMelee?'1':'0';
+  mainBtn.addEventListener('click',function(){
+    isMeleeInput.value='0';
+    mainBtn.style.cssText=ta2;meleeBtn.style.cssText=ti2;
+    recalcProdFromComponents();
+  });
+  meleeBtn.addEventListener('click',function(){
+    isMeleeInput.value='1';
+    meleeBtn.style.cssText=ta2;mainBtn.style.cssText=ti2;
+    recalcProdFromComponents();
+  });
+  typeToggleRow.appendChild(mainBtn);typeToggleRow.appendChild(meleeBtn);typeToggleRow.appendChild(isMeleeInput);
   // Cost input
-  var sCostRow=document.createElement('div');sCostRow.style.cssText='margin-top:6px;display:flex;align-items:center;gap:8px';
+  var sCostRow=document.createElement('div');sCostRow.style.cssText='display:flex;align-items:center;gap:8px;margin-top:4px';
   var sCostLabel=document.createElement('div');sCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';sCostLabel.textContent='Last known cost ($)';
   var sCostIn=document.createElement('input');sCostIn.type='number';sCostIn.id='ps-cost-'+id;sCostIn.value=prefill&&prefill.cost||'';sCostIn.placeholder='0';sCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:3px;outline:none';
   sCostIn.addEventListener('input',recalcProdFromComponents);
   sCostRow.appendChild(sCostLabel);sCostRow.appendChild(sCostIn);
-  wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);wrapper.appendChild(sCostRow);container.appendChild(wrapper);
+  wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);wrapper.appendChild(typeToggleRow);wrapper.appendChild(sCostRow);container.appendChild(wrapper);
 }
 
 function addProdFindingRow(prefill){
@@ -8942,7 +8962,7 @@ function handleProdPieceSel(){
 }
 function saveProdSpec(){
   var name=document.getElementById('prod-name').value.trim();if(!name){showToast('Add a piece name');return;}
-  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';var sCostEl=document.getElementById('ps-cost-'+i);var stoneCostVal=parseFloat(sCostEl&&sCostEl.value)||0;if(shape||size||dealer)stones.push({shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes,cost:stoneCostVal});});
+  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';var sCostEl=document.getElementById('ps-cost-'+i);var stoneCostVal=parseFloat(sCostEl&&sCostEl.value)||0;var isMeleeEl=document.getElementById('ps-ismelee-'+i);var isMeleeVal=!!(isMeleeEl&&isMeleeEl.value==='1');if(shape||size||dealer)stones.push({shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes,cost:stoneCostVal,isMelee:isMeleeVal});});
   var findings=[];document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-finding-wrap-','');
     var chainIdxEl=document.getElementById('pf-chain-idx-'+i);
     var chainIdx=chainIdxEl&&chainIdxEl.value!==''?parseInt(chainIdxEl.value):null;
@@ -9300,10 +9320,14 @@ function recalcProdFromComponents() {
     moldCost += parseFloat((el&&el.value)||0) || 0;
   });
   var stoneCostSum = 0;
+  var meleeCostSum = 0;
   document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap) {
     var i = wrap.id.replace('prod-stone-wrap-','');
     var el = document.getElementById('ps-cost-'+i);
-    stoneCostSum += parseFloat((el&&el.value)||0) || 0;
+    var meleeFlagEl = document.getElementById('ps-ismelee-'+i);
+    var isMeleeFlag = meleeFlagEl && meleeFlagEl.value === '1';
+    var cost = parseFloat((el&&el.value)||0) || 0;
+    if (isMeleeFlag) { meleeCostSum += cost; } else { stoneCostSum += cost; }
   });
   var findingsCostSum = 0;
   document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap) {
@@ -9321,14 +9345,15 @@ function recalcProdFromComponents() {
   if (findEl) findEl.value = findingsCostSum || '';
   // melee stays 0 (no component rows for melee yet)
   var meleeEl = document.getElementById('prod-melee-cost');
-  if (meleeEl) meleeEl.value = '';
+  if (meleeEl) meleeEl.value = meleeCostSum || '';
 
   // Build cost summary display
   var summary = document.getElementById('prod-cost-summary');
   if (summary) {
     var lines = [];
     if (moldCost) lines.push('<span style="color:var(--text-mid)">Molds / CAD</span> <span style="color:var(--gold)">' + fmt(moldCost) + '</span>');
-    if (stoneCostSum) lines.push('<span style="color:var(--text-mid)">Stones</span> <span style="color:var(--gold)">' + fmt(stoneCostSum) + '</span>');
+    if (stoneCostSum) lines.push('<span style="color:var(--text-mid)">Main stones</span> <span style="color:var(--gold)">' + fmt(stoneCostSum) + '</span>');
+    if (meleeCostSum) lines.push('<span style="color:var(--text-mid)">Melee / small stones</span> <span style="color:var(--gold)">' + fmt(meleeCostSum) + '</span>');
     if (findingsCostSum) lines.push('<span style="color:var(--text-mid)">Findings / chain</span> <span style="color:var(--gold)">' + fmt(findingsCostSum) + '</span>');
     var laborVal = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
     var designVal = parseFloat(document.getElementById('prod-design-fee').value) || 0;
@@ -9347,14 +9372,15 @@ function recalcProdFromComponents() {
   var laborCost2 = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
   var designFee2 = parseFloat(document.getElementById('prod-design-fee').value) || 0;
   var stoneRetail2 = stoneCostSum * stoneMarkupFn(stoneCostSum);
+  var meleeRetail2 = meleeCostSum * 1.75;
   var metalRetail2 = moldCost * 1.35;
   var findingsRetail2 = findingsCostSum * 1.35;
   var laborRetail2 = laborCost2 * 1.4;
-  var overhead2 = (metalRetail2 + findingsRetail2 + laborRetail2 + designFee2) * 1.13;
+  var overhead2 = (metalRetail2 + findingsRetail2 + laborRetail2 + meleeRetail2 + designFee2) * 1.13;
   var suggested2 = Math.round((stoneRetail2 + overhead2) / 50) * 50;
   var overridePrice = parseFloat(document.getElementById('prod-retail-price').value) || 0;
   var finalRetail = overridePrice || suggested2;
-  var totalCostAll = moldCost + stoneCostSum + findingsCostSum + laborCost2 + designFee2;
+  var totalCostAll = moldCost + stoneCostSum + meleeCostSum + findingsCostSum + laborCost2 + designFee2;
   var profit = finalRetail - totalCostAll;
 
   var retailDisp = document.getElementById('prod-retail-display');
