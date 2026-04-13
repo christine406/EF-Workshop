@@ -238,13 +238,7 @@
     letter-spacing: 0.04em;
   }
 
-  .dd-date-input {
-    opacity: 0;
-    position: absolute;
-    pointer-events: none;
-    width: 0;
-    height: 0;
-  }
+
 
   .dd-items { list-style: none; margin-bottom: 10px; }
 
@@ -1031,8 +1025,10 @@
   <div class="dd-checklist">
     <div class="dd-checklist-header">
       <span class="dd-checklist-label">⛓️ diamond district tasks</span>
-      <span class="dd-date-pill" id="ddDatePill" onclick="document.getElementById('ddDatePicker').showPicker()">pick a date</span>
-      <input type="date" id="ddDatePicker" class="dd-date-input" onchange="ddSetDate(this.value)">
+      <div style="position:relative;display:inline-block">
+        <span class="dd-date-pill" id="ddDatePill">pick a date</span>
+        <input type="date" id="ddDatePicker" onchange="ddSetDate(this.value)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;background:none">
+      </div>
       <button onclick="clearDdDay()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0">Clear day</button>
     </div>
     <ul class="dd-items" id="ddList"></ul>
