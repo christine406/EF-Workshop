@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #fafaf7;
+    --bg: #f5f0e7;
     --surface: #f5f5f2;
     --surface2: #eeede9;
     --border: #e8d9b8;
@@ -44,6 +44,10 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  button { border-radius: 0 !important; }
+  select { border-radius: 0 !important; }
+  input { border-radius: 0 !important; }
+  textarea { border-radius: 0 !important; }
 
   body {
     background: var(--bg);
@@ -109,7 +113,7 @@
     padding: 12px 20px 60px;
     max-width: 500px;
     margin: 0 auto;
-    background: #fafaf7;
+    background: #f5f0e7;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -224,10 +228,10 @@
     font-family: var(--font-mono);
     font-size: 15px;
     font-weight: 500;
-    color: #4a7068;
-    background: var(--teal-faint);
-    border: 1.5px solid var(--teal-dim);
-    border-radius: 3px;
+    color: #f5f0e7;
+    background: #560c25;
+    border: none;
+    border-radius: 0;
     padding: 5px 12px;
     cursor: pointer;
     white-space: nowrap;
@@ -339,7 +343,7 @@
     margin-right: -20px;
     margin-top: 0;
     padding: 18px 20px 24px;
-    background: #fafaf7;
+    background: #f5f0e7;
     box-sizing: border-box;
   }
 
