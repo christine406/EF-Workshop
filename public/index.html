@@ -619,6 +619,19 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* CARD LOGO WATERMARK */
+  .card-logo {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    height: 18px;
+    width: auto;
+    opacity: 0.13;
+    pointer-events: none;
+    display: block;
+  }
+  .quote-item { position: relative; }
+
   /* QUOTES LIST */
   .quote-item {
     background: var(--surface);
@@ -2670,8 +2683,9 @@ function renderStones() {
     const dealerOptions = ['American Gem Corp','Virat','Galapo','Julius Klein','Other'];
 
     card.innerHTML = `
-      <div class="stone-card-header">
+      <div class="stone-card-header" style="position:relative">
         <span class="stone-type-tag">Stone ${idx + 1}</span>
+        <img src="${_CARD_LOGO_SRC}" class="card-logo" style="position:absolute;top:0;right:0;height:16px;opacity:0.13">
         <div style="display:flex;gap:6px;align-items:center">
           <button onclick="toggleStoneDetails(${s.id})" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">${s.detailsOpen ? '▴ less' : '+ details'}</button>
           <button class="remove-btn" onclick="removeStone(${s.id})">×</button>
@@ -5356,6 +5370,7 @@ function renderSaved() {
         div.className = 'quote-item';
         div.dataset.id = q.id;
         div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
+        addCardLogo(div);
         body.appendChild(div);
       });
 
@@ -5373,6 +5388,7 @@ function renderSaved() {
       div.className = 'quote-item';
       div.dataset.id = q.id;
       div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
+      addCardLogo(div);
       list.appendChild(div);
     });
   }
@@ -7054,6 +7070,7 @@ function renderStoneInventory() {
           + (s.cost ? '<div style="font-size:13px;color:var(--text-dim)">cost $' + Number(s.cost).toLocaleString() + '</div>' : '')
           + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:2px">' + soldLabel + '</div>'
           + '</div></div>';
+        addCardLogo(card);
         list.appendChild(card);
       });
     }
@@ -7259,6 +7276,17 @@ function goHome() {
   const appHeader2 = document.getElementById('appHeader');
   if (appHeader2) appHeader2.classList.remove('in-section');
   window.scrollTo(0, 0);
+}
+
+// =================== CARD LOGO ===================
+const _CARD_LOGO_SRC = (document.querySelector('.cc-logo') || document.querySelector('.header-title img') || {}).src || '';
+function addCardLogo(el) {
+  if (!_CARD_LOGO_SRC) return;
+  const img = document.createElement('img');
+  img.src = _CARD_LOGO_SRC;
+  img.className = 'card-logo';
+  el.style.position = 'relative';
+  el.appendChild(img);
 }
 
 // =================== TOAST ===================
@@ -8288,7 +8316,7 @@ function renderInvoices(){
         var paidBtn=document.createElement('button');paidBtn.textContent=isPaid?'Mark outstanding':'Mark paid';paidBtn.style.cssText='background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){paidBtn.addEventListener('click',function(){toggleInvoiceStatus(invId);});})(inv.id);
         var editBtn2=document.createElement('button');editBtn2.textContent='Edit';editBtn2.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){editBtn2.addEventListener('click',function(){openInvoiceForm(invId);});})(inv.id);
         var delBtn2=document.createElement('button');delBtn2.textContent='Delete';delBtn2.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){delBtn2.addEventListener('click',function(){deleteInvoice(invId);});})(inv.id);
-        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);body.appendChild(actions);list.appendChild(card);
+        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);body.appendChild(actions);addCardLogo(card);list.appendChild(card);
       });
     });
   });
@@ -8690,6 +8718,7 @@ function renderProduction(){
       body.appendChild(histSection);
     }
 
+    addCardLogo(card);
     (container||list).appendChild(card);
   } // end renderSpec
 
