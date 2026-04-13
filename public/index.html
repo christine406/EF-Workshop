@@ -1011,7 +1011,7 @@
       <div class="cc-btn-label">Production Pieces</div>
     </button>
     <button class="cc-btn" onclick="showScreen('field')">
-      <div class="cc-btn-icon">✍🏻</div>
+      <div class="cc-btn-icon">✍️</div>
       <div class="cc-btn-label">Field Log</div>
     </button>
     <button class="cc-btn" onclick="showScreen('stones')">
@@ -1039,9 +1039,8 @@
   <!-- DD CHECKLIST -->
   <div class="dd-checklist">
     <div class="dd-checklist-header">
-      <span class="dd-checklist-label">⛓️ diamond district tasks</span>
+      <span class="dd-checklist-label">🗓️ diamond district tasks</span>
       <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
-        <span style="font-size:13px">🗓️</span>
         <div style="position:relative;display:inline-block">
           <span class="dd-date-pill" id="ddDatePill">pick a date</span>
           <input type="date" id="ddDatePicker" onchange="ddSetDate(this.value)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;background:none">
@@ -1247,7 +1246,7 @@
       <div class="section-label">💎 Stones</div>
       <div id="stoneList"></div>
       <button class="add-stone-btn" onclick="addStone('main')">Add stone / enter cost manually</button>
-      <button class="add-stone-btn" onclick="toggleInventoryPicker()" id="invPickerBtn" style="border-color:var(--teal-dim);color:var(--teal-dim)">🗂️ Pick from inventory</button>
+      <button class="add-stone-btn" onclick="toggleInventoryPicker()" id="invPickerBtn" style="border-color:var(--teal-dim);color:#ffffff">🗂️ Pick from inventory</button>
 
       <!-- INVENTORY PICKER -->
       <div id="inventoryPicker" style="display:none;border:1px solid var(--border);border-radius:0;margin-top:6px;overflow:hidden">
@@ -1863,7 +1862,7 @@
 <!-- =================== FIELD LOG SCREEN =================== -->
   <div class="screen" id="screen-field">
     <div class="section">
-      <div class="section-label">📍 Field log</div>
+      <div class="section-label">✍️ Field log</div>
 
       <!-- QUICK ENTRY FORM -->
       <div id="fieldLogForm" style="background:#ffffff;border-radius:0;padding:14px 16px;margin-bottom:16px;margin-left:-16px;margin-right:-16px;">
