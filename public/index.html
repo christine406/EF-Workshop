@@ -688,8 +688,8 @@
   .toggle-btn {
     flex: 1;
     padding: 8px;
-    background: none;
-    border: none;
+    background: #fafaf7;
+    border: 1px solid var(--border);
     color: var(--text-dim);
     font-family: var(--font-mono);
     font-size: 13px;
@@ -1039,7 +1039,7 @@
           <span class="dd-date-pill" id="ddDatePill">pick a date</span>
           <input type="date" id="ddDatePicker" onchange="ddSetDate(this.value)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;background:none">
         </div>
-        <button onclick="clearDdDay()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;white-space:nowrap">Clear day</button>
+        <button onclick="clearDdDay()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;white-space:nowrap">Clear day</button>
       </div>
     </div>
     <ul class="dd-items" id="ddList"></ul>
@@ -1213,12 +1213,12 @@
         <div class="field">
           <div class="field-label" style="display:flex;justify-content:space-between;align-items:center">
             <span>Chain style</span>
-            <button id="quoteLivePricingToggle" onclick="toggleQuoteLivePricing()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">Stored price</button>
+            <button id="quoteLivePricingToggle" onclick="toggleQuoteLivePricing()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">Stored price</button>
           </div>
           <input type="hidden" id="chainSelect" value="">
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0 8px">
             <div id="chainSelectedLabel" style="font-size:14px;color:var(--text-mid);font-style:italic">None selected</div>
-            <button id="chainTree-quote-toggle" onclick="document.getElementById('chainTree-quote').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Browse</button>
+            <button id="chainTree-quote-toggle" onclick="document.getElementById('chainTree-quote').style.display='block';this.style.display='none'" style="background:#fafaf7;border:1px solid var(--border-light);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Browse</button>
           </div>
           <div id="chainTree-quote" style="border:1px solid var(--border);border-radius:0;overflow:hidden;display:none"></div>
         </div>
@@ -1677,8 +1677,8 @@
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
         <span>⛓️ Findings — Chains (Downeast)</span>
         <div style="display:flex;gap:8px;align-items:center">
-          <button id="livePricingToggle" onclick="toggleLivePricing()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:0;cursor:pointer">Live pricing: off</button>
-          <button onclick="showAddChainModal()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:0;cursor:pointer">+ Add chain</button>
+          <button id="livePricingToggle" onclick="toggleLivePricing()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:0;cursor:pointer">Live pricing: off</button>
+          <button onclick="showAddChainModal()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;border-radius:0;cursor:pointer">+ Add chain</button>
         </div>
       </div>
       <div style="margin-bottom:10px">
@@ -1689,7 +1689,7 @@
       <div id="chainTree"></div>
       <div id="chainRestoreBar" style="display:none;margin-top:8px;padding:8px 12px;background:#fafaf7;border-radius:0;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:12px;color:var(--text-dim)" id="chainRestoreMsg"></span>
-        <button onclick="restoreAllChains()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Restore all</button>
+        <button onclick="restoreAllChains()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Restore all</button>
       </div>
     </div>
   </div>
@@ -1734,13 +1734,13 @@
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <div class="field-label" style="margin-bottom:0">Line items</div>
-            <button onclick="addInvoiceLineItem()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add line</button>
+            <button onclick="addInvoiceLineItem()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add line</button>
           </div>
           <div id="inv-line-items"></div>
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="saveInvoice()" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:0;cursor:pointer">Save invoice</button>
-          <button onclick="closeInvoiceForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:12px 16px;border-radius:0;cursor:pointer">Cancel</button>
+          <button onclick="closeInvoiceForm()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:12px 16px;border-radius:0;cursor:pointer">Cancel</button>
         </div>
       </div>
       <div id="invoiceList"></div>
@@ -1776,21 +1776,21 @@
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <div class="field-label" style="margin-bottom:0">Molds / CAD files</div>
-            <button onclick="addProdMoldRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add mold</button>
+            <button onclick="addProdMoldRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add mold</button>
           </div>
           <div id="prod-molds"></div>
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <div class="field-label" style="margin-bottom:0">Stones</div>
-            <button onclick="addProdStoneRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add</button>
+            <button onclick="addProdStoneRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add</button>
           </div>
           <div id="prod-stones"></div>
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <div class="field-label" style="margin-bottom:0">Findings &amp; chain</div>
-            <button onclick="addProdFindingRow()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add</button>
+            <button onclick="addProdFindingRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add</button>
           </div>
           <div id="prod-findings"></div>
         </div>
@@ -1836,7 +1836,7 @@
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="saveProdSpec()" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:0;cursor:pointer">Save</button>
-          <button onclick="closeProdForm()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:12px 16px;border-radius:0;cursor:pointer">Cancel</button>
+          <button onclick="closeProdForm()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:12px 16px;border-radius:0;cursor:pointer">Cancel</button>
         </div>
       </div>
       <div id="productionList"></div>
@@ -1847,7 +1847,7 @@
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
         📊 Stone data
-        <button onclick="renderDataScreen()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Refresh</button>
+        <button onclick="renderDataScreen()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Refresh</button>
       </div>
       <div id="data-screen-content" style="margin-top:12px"></div>
     </div>
@@ -2596,7 +2596,7 @@ function showAddChainModal(existingChain, existingIdx) {
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
+  cancelBtn.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
   cancelBtn.onclick = () => overlay.remove();
 
   btnRow.appendChild(saveBtn);
@@ -2795,7 +2795,7 @@ function renderChainList() {
 
         const linkBtn = document.createElement('button');
         linkBtn.textContent = linkUrl ? 'Edit link' : '+ Add link';
-        linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
+        linkBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
         linkBtn.addEventListener('click', (function(n, k, u) {
           return function(e) { e.stopPropagation(); showChainLinkModal(n, k, u); };
         })(c.name, c.karat, linkUrl));
@@ -2803,7 +2803,7 @@ function renderChainList() {
 
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Remove';
-        delBtn.style.cssText = 'background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
+        delBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
         if (c.custom && customIdx >= 0) {
           delBtn.addEventListener('click', (function(idx) {
             return function(e) { e.stopPropagation(); deleteCustomChain(idx); };
@@ -2860,7 +2860,7 @@ function updateChainLinkInPlace(chainName, url, chainKarat) {
       }
       const linkBtn = document.createElement('button');
       linkBtn.textContent = url ? 'Edit link' : '+ Add link';
-      linkBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
+      linkBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
       linkBtn.addEventListener('click', function(e) { e.stopPropagation(); showChainLinkModal(chainName, chainKarat, url); });
       row2.appendChild(linkBtn);
       return;
@@ -2914,7 +2914,7 @@ function showChainLinkModal(chainName, chainKarat, currentUrl) {
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
+  cancelBtn.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
   cancelBtn.onclick = () => overlay.remove();
 
   btnRow.appendChild(saveBtn);
@@ -2959,7 +2959,7 @@ function renderStones() {
       <div class="stone-card-header">
         <span class="stone-type-tag">Stone ${idx + 1}</span>
         <div style="display:flex;gap:6px;align-items:center">
-          <button onclick="toggleStoneDetails(${s.id})" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">${s.detailsOpen ? '▴ less' : '+ details'}</button>
+          <button onclick="toggleStoneDetails(${s.id})" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">${s.detailsOpen ? '▴ less' : '+ details'}</button>
           <button class="remove-btn" onclick="removeStone(${s.id})">×</button>
         </div>
       </div>
@@ -3932,7 +3932,7 @@ function showCollectionModal() {
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
+  cancelBtn.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
   cancelBtn.addEventListener('click', () => overlay.remove());
 
   btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
@@ -4302,7 +4302,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       </div>
     </div>
     <div style="margin-bottom:10px">
-      <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
+      <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
       <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:12px;margin-top:6px">
         ${_linkedLabel}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -4431,7 +4431,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       </div>
     </div>` : ''}
     <div style="margin-bottom:8px">
-      <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
+      <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
       <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:12px;margin-top:6px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)">Stone record</div>
@@ -5037,7 +5037,7 @@ function buildMultiPieceCard(q) {
     + '<div class="quote-amount" style="' + displayAmountColor + '">$' + displayAmount.toLocaleString() + '</div>'
     + (q.clientPrice > 0 ? '<div style="font-size:11px;color:var(--text-dim)">initial quote: $' + q.total.toLocaleString() + '</div>' : '')
     + '<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px">'
-    + '<button onclick="editSetHeader(' + q.id + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
+    + '<button onclick="editSetHeader(' + q.id + ',event)" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
     + '<div style="font-size:12px;color:var(--text-dim)" class="tap-arrow">▾</div>'
     + '</div></div></div>';
 
@@ -5073,9 +5073,9 @@ function buildMultiPieceCard(q) {
       + '</div>'
       + '<div style="display:flex;align-items:center;gap:8px">'
       + '<div style="font-size:14px;color:' + (p.actualTotal||p.clientPrice ? 'var(--teal-dim)' : 'var(--gold)') + ';white-space:nowrap">$' + (p.actualTotal||p.clientPrice||p.total||0).toLocaleString() + '</div>'
-      + '<button onclick="editPieceAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
+      + '<button onclick="editPieceAsQuote(' + q.id + ',' + i + ',event)" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
       + '<button onclick="editPieceActualsAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Actuals</button>'
-      + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Delete</button>'
+      + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
       + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:#fafaf7;border-radius:0;padding:8px 10px">'
       + (hasActuals ? '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">Actual costs</div>' : '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Estimated costs</div>')
@@ -5258,7 +5258,7 @@ function buildQuoteCard(q) {
     + '<div class="quote-amount" style="' + displayAmountColor + '">' + displayAmountStr + '</div>'
     + discLabel + clientPriceLabel
     + '<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px;align-items:center">'
-    + '<button onclick="editQuoteCard(' + q.id + ',event)" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
+    + '<button onclick="editQuoteCard(' + q.id + ',event)" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
     + '<div style="font-size:12px;color:var(--text-dim);letter-spacing:0.05em" class="tap-arrow">▾</div>'
     + '</div>'
     + '</div>'
@@ -5467,7 +5467,7 @@ function renderPL() {
   const isExpanded = el.dataset.expanded === '1';
 
   if (!isExpanded) {
-    el.innerHTML = `<button onclick="togglePL()" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:0;cursor:pointer;width:100%">P&amp;L Summary ▾</button>`;
+    el.innerHTML = `<button onclick="togglePL()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 12px;border-radius:0;cursor:pointer;width:100%">P&amp;L Summary ▾</button>`;
     return;
   }
 
@@ -5940,7 +5940,7 @@ function updateActuals(id, e, pieceIdx) {
       <input type="hidden" id="af-chain-${id}" value="${q.chainCost ? CHAINS.findIndex(c => c.wholesale === q.chainCost) : ''}">
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
         <div id="af-chain-label-${id}" style="font-size:14px;color:var(--gold);font-style:italic">${q.chainName || 'None selected'}</div>
-        <button id="af-chain-tree-${id}-toggle" onclick="document.getElementById('af-chain-tree-${id}').style.display='block';this.style.display='none'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Browse</button>
+        <button id="af-chain-tree-${id}-toggle" onclick="document.getElementById('af-chain-tree-${id}').style.display='block';this.style.display='none'" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Browse</button>
       </div>
       <div id="af-chain-tree-${id}" style="border:1px solid var(--border);border-radius:0;overflow:hidden;display:none;max-height:200px;overflow-y:auto"></div>
     </div>
@@ -5952,7 +5952,7 @@ function updateActuals(id, e, pieceIdx) {
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="saveActuals(${id})" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer">Save</button>
-      <button onclick="document.getElementById('actuals-overlay-${id}').remove()" style="flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer">Cancel</button>
+      <button onclick="document.getElementById('actuals-overlay-${id}').remove()" style="flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer">Cancel</button>
     </div>`;
 
   overlay.appendChild(modal);
@@ -7625,7 +7625,7 @@ function renderDdChecklist() {
         saveBtn.style.cssText = 'background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
         var cancelBtn = document.createElement('button');
         cancelBtn.textContent = 'cancel';
-        cancelBtn.style.cssText = 'background:none;color:var(--text-dim);border:1px solid var(--border);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
+        cancelBtn.style.cssText = 'background:#fafaf7;color:var(--text-dim);border:1px solid var(--border);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
         spanEl.style.display = 'none';
         editBtn.style.display = 'none';
         liEl.insertBefore(input, liEl.querySelector('.dd-del'));
@@ -8040,7 +8040,7 @@ function reconcileFieldEntry(id) {
   // Push as note button
   const noteBtn = document.createElement('button');
   noteBtn.textContent = 'Push as note';
-  noteBtn.style.cssText = 'width:100%;background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer;margin-bottom:14px';
+  noteBtn.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer;margin-bottom:14px';
   noteBtn.addEventListener('click', () => {
     const projId = parseInt(projSel.value);
     if (!projId) { showToast('Select a project'); return; }
@@ -8166,7 +8166,7 @@ function reconcileFieldEntry(id) {
         pieceModal.appendChild(pb);
       });
       const cancelPiece = document.createElement('button');
-      cancelPiece.textContent = 'Cancel'; cancelPiece.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';
+      cancelPiece.textContent = 'Cancel'; cancelPiece.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';
       cancelPiece.addEventListener('click', () => pieceOverlay.remove());
       pieceModal.appendChild(cancelPiece);
       pieceOverlay.appendChild(pieceModal);
@@ -8178,7 +8178,7 @@ function reconcileFieldEntry(id) {
 
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'flex:1;background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
+  cancelBtn.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer';
   cancelBtn.addEventListener('click', () => overlay.remove());
 
   btnRow.appendChild(pushBtn); btnRow.appendChild(cancelBtn);
@@ -8247,20 +8247,20 @@ function renderFieldLog() {
       btnRow.appendChild(doneBtn);
       const editBtn = document.createElement('button');
       editBtn.textContent = 'Edit';
-      editBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer';
+      editBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer';
       editBtn.addEventListener('click', () => editFieldEntry(e.id));
       btnRow.appendChild(editBtn);
       if (!e.done) {
         const pushBtn = document.createElement('button');
         pushBtn.textContent = 'Push to project';
-        pushBtn.style.cssText = 'background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer';
+        pushBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer';
         pushBtn.addEventListener('click', () => reconcileFieldEntry(e.id));
         btnRow.appendChild(pushBtn);
       }
     }
     const delBtn = document.createElement('button');
     delBtn.textContent = 'Delete';
-    delBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer';
+    delBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer';
     delBtn.addEventListener('click', () => deleteFieldEntry(e.id));
     btnRow.appendChild(delBtn);
     div.appendChild(btnRow);
@@ -8389,7 +8389,7 @@ function editFieldEntry(id) {
   });
   var cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:0;cursor:pointer';
+  cancelBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:0;cursor:pointer';
   cancelBtn.addEventListener('click', function() { wrap.remove(); });
   btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
   wrap.appendChild(textarea); wrap.appendChild(amtRow); wrap.appendChild(btnRow);
@@ -8465,7 +8465,7 @@ function editFieldEntry(id){
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
   var saveBtn=document.createElement('button');saveBtn.textContent='Save';saveBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px;border-radius:0;cursor:pointer';
   saveBtn.addEventListener('click',function(){var l=getFieldLog();var e2=l.find(function(e){return e.id===id;});if(e2){e2.description=ta.value.trim()||e2.description;e2.amount=parseFloat(amtIn.value)||0;}window._fieldLog=l;persistFieldLog();renderFieldLog();});
-  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;padding:8px 12px;border-radius:0;cursor:pointer';
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;padding:8px 12px;border-radius:0;cursor:pointer';
   cancelBtn.addEventListener('click',function(){wrap.remove();});
   btnRow.appendChild(saveBtn);btnRow.appendChild(cancelBtn);wrap.appendChild(ta);wrap.appendChild(amtRow);wrap.appendChild(btnRow);
   var entryDiv=document.getElementById('fl-entry-'+id);if(entryDiv)entryDiv.after(wrap);
@@ -8665,7 +8665,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
           });
           pieceModal.appendChild(pb);
         });
-        var cancelPiece=document.createElement('button');cancelPiece.textContent='Cancel';cancelPiece.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';cancelPiece.addEventListener('click',function(){pieceOverlay.remove();});
+        var cancelPiece=document.createElement('button');cancelPiece.textContent='Cancel';cancelPiece.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';cancelPiece.addEventListener('click',function(){pieceOverlay.remove();});
         pieceModal.appendChild(cancelPiece);pieceOverlay.appendChild(pieceModal);document.body.appendChild(pieceOverlay);
         return; // exit push handler — piece picker takes over
       }
@@ -8689,7 +8689,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
     window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();
     showToast('Connected to '+q.client);
   });
-  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
   btnRow.appendChild(pushBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);
   overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
@@ -8739,14 +8739,14 @@ function renderInvoices(){
           }
           var liR=document.createElement('div');liR.style.cssText='display:flex;align-items:center;gap:8px;flex-shrink:0';
           var liAmt=document.createElement('div');liAmt.style.cssText='font-size:13px;color:var(--text)';liAmt.textContent=fmt(li.amount);liR.appendChild(liAmt);
-          if(!li.pushed){var pushBtn2=document.createElement('button');pushBtn2.textContent='Push';pushBtn2.style.cssText='background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:0;cursor:pointer';(function(invId,liId){pushBtn2.addEventListener('click',function(){pushLineItemToProject(invId,liId);});})(inv.id,li.id);liR.appendChild(pushBtn2);}
+          if(!li.pushed){var pushBtn2=document.createElement('button');pushBtn2.textContent='Push';pushBtn2.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;border-radius:0;cursor:pointer';(function(invId,liId){pushBtn2.addEventListener('click',function(){pushLineItemToProject(invId,liId);});})(inv.id,li.id);liR.appendChild(pushBtn2);}
           liDiv.appendChild(liL);liDiv.appendChild(liR);body.appendChild(liDiv);
         });
         card.appendChild(body);
         var actions=document.createElement('div');actions.style.cssText='display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap';
         var paidBtn=document.createElement('button');paidBtn.textContent=isPaid?'Mark outstanding':'Mark paid';paidBtn.style.cssText='background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:0;cursor:pointer';(function(invId){paidBtn.addEventListener('click',function(){toggleInvoiceStatus(invId);});})(inv.id);
-        var editBtn2=document.createElement('button');editBtn2.textContent='Edit';editBtn2.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:0;cursor:pointer';(function(invId){editBtn2.addEventListener('click',function(){openInvoiceForm(invId);});})(inv.id);
-        var delBtn2=document.createElement('button');delBtn2.textContent='Delete';delBtn2.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:0;cursor:pointer';(function(invId){delBtn2.addEventListener('click',function(){deleteInvoice(invId);});})(inv.id);
+        var editBtn2=document.createElement('button');editBtn2.textContent='Edit';editBtn2.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:0;cursor:pointer';(function(invId){editBtn2.addEventListener('click',function(){openInvoiceForm(invId);});})(inv.id);
+        var delBtn2=document.createElement('button');delBtn2.textContent='Delete';delBtn2.style.cssText='background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:0;cursor:pointer';(function(invId){delBtn2.addEventListener('click',function(){deleteInvoice(invId);});})(inv.id);
         actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);body.appendChild(actions);list.appendChild(card);
       });
     });
@@ -8891,7 +8891,7 @@ function addProdFindingRow(prefill){
   var chainBtn=document.createElement('button');chainBtn.textContent='From inventory';chainBtn.type='button';
   var btnBase='font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
   var activeStyle=btnBase+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
-  var inactiveStyle=btnBase+';background:none;color:var(--text-dim);border:1px solid var(--border)';
+  var inactiveStyle=btnBase+';background:#fafaf7;color:var(--text-dim);border:1px solid var(--border)';
   var useInventory=!!(prefill&&prefill.chainIdx!=null);
   manualBtn.style.cssText=useInventory?inactiveStyle:activeStyle;
   chainBtn.style.cssText=useInventory?activeStyle:inactiveStyle;
@@ -8921,7 +8921,7 @@ function addProdFindingRow(prefill){
   var savedChainName=prefill&&prefill.chainIdx!=null?((typeof CHAINS!=='undefined'&&CHAINS[prefill.chainIdx])?CHAINS[prefill.chainIdx].name+' '+CHAINS[prefill.chainIdx].karat:'Saved chain'):'None selected';
   chainLabel.textContent=savedChainName;
   var chainHiddenInput=document.createElement('input');chainHiddenInput.type='hidden';chainHiddenInput.id='pf-chain-idx-'+id;chainHiddenInput.value=prefill&&prefill.chainIdx!=null?prefill.chainIdx:'';
-  var browseBtn=document.createElement('button');browseBtn.id='pf-chain-tree-'+id+'-toggle';browseBtn.type='button';browseBtn.textContent='Browse chains';browseBtn.style.cssText='background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer;margin-bottom:6px';
+  var browseBtn=document.createElement('button');browseBtn.id='pf-chain-tree-'+id+'-toggle';browseBtn.type='button';browseBtn.textContent='Browse chains';browseBtn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer;margin-bottom:6px';
   browseBtn.addEventListener('click',function(){
     var tree=document.getElementById('pf-chain-tree-'+id);
     if(tree){tree.style.display='block';browseBtn.style.display='none';}
@@ -9072,7 +9072,7 @@ function markProdLastMade(id){
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
   var saveBtn=document.createElement('button');saveBtn.textContent='Save';saveBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer';
   saveBtn.addEventListener('click',function(){var date=dateIn.value.trim()||today;var cost=parseFloat(costIn.value)||0;var vendor=vendorIn.value.trim();if(!spec.lastMadeHistory)spec.lastMadeHistory=[];spec.lastMadeHistory.unshift({date:date,cost:cost,vendor:vendor,goldSpot:window._goldSpot||0});window._production=prod;persistProduction();overlay.remove();renderProduction();showToast('Production run logged');});
-  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
+  var cancelBtn=document.createElement('button');cancelBtn.textContent='Cancel';cancelBtn.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';cancelBtn.addEventListener('click',function(){overlay.remove();});
   btnRow.appendChild(saveBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
 function deleteProdSpec(id){if(!confirm('Delete this production spec?'))return;window._production=getProduction().filter(function(s){return s.id!==id;});persistProduction();renderProduction();}
@@ -9120,9 +9120,9 @@ function renderProduction(){
     // Action buttons in body
     var actionRow=document.createElement('div');actionRow.style.cssText='display:flex;gap:6px;padding-top:12px;margin-bottom:12px;flex-wrap:wrap';
     var orderBtn=document.createElement('button');orderBtn.textContent='Start order';orderBtn.style.cssText='background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;border-radius:0;cursor:pointer';(function(sid){orderBtn.addEventListener('click',function(e){e.stopPropagation();startProdOrder(sid);});})(spec.id);
-    var logRunBtn=document.createElement('button');logRunBtn.textContent='Log run';logRunBtn.style.cssText='background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer';(function(sid){logRunBtn.addEventListener('click',function(e){e.stopPropagation();markProdLastMade(sid);});})(spec.id);
-    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(e){e.stopPropagation();openProductionForm(sid);});})(spec.id);
-    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(e){e.stopPropagation();deleteProdSpec(sid);});})(spec.id);
+    var logRunBtn=document.createElement('button');logRunBtn.textContent='Log run';logRunBtn.style.cssText='background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer';(function(sid){logRunBtn.addEventListener('click',function(e){e.stopPropagation();markProdLastMade(sid);});})(spec.id);
+    var editBtn=document.createElement('button');editBtn.textContent='Edit';editBtn.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer';(function(sid){editBtn.addEventListener('click',function(e){e.stopPropagation();openProductionForm(sid);});})(spec.id);
+    var delBtn=document.createElement('button');delBtn.textContent='Delete';delBtn.style.cssText='background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer';(function(sid){delBtn.addEventListener('click',function(e){e.stopPropagation();deleteProdSpec(sid);});})(spec.id);
     actionRow.appendChild(orderBtn);actionRow.appendChild(logRunBtn);actionRow.appendChild(editBtn);actionRow.appendChild(delBtn);body.appendChild(actionRow);
 
     // Cost summary
@@ -9285,7 +9285,7 @@ function editFieldEntry(id) {
     window._fieldLog=l; persistFieldLog(); renderFieldLog();
   });
   var cb = document.createElement('button'); cb.textContent='Cancel';
-  cb.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:0;cursor:pointer';
+  cb.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:0;cursor:pointer';
   cb.addEventListener('click',function(){wrap.remove();});
   br.appendChild(sb); br.appendChild(cb); wrap.appendChild(ta); wrap.appendChild(amtRow); wrap.appendChild(br);
   var ed = document.getElementById('fl-entry-'+id); if(ed) ed.after(wrap);
