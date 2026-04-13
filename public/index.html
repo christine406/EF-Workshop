@@ -2683,9 +2683,8 @@ function renderStones() {
     const dealerOptions = ['American Gem Corp','Virat','Galapo','Julius Klein','Other'];
 
     card.innerHTML = `
-      <div class="stone-card-header" style="position:relative">
+      <div class="stone-card-header">
         <span class="stone-type-tag">Stone ${idx + 1}</span>
-        <img src="${_CARD_LOGO_SRC}" class="card-logo" style="position:absolute;top:0;right:0;height:16px;opacity:0.13">
         <div style="display:flex;gap:6px;align-items:center">
           <button onclick="toggleStoneDetails(${s.id})" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:3px 7px;border-radius:2px;cursor:pointer;text-transform:uppercase">${s.detailsOpen ? '▴ less' : '+ details'}</button>
           <button class="remove-btn" onclick="removeStone(${s.id})">×</button>
@@ -2776,6 +2775,7 @@ function renderStones() {
         </div>
       </div>` : ''}`;
 
+    addCardLogo(card);
     list.appendChild(card);
   });
 }
@@ -7279,11 +7279,16 @@ function goHome() {
 }
 
 // =================== CARD LOGO ===================
-const _CARD_LOGO_SRC = (document.querySelector('.cc-logo') || document.querySelector('.header-title img') || {}).src || '';
+let _CARD_LOGO_SRC = null;
+function getCardLogoSrc() {
+  if (!_CARD_LOGO_SRC) _CARD_LOGO_SRC = (document.querySelector('.cc-logo') || document.querySelector('[alt="EF Workshop"]') || {}).src || '';
+  return _CARD_LOGO_SRC;
+}
 function addCardLogo(el) {
-  if (!_CARD_LOGO_SRC) return;
+  const src = getCardLogoSrc();
+  if (!src) return;
   const img = document.createElement('img');
-  img.src = _CARD_LOGO_SRC;
+  img.src = src;
   img.className = 'card-logo';
   el.style.position = 'relative';
   el.appendChild(img);
