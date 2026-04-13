@@ -7606,6 +7606,35 @@ function renderDdChecklist() {
     var span = document.createElement('span');
     span.className = 'dd-text';
     span.textContent = task.text;
+    var editBtn = document.createElement('button');
+    editBtn.className = 'dd-del';
+    editBtn.textContent = '✎';
+    editBtn.title = 'edit';
+    editBtn.style.cssText = 'color:var(--teal-dim);font-size:13px';
+    (function(idx, taskText, liEl, spanEl) {
+      editBtn.addEventListener('click', function() {
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.value = taskText;
+        input.style.cssText = 'flex:1;background:var(--bg);border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:3px 6px;outline:none';
+        var saveBtn = document.createElement('button');
+        saveBtn.textContent = 'save';
+        saveBtn.style.cssText = 'background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
+        var cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'cancel';
+        cancelBtn.style.cssText = 'background:none;color:var(--text-dim);border:1px solid var(--border);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
+        spanEl.style.display = 'none';
+        editBtn.style.display = 'none';
+        liEl.insertBefore(input, liEl.querySelector('.dd-del'));
+        liEl.insertBefore(saveBtn, liEl.querySelector('.dd-del'));
+        liEl.insertBefore(cancelBtn, liEl.querySelector('.dd-del'));
+        input.focus();
+        input.select();
+        saveBtn.addEventListener('click', function() { saveDdTaskEdit(idx, input.value); });
+        cancelBtn.addEventListener('click', function() { renderDdChecklist(); });
+        input.addEventListener('keydown', function(e) { if(e.key==='Enter') saveDdTaskEdit(idx, input.value); if(e.key==='Escape') renderDdChecklist(); });
+      });
+    })(i, task.text, li, span);
     var del = document.createElement('button');
     del.className = 'dd-del';
     del.textContent = '×';
@@ -7613,6 +7642,7 @@ function renderDdChecklist() {
     (function(idx){ del.addEventListener('click', function(){ deleteDdTask(idx); }); })(i);
     li.appendChild(cb);
     li.appendChild(span);
+    li.appendChild(editBtn);
     li.appendChild(del);
     list.appendChild(li);
   });
@@ -7625,6 +7655,14 @@ function addDdTask() {
   data.tasks.push({ text: text, done: false });
   saveDdTasks(data);
   input.value = '';
+  renderDdChecklist();
+}
+function saveDdTaskEdit(idx, newText) {
+  var text = (newText || '').trim();
+  if (!text) return;
+  var data = ddGetData();
+  if (data.tasks[idx]) data.tasks[idx].text = text;
+  saveDdTasks(data);
   renderDdChecklist();
 }
 function toggleDdTask(idx) {
