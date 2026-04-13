@@ -811,7 +811,7 @@
   </div>
 
   <!-- =================== QUOTE SCREEN =================== -->
-  <div class="screen active" id="screen-quote">
+  <div class="screen" id="screen-quote">
 
     <!-- SINGLE / MULTI TOGGLE -->
     <div style="padding:12px 16px 0">
@@ -7254,7 +7254,7 @@ function goHome() {
   if (cc) cc.classList.add('active');
   const headerLogo = document.getElementById('headerLogo');
   const headerBack = document.getElementById('headerBack');
-  if (headerLogo) headerLogo.style.display = '';
+  if (headerLogo) headerLogo.style.display = 'none';
   if (headerBack) headerBack.classList.remove('visible');
   const appHeader2 = document.getElementById('appHeader');
   if (appHeader2) appHeader2.classList.remove('in-section');
