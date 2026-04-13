@@ -45,9 +45,12 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   button { border-radius: 0 !important; }
-  select { border-radius: 0 !important; }
-  input { border-radius: 0 !important; }
-  textarea { border-radius: 0 !important; }
+  select { border-radius: 0 !important; background-color: #fafaf7 !important; border-color: var(--teal-dim) !important; }
+  input[type="text"], input[type="number"], input[type="url"], input[type="email"], input[type="password"], input[type="tel"], textarea {
+    border-radius: 0 !important;
+    background-color: #fafaf7 !important;
+    border-color: var(--teal-dim) !important;
+  }
   .quote-item { border-radius: 0 !important; }
   .stone-card { border-radius: 0 !important; }
   .gold-bar { border-radius: 0 !important; }
@@ -1095,7 +1098,7 @@
         <div style="font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px" id="multiPieceLabel">Piece 1</div>
         <div class="field">
           <div class="field-label">Client name for this piece</div>
-          <input type="text" id="pieceClientName" placeholder="e.g. Christine — engagement ring" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box">
+          <input type="text" id="pieceClientName" placeholder="e.g. Christine — engagement ring" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box">
         </div>
       </div>
       <div class="field-row" id="fingerSizeRow" style="margin-top:8px;display:none">
@@ -1193,7 +1196,7 @@
             <div class="field-label">Casting company bill ($)</div>
             <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Enter what casting co. charged — excludes sprue loss</div>
             <input type="number" id="metalOverride" min="0" placeholder="0" oninput="calculate()"
-              style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:8px 10px;border-radius:0;outline:none">
+              style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:8px 10px;border-radius:0;outline:none">
           </div>
         </div>
       </div>
@@ -1363,9 +1366,9 @@
         </div>
         <div style="display:flex;gap:6px;align-items:center">
           <input type="number" id="discountValue" min="0" placeholder="0" oninput="calculate()"
-            style="width:70px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none">
+            style="width:70px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none">
           <select id="discountType" onchange="calculate()"
-            style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
+            style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option value="pct">%</option>
             <option value="flat">$</option>
           </select>
@@ -1399,7 +1402,7 @@
 
     <!-- PIECE STAGING (multi mode) -->
     <div id="pieceStagingWrap" style="display:none;padding:0 16px 8px">
-      <div style="background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:10px;margin-bottom:8px">
+      <div style="background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:10px;margin-bottom:8px">
         <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">✦ Staged pieces</div>
         <div id="pieceList"></div>
       </div>
@@ -1517,7 +1520,7 @@
       <div class="field-row" style="margin-top:6px">
         <div class="field">
           <div class="field-label">Sort by</div>
-          <select id="stoneFilterSort" onchange="renderStoneInventory()" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;appearance:none">
+          <select id="stoneFilterSort" onchange="renderStoneInventory()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;appearance:none">
             <option value="ct-asc">Carat — low to high</option>
             <option value="ct-desc">Carat — high to low</option>
             <option value="date-desc">Date added — newest first</option>
@@ -1532,7 +1535,7 @@
       <button class="add-stone-btn" onclick="openAddStoneForm()" id="addStoneBtnLabel" style="margin-bottom:12px">+ Add stone</button>
 
       <!-- ADD STONE FORM -->
-      <div id="addStoneForm" style="display:none;background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:14px;margin-bottom:12px">
+      <div id="addStoneForm" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:14px;margin-bottom:12px">
         <div style="font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Stone details</div>
 
         <!-- QUICK FILL ROW -->
@@ -1544,7 +1547,7 @@
               <button onclick="lookupGIAByNumber()" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 10px;border-radius:0;cursor:pointer;white-space:nowrap">Look up</button>
             </div>
           </div>
-          <label style="display:flex;align-items:center;gap:6px;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 10px;border-radius:0;cursor:pointer;white-space:nowrap">
+          <label style="display:flex;align-items:center;gap:6px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 10px;border-radius:0;cursor:pointer;white-space:nowrap">
             📷 Scan parcel
             <input type="file" id="giaPhotoInput" accept="image/*" style="display:none" onchange="scanGIAPhoto(this)">
           </label>
@@ -1581,7 +1584,7 @@
               <option>Princess</option>
               <option>Other</option>
             </select>
-            <input type="text" id="si-cut-other" placeholder="Describe cut" style="display:none;margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+            <input type="text" id="si-cut-other" placeholder="Describe cut" style="display:none;margin-top:6px;width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
@@ -1679,7 +1682,7 @@
         </div>
       </div>
       <div style="margin-bottom:10px">
-        <select id="chainJump" onchange="jumpToChain(this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:0;outline:none;appearance:none;box-sizing:border-box">
+        <select id="chainJump" onchange="jumpToChain(this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:0;outline:none;appearance:none;box-sizing:border-box">
           <option value="">— Browse all chains</option>
         </select>
       </div>
@@ -1707,17 +1710,17 @@
       <div id="invoiceForm" style="display:none;background:#fafaf7;border-radius:0;padding:14px;margin-bottom:16px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">New invoice</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-          <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box"></div>
-          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;max-width:100%;overflow:hidden"></div>
+          <div><div class="field-label">Invoice #</div><input type="text" id="inv-number" placeholder="e.g. 1042" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Date invoiced</div><input type="date" id="inv-date" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;max-width:100%;overflow:hidden"></div>
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Vendor</div>
-          <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'))" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box"></select>
-          <div id="inv-vendor-other-row" style="display:none;margin-top:6px"><input type="text" id="inv-vendor-other" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('inv-vendor'),this)"></div>
+          <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'))" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box"></select>
+          <div id="inv-vendor-other-row" style="display:none;margin-top:6px"><input type="text" id="inv-vendor-other" placeholder="New vendor name" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('inv-vendor'),this)"></div>
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Type</div>
-          <select id="inv-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+          <select id="inv-type" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
             <option value="casting">Casting</option><option value="setting">Setting</option><option value="dealer">Dealer</option><option value="findings">Findings</option><option value="other">Other</option>
           </select>
         </div>
@@ -1755,20 +1758,20 @@
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px" id="productionFormTitle">New production spec</div>
         <div style="margin-bottom:10px">
           <div class="field-label">Piece</div>
-          <select id="prod-piece-sel" onchange="handleProdPieceSel()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:6px"><option value="">-- Select existing or type below</option></select>
-          <input type="text" id="prod-name" placeholder="Or type a custom name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+          <select id="prod-piece-sel" onchange="handleProdPieceSel()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:6px"><option value="">-- Select existing or type below</option></select>
+          <input type="text" id="prod-name" placeholder="Or type a custom name" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
           <input type="hidden" id="prod-linked">
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Group <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(optional — e.g. Lettera Charms)</span></div>
-          <input type="text" id="prod-group" placeholder="e.g. Lettera Charms" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+          <input type="text" id="prod-group" placeholder="e.g. Lettera Charms" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Casting vendor</div>
-          <select id="prod-caster" onchange="document.getElementById('prod-caster-new').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+          <select id="prod-caster" onchange="document.getElementById('prod-caster-new').style.display=this.value==='__new__'?'block':'none'" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
             <option value="">-- Select</option><option value="Carrera">Carrera</option><option value="Omega">Omega</option><option value="Pafco">Pafco</option><option value="JM">JM</option><option value="__new__">+ Add new...</option>
           </select>
-          <input type="text" id="prod-caster-new" placeholder="New casting vendor" style="display:none;width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+          <input type="text" id="prod-caster-new" placeholder="New casting vendor" style="display:none;width:100%;margin-top:6px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
         </div>
         <div style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -1805,11 +1808,11 @@
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
             <div>
               <div class="field-label">Labor / setting</div>
-              <input type="number" id="prod-labor-cost" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+              <input type="number" id="prod-labor-cost" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
             </div>
             <div>
               <div class="field-label">Design fee</div>
-              <input type="number" id="prod-design-fee" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+              <input type="number" id="prod-design-fee" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
             </div>
           </div>
           <div id="prod-calc-breakdown" style="display:none;font-size:12px;color:var(--text-dim);background:#fafaf7;border-radius:0;padding:8px;margin-bottom:8px"></div>
@@ -1824,12 +1827,12 @@
               <div id="prod-profit-display" style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--green-bright)">—</div>
             </div>
             <div class="field-label">Override retail price</div>
-            <input type="number" id="prod-retail-price" placeholder="Leave blank to use suggested" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" oninput="recalcProdFromComponents()">
+            <input type="number" id="prod-retail-price" placeholder="Leave blank to use suggested" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" oninput="recalcProdFromComponents()">
           </div>
         </div>
         <div style="margin-bottom:12px">
           <div class="field-label">Internal notes</div>
-          <textarea id="prod-notes" rows="2" placeholder="e.g. Always order 3 extra melee." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;resize:none;box-sizing:border-box"></textarea>
+          <textarea id="prod-notes" rows="2" placeholder="e.g. Always order 3 extra melee." style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;resize:none;box-sizing:border-box"></textarea>
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="saveProdSpec()" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:0;cursor:pointer">Save</button>
@@ -1861,24 +1864,24 @@
 
         <div class="field" style="margin-bottom:10px">
           <div class="field-label">What did you buy / note?</div>
-          <textarea id="fl-description" rows="2" placeholder="" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;resize:none;box-sizing:border-box"></textarea>
+          <textarea id="fl-description" rows="2" placeholder="" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;resize:none;box-sizing:border-box"></textarea>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
           <div class="field">
             <div class="field-label">Amount ($)</div>
-            <input type="number" id="fl-amount" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+            <input type="number" id="fl-amount" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
           </div>
           <div class="field">
             <div class="field-label">Vendor</div>
-            <select id="fl-dealer" onchange="handleVendorChange(this, document.getElementById('fl-dealer-other'))" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+            <select id="fl-dealer" onchange="handleVendorChange(this, document.getElementById('fl-dealer-other'))" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
               <option value="">-- select</option>
             </select>
           </div>
         </div>
 
         <div id="fl-dealer-other-row" style="display:none;margin-bottom:10px">
-          <input type="text" id="fl-dealer-other" placeholder="New vendor name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('fl-dealer'), this)">
+          <input type="text" id="fl-dealer-other" placeholder="New vendor name" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('fl-dealer'), this)">
         </div>
 
 
@@ -1898,7 +1901,7 @@
 
         <div class="field" style="margin-bottom:12px">
           <div class="field-label">Tag to project (optional)</div>
-          <select id="fl-project" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+          <select id="fl-project" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
             <option value="">— no project</option>
           </select>
         </div>
@@ -1918,25 +1921,25 @@
       <button class="add-stone-btn" onclick="toggleLoosePicker()" id="loosePickerToggle" style="margin-bottom:10px">📦 Pick from inventory</button>
       <div id="loosePickerControls" style="display:none;margin-bottom:8px">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
-          <select id="looseFilterCut" onchange="renderLoosePickerList()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
+          <select id="looseFilterCut" onchange="renderLoosePickerList()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option value="">All cuts</option>
             <option>Old Mine Cut</option><option>Old European Cut</option><option>Round Brilliant</option>
             <option>Oval</option><option>Emerald Cut</option><option>Cushion</option><option>Pear</option>
             <option>Marquise</option><option>Asscher</option><option>Princess</option><option>Other</option>
           </select>
-          <select id="looseFilterDealer" onchange="renderLoosePickerList()" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
+          <select id="looseFilterDealer" onchange="renderLoosePickerList()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option value="">All dealers</option>
             <option>American Gem Corp</option><option>Virat</option><option>Galapo</option><option>Julius Klein</option><option>Other</option>
           </select>
         </div>
-        <select id="looseFilterSort" onchange="renderLoosePickerList()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none;margin-bottom:6px">
+        <select id="looseFilterSort" onchange="renderLoosePickerList()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none;margin-bottom:6px">
           <option value="ct-asc">Carat — low to high</option>
           <option value="ct-desc">Carat — high to low</option>
           <option value="date-desc">Date added — newest first</option>
           <option value="date-asc">Date added — oldest first</option>
         </select>
       </div>
-      <div id="loosePickerList" style="display:none;background:#fafaf7;border:1px solid var(--border);border-radius:0;margin-bottom:12px;max-height:260px;overflow-y:auto"></div>
+      <div id="loosePickerList" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;margin-bottom:12px;max-height:260px;overflow-y:auto"></div>
       <div id="looseSelectedStone" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:10px;margin-bottom:10px;font-size:13px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start">
           <div>
@@ -2542,7 +2545,7 @@ function showAddChainModal(existingChain, existingIdx) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
 
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:420px';
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:420px';
   const editing = existingChain != null;
   modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">' + (editing ? 'Edit chain' : 'Add chain') + '</div>';
 
@@ -2560,7 +2563,7 @@ function showAddChainModal(existingChain, existingIdx) {
     row.innerHTML = '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px">' + f.label + '</div>';
     const inp = document.createElement('input');
     inp.id = f.id; inp.type = 'text'; inp.value = f.value; inp.placeholder = f.placeholder;
-    inp.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:0;outline:none;box-sizing:border-box';
+    inp.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:8px 10px;border-radius:0;outline:none;box-sizing:border-box';
     row.appendChild(inp);
     modal.appendChild(row);
   });
@@ -2877,7 +2880,7 @@ function showChainLinkModal(chainName, chainKarat, currentUrl) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
 
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:420px';
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:420px';
   modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px">Add product link</div>'
     + '<div style="font-size:14px;color:var(--text);margin-bottom:12px">' + chainName + '</div>';
 
@@ -2885,7 +2888,7 @@ function showChainLinkModal(chainName, chainKarat, currentUrl) {
   inp.type = 'text';
   inp.value = currentUrl;
   inp.placeholder = 'Paste product page URL...';
-  inp.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:12px';
+  inp.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:12px';
   modal.appendChild(inp);
 
   const btnRow = document.createElement('div');
@@ -3599,54 +3602,54 @@ function renderExtraPieces() {
 
     // Client name for this piece
     html += '<div style="margin-bottom:10px"><div class="field-label">Client name for this piece</div>'
-      + '<input type="text" placeholder="e.g. Christine — ring" value="' + (p.name||'') + '" oninput="updateExtraPiece(' + p.id + ',\'name\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box">'
+      + '<input type="text" placeholder="e.g. Christine — ring" value="' + (p.name||'') + '" oninput="updateExtraPiece(' + p.id + ',\'name\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box">'
       + '</div>';
 
     // Piece type + Purity
     html += '<div class="field-row">'
       + '<div class="field"><div class="field-label">Piece type</div>'
-      + '<select oninput="updateExtraPiece(' + p.id + ',\'pieceType\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;appearance:none">'
+      + '<select oninput="updateExtraPiece(' + p.id + ',\'pieceType\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;appearance:none">'
       + pieceOpts.map(function(o){return '<option value="'+o[0]+'"'+(p.pieceType===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')
       + '</select></div>'
       + '<div class="field"><div class="field-label">Purity</div>'
-      + '<select oninput="updateExtraPiece(' + p.id + ',\'purity\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;appearance:none">'
+      + '<select oninput="updateExtraPiece(' + p.id + ',\'purity\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;appearance:none">'
       + purityOpts.map(function(o){return '<option value="'+o[0]+'"'+(p.purity===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')
       + '</select></div></div>';
 
     // Finger size + Grams
     html += '<div class="field-row">'
       + '<div class="field"><div class="field-label">Finger size</div>'
-      + '<input type="text" placeholder="e.g. 6.5" value="' + (p.fingerSize||'') + '" oninput="updateExtraPiece(' + p.id + ',\'fingerSize\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="text" placeholder="e.g. 6.5" value="' + (p.fingerSize||'') + '" oninput="updateExtraPiece(' + p.id + ',\'fingerSize\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div>'
       + '<div class="field"><div class="field-label">Est. grams</div>'
-      + '<input type="number" step="0.1" min="0" placeholder="0.0" value="' + (p.grams||'') + '" oninput="updateExtraPiece(' + p.id + ',\'grams\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="number" step="0.1" min="0" placeholder="0.0" value="' + (p.grams||'') + '" oninput="updateExtraPiece(' + p.id + ',\'grams\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div></div>';
 
     // Stone + Melee
     html += '<div class="field-row">'
       + '<div class="field"><div class="field-label">Stone cost ($)</div>'
-      + '<input type="number" min="0" placeholder="0" value="' + (p.stoneCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'stoneCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="number" min="0" placeholder="0" value="' + (p.stoneCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'stoneCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div>'
       + '<div class="field"><div class="field-label">Melee / materials ($)</div>'
-      + '<input type="number" min="0" placeholder="0" value="' + (p.meleeCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'meleeCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="number" min="0" placeholder="0" value="' + (p.meleeCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'meleeCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div></div>';
 
     // Metal + Labor
     html += '<div class="field-row">'
       + '<div class="field"><div class="field-label">Metal cost ($)</div>'
-      + '<input type="number" min="0" placeholder="0" value="' + (p.metalCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'metalCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="number" min="0" placeholder="0" value="' + (p.metalCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'metalCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div>'
       + '<div class="field"><div class="field-label">Labor cost ($)</div>'
-      + '<input type="number" min="0" placeholder="0" value="' + (p.laborCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'laborCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="number" min="0" placeholder="0" value="' + (p.laborCost||0) + '" oninput="updateExtraPiece(' + p.id + ',\'laborCost\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div></div>';
 
     // Design fee + Notes
     html += '<div class="field-row">'
       + '<div class="field"><div class="field-label">Design fee ($)</div>'
-      + '<input type="number" min="0" placeholder="0" value="' + (p.designFee||0) + '" oninput="updateExtraPiece(' + p.id + ',\'designFee\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="number" min="0" placeholder="0" value="' + (p.designFee||0) + '" oninput="updateExtraPiece(' + p.id + ',\'designFee\',parseFloat(this.value)||0);calcExtraPiece(' + p.id + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div></div>';
     html += '<div class="field"><div class="field-label">Notes</div>'
-      + '<input type="text" placeholder="Stone details, design notes..." value="' + (p.notes||'') + '" oninput="updateExtraPiece(' + p.id + ',\'notes\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
+      + '<input type="text" placeholder="Stone details, design notes..." value="' + (p.notes||'') + '" oninput="updateExtraPiece(' + p.id + ',\'notes\',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">'
       + '</div>';
 
     // Result
@@ -3834,7 +3837,7 @@ function showCollectionModal() {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
 
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:380px';
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:380px';
 
   // Title
   const title = document.createElement('div');
@@ -3853,11 +3856,11 @@ function showCollectionModal() {
 
   const mtoBtn = document.createElement('button');
   mtoBtn.textContent = 'Made to order';
-  mtoBtn.style.cssText = 'flex:1;padding:9px;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:0;cursor:pointer';
+  mtoBtn.style.cssText = 'flex:1;padding:9px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:0;cursor:pointer';
 
   const rtsBtn = document.createElement('button');
   rtsBtn.textContent = 'Ready to ship';
-  rtsBtn.style.cssText = 'flex:1;padding:9px;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:0;cursor:pointer';
+  rtsBtn.style.cssText = 'flex:1;padding:9px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;border-radius:0;cursor:pointer';
 
   let selectedType = null;
   function selectType(type, activeBtn, otherBtn) {
@@ -3896,13 +3899,13 @@ function showCollectionModal() {
   const dealerRow = document.createElement('div');
   dealerRow.style.display = 'none';
   const dealerSel = document.createElement('select');
-  dealerSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;margin-bottom:6px';
+  dealerSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;margin-bottom:6px';
   ['— Select dealer','American Gem Corp','Virat','Galapo','Julius Klein','Other'].forEach((d,i) => {
     const o = document.createElement('option'); o.value = i === 0 ? '' : d; o.textContent = d; dealerSel.appendChild(o);
   });
   const dealerOther = document.createElement('input');
   dealerOther.type = 'text'; dealerOther.placeholder = 'Enter dealer name';
-  dealerOther.style.cssText = 'display:none;width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
+  dealerOther.style.cssText = 'display:none;width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
   dealerSel.addEventListener('change', () => { dealerOther.style.display = dealerSel.value === 'Other' ? 'block' : 'none'; });
   dealerRow.appendChild(dealerSel); dealerRow.appendChild(dealerOther);
   consignSection.appendChild(dealerRow);
@@ -4189,14 +4192,14 @@ function editSetHeader(id, e) {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
 
   const form = document.createElement('div');
-  form.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:16px;width:100%;max-width:420px;margin-top:40px';
+  form.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:16px;width:100%;max-width:420px;margin-top:40px';
   form.addEventListener('click', e => e.stopPropagation());
 
   form.innerHTML = `
     <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Edit set title</div>
     <div style="margin-bottom:12px">
       <div class="field-label">Project title</div>
-      <input type="text" id="esh-client-${id}" value="${q.client || ''}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+      <input type="text" id="esh-client-${id}" value="${q.client || ''}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveSetHeader(${id})">Save</button>
@@ -4239,7 +4242,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
 
   const form = document.createElement('div');
   form.className = 'inline-edit-form';
-  form.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:16px;width:100%;max-width:520px;margin-top:40px';
+  form.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:16px;width:100%;max-width:520px;margin-top:40px';
   form.addEventListener('click', e => e.stopPropagation());
   overlay.appendChild(form);
   // Pre-compute stone details from stoneDetail or linked inventory stone
@@ -4262,12 +4265,12 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     <div style="font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Edit piece ${_pieceIdx + 1}</div>
     <div style="margin-bottom:10px">
       <div class="field-label">Piece label</div>
-      <input type="text" id="eq-client-${id}" value="${q.client || ''}" placeholder="e.g. Engagement ring, Band..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+      <input type="text" id="eq-client-${id}" value="${q.client || ''}" placeholder="e.g. Engagement ring, Band..." style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div>
         <div class="field-label">Piece type</div>
-        <select id="eq-type-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+        <select id="eq-type-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
           <option value="">—</option>
           <option value="ring" ${(q.pieceType==='ring'||q.pieceType==='engagement-ring'||q.pieceType==='band'||q.pieceType==='wedding-band')?'selected':''}>Ring</option>
           <option value="pendant" ${q.pieceType==='pendant'?'selected':''}>Pendant</option>
@@ -4279,7 +4282,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       </div>
       <div>
         <div class="field-label">Purity</div>
-        <select id="eq-purity-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+        <select id="eq-purity-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
           <option value="18k" ${q.purity==='18k'?'selected':''}>18k Yellow</option>
           <option value="18kw" ${q.purity==='18kw'?'selected':''}>18k White</option>
           <option value="14k" ${q.purity==='14k'?'selected':''}>14k Yellow</option>
@@ -4291,32 +4294,32 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div>
         <div class="field-label">Finger size</div>
-        <input type="text" id="eq-fingersize-${id}" value="${q.fingerSize||''}" placeholder="e.g. 6.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+        <input type="text" id="eq-fingersize-${id}" value="${q.fingerSize||''}" placeholder="e.g. 6.5" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Client price ($)</div>
-        <input type="number" id="eq-clientprice-piece-${id}" value="${q.clientPrice||''}" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+        <input type="number" id="eq-clientprice-piece-${id}" value="${q.clientPrice||''}" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
     </div>
     <div style="margin-bottom:10px">
       <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
-      <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:12px;margin-top:6px">
+      <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:12px;margin-top:6px">
         ${_linkedLabel}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
-          <div><div class="field-label">Carat</div><input type="number" id="ep-carat-${id}" value="${_epCarat}" step="0.01" placeholder="0.00" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
-          <div><div class="field-label">Color</div><input type="text" id="ep-color-${id}" value="${_epColor}" placeholder="e.g. K" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
-          <div><div class="field-label">Clarity</div><input type="text" id="ep-clarity-${id}" value="${_epClarity}" placeholder="e.g. VS2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">Carat</div><input type="number" id="ep-carat-${id}" value="${_epCarat}" step="0.01" placeholder="0.00" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">Color</div><input type="text" id="ep-color-${id}" value="${_epColor}" placeholder="e.g. K" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">Clarity</div><input type="text" id="ep-clarity-${id}" value="${_epClarity}" placeholder="e.g. VS2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div><div class="field-label">Cut / shape</div>
-            <select id="ep-cut-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+            <select id="ep-cut-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
               <option value="">— select</option>
               ${['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(c=>`<option value="${c}" ${_epCut===c?'selected':''}>${c}</option>`).join('')}
             </select>
           </div>
           <div><div class="field-label">Dealer</div>
-            <select id="ep-dealer-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+            <select id="ep-dealer-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
               <option value="">— select</option>
               ${['American Gem Corp','Virat','Galapo','Julius Klein','Other'].map(d=>`<option value="${d}" ${_epDealer===d?'selected':''}>${d}</option>`).join('')}
             </select>
@@ -4330,7 +4333,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     </div>
     <div style="margin-bottom:10px">
       <div class="field-label">Notes</div>
-      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none;box-sizing:border-box">${q.notes || ''}</textarea>
+      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none;box-sizing:border-box">${q.notes || ''}</textarea>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
@@ -4341,11 +4344,11 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       <div>
         <div class="field-label">Client name</div>
         <input type="text" id="eq-client-${id}" value="${q.client || ''}"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Piece type</div>
-        <select id="eq-type-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+        <select id="eq-type-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
           <option value="">—</option>
           <option value="ring" ${(q.pieceType==='ring'||q.pieceType==='engagement-ring'||q.pieceType==='band'||q.pieceType==='wedding-band')?'selected':''}>Ring</option>
           <option value="pendant" ${q.pieceType==='pendant'?'selected':''}>Pendant</option>
@@ -4359,7 +4362,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <div class="field-label">Purity</div>
-        <select id="eq-purity-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+        <select id="eq-purity-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
           <option value="18k" ${q.purity==='18k'?'selected':''}>18k Yellow</option>
           <option value="18kw" ${q.purity==='18kw'?'selected':''}>18k White</option>
           <option value="14k" ${q.purity==='14k'?'selected':''}>14k Yellow</option>
@@ -4369,7 +4372,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       </div>
       <div>
         <div class="field-label">Type</div>
-        <select id="eq-quotetype-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+        <select id="eq-quotetype-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
           <option value="client" ${q.quoteType!=='collection'?'selected':''}>Client</option>
           <option value="collection" ${q.quoteType==='collection'?'selected':''}>Collection</option>
         </select>
@@ -4378,17 +4381,17 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <div class="field-label">Finger size</div>
-        <input type="text" id="eq-fingersize-${id}" value="${q.fingerSize||''}" placeholder="e.g. 6.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+        <input type="text" id="eq-fingersize-${id}" value="${q.fingerSize||''}" placeholder="e.g. 6.5" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Client budget ($)</div>
-        <input type="number" id="eq-budget-${id}" value="${q.clientBudget||''}" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+        <input type="number" id="eq-budget-${id}" value="${q.clientBudget||''}" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
     </div>
 
     ${q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts' ? `<div style="margin-bottom:8px">
       <div class="field-label">Occasion</div>
-      <select id="eq-occasion-${id}" onchange="toggleOccasionOther('eq-occasion-other-${id}',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+      <select id="eq-occasion-${id}" onchange="toggleOccasionOther('eq-occasion-other-${id}',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
         <option value="">— Select occasion</option>
         <option value="Engagement ring" ${(q.occasion==='Engagement ring'||q.occasion==='Engagement'||q.occasion==='engagement')?'selected':''}>💍 Engagement ring</option>
         <option value="Wedding band" ${(q.occasion==='Wedding band'||q.occasion==='wedding band')?'selected':''}>⚭ Wedding band</option>
@@ -4400,7 +4403,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <option value="Gift (other)" ${(q.occasion==='Gift (other)'||q.occasion==='Gift'||q.occasion==='gift')?'selected':''}>🎁 Gift (other)</option>
         <option value="Other" ${(q.occasion==='Other'||(!['Engagement ring','Engagement','engagement','Wedding band','wedding band','New baby','Commemorative piece','commemorative','Just because','just because','Graduation','graduation','Birthday gift','Birthday','Gift (other)','Gift','gift','Other',''].includes(q.occasion||'')))?'selected':''}>💝 Other</option>
       </select>
-      <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+      <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
     </div>` : ''}
     ${q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? `
     <div style="margin-bottom:12px">
@@ -4415,7 +4418,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
           <label for="eq-consign-${id}" style="font-size:13px;color:var(--text);cursor:pointer">Stone on consignment from dealer</label>
         </div>
         <div id="eq-consign-dealer-row-${id}" style="display:${q.consignment?'block':'none'}">
-          <select id="eq-consign-dealer-${id}" onchange="document.getElementById('eq-consign-dealer-other-${id}').style.display=this.value==='Other'?'block':'none'" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          <select id="eq-consign-dealer-${id}" onchange="document.getElementById('eq-consign-dealer-other-${id}').style.display=this.value==='Other'?'block':'none'" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
             <option value="">— Select dealer</option>
             <option value="American Gem Corp" ${q.consignmentDealer==='American Gem Corp'?'selected':''}>American Gem Corp</option>
             <option value="Virat" ${q.consignmentDealer==='Virat'?'selected':''}>Virat</option>
@@ -4423,13 +4426,13 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
             <option value="Julius Klein" ${q.consignmentDealer==='Julius Klein'?'selected':''}>Julius Klein</option>
             <option value="Other" ${q.consignmentDealer&&!['American Gem Corp','Virat','Galapo','Julius Klein'].includes(q.consignmentDealer)?'selected':''}>Other</option>
           </select>
-          <input type="text" id="eq-consign-dealer-other-${id}" placeholder="Enter dealer name" value="${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'')?q.consignmentDealer||'':''}" style="display:${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'')?'block':'none'};width:100%;margin-top:6px;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+          <input type="text" id="eq-consign-dealer-other-${id}" placeholder="Enter dealer name" value="${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'')?q.consignmentDealer||'':''}" style="display:${!['American Gem Corp','Virat','Galapo','Julius Klein',''].includes(q.consignmentDealer||'')?'block':'none'};width:100%;margin-top:6px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
         </div>
       </div>
     </div>` : ''}
     <div style="margin-bottom:8px">
       <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:none;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
-      <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:12px;margin-top:6px">
+      <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:12px;margin-top:6px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)">Stone record</div>
           <label style="display:flex;align-items:center;gap:6px;background:var(--teal-dim);color:#fafaf7;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer">
@@ -4440,20 +4443,20 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <div id="ep-ocr-status-${id}" style="display:none;padding:8px;background:var(--bg);border-radius:0;margin-bottom:8px;font-size:12px;color:var(--teal-dim);text-align:center">Reading...</div>
         ${_linkedLabel}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
-          <div><div class="field-label">Carat</div><input type="number" id="ep-carat-${id}" value="${_epCarat}" step="0.01" placeholder="0.00" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
-          <div><div class="field-label">Color</div><input type="text" id="ep-color-${id}" value="${_epColor}" placeholder="e.g. K" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
-          <div><div class="field-label">Clarity</div><input type="text" id="ep-clarity-${id}" value="${_epClarity}" placeholder="e.g. VS2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">Carat</div><input type="number" id="ep-carat-${id}" value="${_epCarat}" step="0.01" placeholder="0.00" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">Color</div><input type="text" id="ep-color-${id}" value="${_epColor}" placeholder="e.g. K" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
+          <div><div class="field-label">Clarity</div><input type="text" id="ep-clarity-${id}" value="${_epClarity}" placeholder="e.g. VS2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div><div class="field-label">Cut / shape</div>
-            <select id="ep-cut-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+            <select id="ep-cut-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
               <option value="">— select</option>
               ${['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(c=>`<option value="${c}" ${_epCut===c?'selected':''}>${c}</option>`).join('')}
             </select>
           </div>
           <div><div class="field-label">Dealer</div>
-            <select id="ep-dealer-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+            <select id="ep-dealer-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
               <option value="">— select</option>
               ${['American Gem Corp','Virat','Galapo','Julius Klein','Other'].map(d=>`<option value="${d}" ${_epDealer===d?'selected':''}>${d}</option>`).join('')}
             </select>
@@ -4471,7 +4474,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     </div>
     <div style="margin-bottom:8px">
       <div class="field-label">Notes</div>
-      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none">${q.notes || ''}</textarea>
+      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none">${q.notes || ''}</textarea>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
@@ -4736,21 +4739,21 @@ function openAddPieceToSet(setId, e) {
     + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">New piece</div>'
     + '<div class="field-row">'
     + '<div class="field"><div class="field-label">Piece type</div>'
-    + '<select id="' + fid + '-type" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
+    + '<select id="' + fid + '-type" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
     + pieceOpts.map(o => '<option value="'+o[0]+'">'+o[1]+'</option>').join('') + '</select></div>'
     + '<div class="field"><div class="field-label">Purity</div>'
-    + '<select id="' + fid + '-purity" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
+    + '<select id="' + fid + '-purity" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
     + purityOpts.map(o => '<option value="'+o[0]+'">'+o[1]+'</option>').join('') + '</select></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Finger size</div><input type="text" id="' + fid + '-fsize" placeholder="e.g. 6.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Stone cost ($)</div><input type="number" id="' + fid + '-stone" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Finger size</div><input type="text" id="' + fid + '-fsize" placeholder="e.g. 6.5" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Stone cost ($)</div><input type="number" id="' + fid + '-stone" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Melee / materials ($)</div><input type="number" id="' + fid + '-melee" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="' + fid + '-metal" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Melee / materials ($)</div><input type="number" id="' + fid + '-melee" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="' + fid + '-metal" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="' + fid + '-labor" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Design fee ($)</div><input type="number" id="' + fid + '-design" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
-    + '<div class="field"><div class="field-label">Notes</div><input type="text" id="' + fid + '-notes" placeholder="Stone details, design notes..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="' + fid + '-labor" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Design fee ($)</div><input type="number" id="' + fid + '-design" min="0" placeholder="0" oninput="calcNewPieceForSet(' + setId + ')" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Notes</div><input type="text" id="' + fid + '-notes" placeholder="Stone details, design notes..." style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
     + '<div id="' + fid + '-result" style="display:none;background:#e8d9b8;border:1px solid #ccc07a;border-radius:0;padding:8px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between"><span style="color:#7a5a20">Retail</span><span id="' + fid + '-total" style="color:#741435;font-size:16px">—</span></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px">'
     + '<button onclick="saveNewPieceToSet(' + setId + ')" class="btn-primary" style="flex:1;padding:9px;font-size:11px">Add to set</button>'
@@ -4915,30 +4918,30 @@ function editPieceInSet(setId, pieceIdx, e) {
     + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Edit piece ' + (pieceIdx+1) + '</div>'
     + '<div class="field-row">'
     + '<div class="field"><div class="field-label">Piece type</div>'
-    + '<select id="pe-type-' + setId + '-' + pieceIdx + '" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
+    + '<select id="pe-type-' + setId + '-' + pieceIdx + '" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
     + pieceOpts.map(function(o){return '<option value="'+o[0]+'"'+(p.pieceType===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')
     + '</select></div>'
     + '<div class="field"><div class="field-label">Purity</div>'
-    + '<select id="pe-purity-' + setId + '-' + pieceIdx + '" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
+    + '<select id="pe-purity-' + setId + '-' + pieceIdx + '" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">'
     + purityOpts.map(function(o){return '<option value="'+o[0]+'"'+(p.purity===o[0]?' selected':'')+'>'+o[1]+'</option>';}).join('')
     + '</select></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Finger size</div><input type="text" id="pe-fsize-' + setId + '-' + pieceIdx + '" value="' + (p.fingerSize||'') + '" placeholder="e.g. 6.5" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Est. grams</div><input type="number" id="pe-grams-' + setId + '-' + pieceIdx + '" value="' + (p.grams||'') + '" step="0.1" min="0" placeholder="0.0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Finger size</div><input type="text" id="pe-fsize-' + setId + '-' + pieceIdx + '" value="' + (p.fingerSize||'') + '" placeholder="e.g. 6.5" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Est. grams</div><input type="number" id="pe-grams-' + setId + '-' + pieceIdx + '" value="' + (p.grams||'') + '" step="0.1" min="0" placeholder="0.0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Stone cost ($)</div><input type="number" id="pe-stone-' + setId + '-' + pieceIdx + '" value="' + (p.stoneCost||0) + '" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Melee ($)</div><input type="number" id="pe-melee-' + setId + '-' + pieceIdx + '" value="' + (p.meleeCost||0) + '" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Stone cost ($)</div><input type="number" id="pe-stone-' + setId + '-' + pieceIdx + '" value="' + (p.stoneCost||0) + '" min="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Melee ($)</div><input type="number" id="pe-melee-' + setId + '-' + pieceIdx + '" value="' + (p.meleeCost||0) + '" min="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="pe-metal-' + setId + '-' + pieceIdx + '" value="' + (p.metalCost||p.actualMetalCost||0) + '" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="pe-labor-' + setId + '-' + pieceIdx + '" value="' + (p.laborEst||0) + '" min="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
-    + '<div class="field"><div class="field-label">Notes</div><input type="text" id="pe-notes-' + setId + '-' + pieceIdx + '" value="' + (p.notes||'') + '" placeholder="Stone details, design notes..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="pe-metal-' + setId + '-' + pieceIdx + '" value="' + (p.metalCost||p.actualMetalCost||0) + '" min="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="pe-labor-' + setId + '-' + pieceIdx + '" value="' + (p.laborEst||0) + '" min="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Notes</div><input type="text" id="pe-notes-' + setId + '-' + pieceIdx + '" value="' + (p.notes||'') + '" placeholder="Stone details, design notes..." style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
     + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);margin:12px 0 8px">Actual costs (when complete)</div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Actual stone cost ($)</div><input type="number" id="pe-actual-stone-' + setId + '-' + pieceIdx + '" value="' + (p.actualStoneCost||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Actual casting/metal ($)</div><input type="number" id="pe-actual-metal-' + setId + '-' + pieceIdx + '" value="' + (p.actualMetalCost||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Actual stone cost ($)</div><input type="number" id="pe-actual-stone-' + setId + '-' + pieceIdx + '" value="' + (p.actualStoneCost||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Actual casting/metal ($)</div><input type="number" id="pe-actual-metal-' + setId + '-' + pieceIdx + '" value="' + (p.actualMetalCost||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Actual labor ($)</div><input type="number" id="pe-actual-labor-' + setId + '-' + pieceIdx + '" value="' + (p.actualLabor||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Client price for piece ($)</div><input type="number" id="pe-client-price-' + setId + '-' + pieceIdx + '" value="' + (p.clientPrice||'') + '" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Actual labor ($)</div><input type="number" id="pe-actual-labor-' + setId + '-' + pieceIdx + '" value="' + (p.actualLabor||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Client price for piece ($)</div><input type="number" id="pe-client-price-' + setId + '-' + pieceIdx + '" value="' + (p.clientPrice||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px">'
     + '<button onclick="savePieceEdit(' + setId + ',' + pieceIdx + ')" class="btn-primary" style="flex:1;padding:8px;font-size:11px">Save</button>'
     + '<button onclick="this.closest(\'[id^=piece-edit]\').style.display=\'none\'" class="btn-secondary" style="padding:8px;font-size:11px">Cancel</button>'
@@ -5110,8 +5113,8 @@ function buildMultiPieceCard(q) {
   html += '<div style="padding:10px;background:#fafaf7;border-radius:0;font-size:13px;margin-bottom:8px">';
   html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">';
   html += '<span style="color:var(--text-dim);flex:1">Discount</span>';
-  html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:0;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
-  html += '<select id="dtype-' + q.id + '" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:4px 6px;border-radius:0;outline:none;appearance:none" onchange="applyDiscount(' + q.id + ', this.previousElementSibling.value, this.value)">';
+  html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:0;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
+  html += '<select id="dtype-' + q.id + '" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:4px 6px;border-radius:0;outline:none;appearance:none" onchange="applyDiscount(' + q.id + ', this.previousElementSibling.value, this.value)">';
   html += '<option value="pct" ' + ((q.discountType||'pct')==='pct' ? 'selected' : '') + '>%</option>';
   html += '<option value="flat" ' + (q.discountType==='flat' ? 'selected' : '') + '>$</option>';
   html += '</select></div>';
@@ -5268,8 +5271,8 @@ function buildQuoteCard(q) {
   html += '<div style="padding:10px;background:#fafaf7;border-radius:0;font-size:13px;margin-bottom:8px">';
   html += '<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">';
   html += '<span style="color:var(--text-dim);flex:1">Discount</span>';
-  html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:0;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
-  html += '<select id="dtype-' + q.id + '" style="background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:4px 6px;border-radius:0;outline:none;appearance:none" onchange="applyDiscount(' + q.id + ', this.previousElementSibling.value, this.value)">';
+  html += '<input type="number" min="0" placeholder="0" value="' + (q.discountValue || '') + '" style="width:60px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:0;outline:none" onchange="applyDiscount(' + q.id + ', this.value, document.getElementById(\'dtype-' + q.id + '\').value)">';
+  html += '<select id="dtype-' + q.id + '" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:4px 6px;border-radius:0;outline:none;appearance:none" onchange="applyDiscount(' + q.id + ', this.previousElementSibling.value, this.value)">';
   html += '<option value="pct" ' + ((q.discountType||'pct')==='pct' ? 'selected' : '') + '>%</option>';
   html += '<option value="flat" ' + (q.discountType==='flat' ? 'selected' : '') + '>$</option>';
   html += '</select></div>';
@@ -5468,7 +5471,7 @@ function renderPL() {
     return;
   }
 
-  let html = `<div style="background:#fafaf7;border:1px solid var(--border);border-left:3px solid var(--teal-dim);border-radius:0;overflow:hidden">
+  let html = `<div style="background:#fafaf7;border:1px solid var(--teal-dim);border-left:3px solid var(--teal-dim);border-radius:0;overflow:hidden">
     <div onclick="togglePL()" style="cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">P&amp;L Summary ▴</div>
       <div style="text-align:right">
@@ -5623,7 +5626,7 @@ function renderSaved() {
       group.style.cssText = 'margin-bottom:8px';
 
       const header = document.createElement('div');
-      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;border:1px solid var(--border);border-radius:0;cursor:pointer;user-select:none';
+      header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;cursor:pointer;user-select:none';
       header.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">' + label + ' <span style="color:var(--text-dim)">(' + items.length + ')</span></span><span style="font-size:12px;color:var(--text-dim)">' + (isOpen ? '▴' : '▾') + '</span>';
 
       const body = document.createElement('div');
@@ -5877,7 +5880,7 @@ function updateActuals(id, e, pieceIdx) {
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
 
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:480px;margin:auto';
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:480px;margin:auto';
 
   modal.innerHTML = `
     <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">Actual costs${pieceIdx !== undefined ? ' — piece ' + (pieceIdx+1) : ''}</div>
@@ -5893,7 +5896,7 @@ function updateActuals(id, e, pieceIdx) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <div class="field-label">Casting company</div>
-        <select id="af-caster-${id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
+        <select id="af-caster-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
           <option value="">— Select</option>
           <option value="Carrera" ${(src.castingCompany||q.castingCompany)==='Carrera'?'selected':''}>Carrera</option>
           <option value="Omega" ${(src.castingCompany||q.castingCompany)==='Omega'?'selected':''}>Omega</option>
@@ -5904,32 +5907,32 @@ function updateActuals(id, e, pieceIdx) {
       <div>
         <div class="field-label">Final casting cost ($)</div>
         <input type="number" id="af-metal-${id}" value="${src.actualMetalCost != null ? src.actualMetalCost : (src.metalEstimate || src.metalCost || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Stone cost ($)</div>
         <input type="number" id="af-stone-${id}" value="${src.actualStoneCost != null ? src.actualStoneCost : (src.stones?.reduce((s,st)=>s+(st.cost||0),0) || src.stoneCost || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Final labor cost ($)</div>
         <input type="number" id="af-labor-${id}" value="${src.actualLabor != null ? src.actualLabor : (src.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Additional materials / melee ($)</div>
         <input type="number" id="af-melee-${id}" value="${src.actualMeleeCost != null ? src.actualMeleeCost : (src.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Design fee ($)</div>
         <input type="number" id="af-design-${id}" value="${src.actualDesignFee != null ? src.actualDesignFee : (src.designFee || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Findings / chain cost ($)</div>
         <input type="number" id="af-chain-cost-${id}" value="${src.actualChainCost != null ? src.actualChainCost : (src.chainCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
-          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
+          style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
     </div>
     <div style="margin-bottom:8px">
@@ -5941,7 +5944,7 @@ function updateActuals(id, e, pieceIdx) {
       </div>
       <div id="af-chain-tree-${id}" style="border:1px solid var(--border);border-radius:0;overflow:hidden;display:none;max-height:200px;overflow-y:auto"></div>
     </div>
-    <div id="af-live-${id}" style="background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:10px;margin-bottom:10px;display:none"></div>
+    <div id="af-live-${id}" style="background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:10px;margin-bottom:10px;display:none"></div>
     <div style="margin-bottom:12px">
       <div class="field-label">Client price ($) — what you're actually charging</div>
       <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcActualsLive(${id})"
@@ -7268,7 +7271,7 @@ function renderStoneInventory() {
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
           <div class="field-label">Platform</div>
-          <select id="inq-platform-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
+          <select id="inq-platform-${s.id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option>Instagram</option>
             <option>TikTok</option>
             <option>Email</option>
@@ -7277,22 +7280,22 @@ function renderStoneInventory() {
         </div>
         <div>
           <div class="field-label">Name / username</div>
-          <input type="text" id="inq-name-${s.id}" placeholder="@username" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
+          <input type="text" id="inq-name-${s.id}" placeholder="@username" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
           <div class="field-label">Date</div>
-          <input type="date" id="inq-date-${s.id}" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
+          <input type="date" id="inq-date-${s.id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
         </div>
         <div>
           <div class="field-label">Price quoted ($)</div>
-          <input type="number" id="inq-price-${s.id}" min="0" placeholder="0" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
+          <input type="number" id="inq-price-${s.id}" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
         </div>
       </div>
       <div style="margin-bottom:6px">
         <div class="field-label">Note</div>
-        <input type="text" id="inq-note-${s.id}" placeholder="e.g. very interested, following up next week..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
+        <input type="text" id="inq-note-${s.id}" placeholder="e.g. very interested, following up next week..." style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:6px 8px;border-radius:0;outline:none">
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn-primary" style="padding:8px;font-size:12px" onclick="saveInquiry(${s.id})">Save</button>
@@ -8013,13 +8016,13 @@ function reconcileFieldEntry(id) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:400px';
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:400px';
   modal.innerHTML = '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px">Push to project</div>'
     + '<div style="font-size:14px;color:var(--text);margin-bottom:12px">' + entry.description + (entry.amount ? ' · $' + entry.amount.toLocaleString() : '') + '</div>';
 
   // Project picker (shared)
   const projSel = document.createElement('select');
-  projSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
+  projSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
   const blank = document.createElement('option'); blank.value = ''; blank.textContent = '— Select project'; projSel.appendChild(blank);
   clientProjects.forEach(q => {
     const o = document.createElement('option'); o.value = q.id; o.textContent = q.client + (q.projectName && q.projectName !== q.client ? ' — ' + q.projectName : '');
@@ -8067,7 +8070,7 @@ function reconcileFieldEntry(id) {
 
   const amtInput = document.createElement('input');
   amtInput.type = 'number'; amtInput.value = entry.amount || '';
-  amtInput.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:10px';
+  amtInput.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:16px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:10px';
   modal.appendChild(amtInput);
 
   const noteLabel = document.createElement('div');
@@ -8076,7 +8079,7 @@ function reconcileFieldEntry(id) {
   modal.appendChild(noteLabel);
 
   const fieldSel = document.createElement('select');
-  fieldSel.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
+  fieldSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
   const typeToField = {
     'main-stone': 'actualStoneCost', melee: 'actualMeleeCost',
     casting: 'actualMetalCost', setting: 'actualLabor', findings: 'actualChainCost',
@@ -8153,11 +8156,11 @@ function reconcileFieldEntry(id) {
       const pieceOverlay = document.createElement('div');
       pieceOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
       const pieceModal = document.createElement('div');
-      pieceModal.style.cssText = 'background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:360px';
+      pieceModal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
       const pt = document.createElement('div'); pt.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px'; pt.textContent = 'Which piece?'; pieceModal.appendChild(pt);
       q.pieces.forEach((pc, idx) => {
         const pb = document.createElement('button');
-        pb.style.cssText = 'width:100%;text-align:left;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
+        pb.style.cssText = 'width:100%;text-align:left;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
         pb.textContent = pc.name || pc.pieceType || ('Piece ' + (idx + 1));
         pb.addEventListener('click', () => { pieceOverlay.remove(); doFinalize(pc, pb.textContent); });
         pieceModal.appendChild(pb);
@@ -8365,13 +8368,13 @@ function editFieldEntry(id) {
   var textarea = document.createElement('textarea');
   textarea.value = e.description;
   textarea.rows = 2;
-  textarea.style.cssText = 'width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
+  textarea.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
   var amtRow = document.createElement('div');
   amtRow.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center';
   amtRow.innerHTML = '<span style="font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap">Amount ($)</span>';
   var amtInput = document.createElement('input');
   amtInput.type = 'number'; amtInput.value = e.amount || '';
-  amtInput.style.cssText = 'flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';
+  amtInput.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';
   amtRow.appendChild(amtInput);
   var btnRow = document.createElement('div');
   btnRow.style.cssText = 'display:flex;gap:8px';
@@ -8456,9 +8459,9 @@ function editFieldEntry(id){
   var log=getFieldLog();var e=log.find(function(e){return e.id===id;});if(!e)return;
   var existing=document.getElementById('fl-edit-'+id);if(existing){existing.remove();return;}
   var wrap=document.createElement('div');wrap.id='fl-edit-'+id;wrap.style.cssText='margin-top:8px;padding:10px;background:#fafaf7;border-radius:0';
-  var ta=document.createElement('textarea');ta.value=e.description;ta.rows=2;ta.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
+  var ta=document.createElement('textarea');ta.value=e.description;ta.rows=2;ta.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
   var amtRow=document.createElement('div');amtRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center';amtRow.innerHTML='<span style="font-size:11px;color:var(--text-dim)">Amount</span>';
-  var amtIn=document.createElement('input');amtIn.type='number';amtIn.value=e.amount||'';amtIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';amtRow.appendChild(amtIn);
+  var amtIn=document.createElement('input');amtIn.type='number';amtIn.value=e.amount||'';amtIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';amtRow.appendChild(amtIn);
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
   var saveBtn=document.createElement('button');saveBtn.textContent='Save';saveBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px;border-radius:0;cursor:pointer';
   saveBtn.addEventListener('click',function(){var l=getFieldLog();var e2=l.find(function(e){return e.id===id;});if(e2){e2.description=ta.value.trim()||e2.description;e2.amount=parseFloat(amtIn.value)||0;}window._fieldLog=l;persistFieldLog();renderFieldLog();});
@@ -8536,13 +8539,13 @@ function addInvoiceLineItem(prefill){
   
   var topRow=document.createElement('div');topRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:start';
   var descIn=document.createElement('input');descIn.type='text';descIn.id='inv-li-desc-'+id;descIn.value=prefill&&prefill.description||'';descIn.placeholder='Description';
-  descIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
+  descIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
   var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 0';
   remBtn.addEventListener('click',function(){div.remove();});
   topRow.appendChild(descIn);topRow.appendChild(remBtn);
   
   var botRow=document.createElement('div');
-  var amtWrap=document.createElement('div');amtWrap.innerHTML='<div class="field-label">Amount ($)</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:120px;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">';
+  var amtWrap=document.createElement('div');amtWrap.innerHTML='<div class="field-label">Amount ($)</div><input type="number" id="inv-li-amt-'+id+'" value="'+(prefill&&prefill.amount||'')+'" placeholder="0" style="width:120px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">';
   botRow.appendChild(amtWrap);
   
   div.appendChild(topRow);div.appendChild(botRow);container.appendChild(div);
@@ -8582,13 +8585,13 @@ function pushLineItemToProject(invoiceId,lineItemId){
   if(!projects.length){showToast('No active projects');return;}
 
   var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  var modal=document.createElement('div');modal.style.cssText='background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:400px';
+  var modal=document.createElement('div');modal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:400px';
 
   var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Connect to project';modal.appendChild(t);
   var d=document.createElement('div');d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';d.textContent=(li.description||li.category)+(li.amount?' · '+fmt(li.amount):'');modal.appendChild(d);
 
   // Project picker
-  var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
+  var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
   projSel.innerHTML='<option value="">-- Select project</option>';
   projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;projSel.appendChild(o);});
   modal.appendChild(projSel);
@@ -8619,7 +8622,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
   // Cost section (hidden by default)
   var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
   var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Cost field';
-  var fieldSel=document.createElement('select');fieldSel.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:10px';
+  var fieldSel=document.createElement('select');fieldSel.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:10px';
   [['actualStoneCost','Stone cost'],['actualMeleeCost','Melee / materials'],['actualMetalCost','Casting / metal'],['actualLabor','Labor / setting / CAD'],['actualChainCost','Findings / chain'],['actualDesignFee','Design fee']].forEach(function(pair){var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];if(catToField[li.category]===pair[0])o.selected=true;fieldSel.appendChild(o);});
   var addReplWrap=document.createElement('div');addReplWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
   var modeAdd=document.createElement('button');var modeRepl=document.createElement('button');
@@ -8645,10 +8648,10 @@ function pushLineItemToProject(invoiceId,lineItemId){
       if(q.isMultiPiece && q.pieces && q.pieces.length > 1){
         // Show piece picker
         var pieceOverlay=document.createElement('div');pieceOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
-        var pieceModal=document.createElement('div');pieceModal.style.cssText='background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:360px';
+        var pieceModal=document.createElement('div');pieceModal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
         var pt=document.createElement('div');pt.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px';pt.textContent='Which piece?';pieceModal.appendChild(pt);
         q.pieces.forEach(function(pc,idx){
-          var pb=document.createElement('button');pb.style.cssText='width:100%;text-align:left;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
+          var pb=document.createElement('button');pb.style.cssText='width:100%;text-align:left;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
           pb.textContent=(pc.name||pc.pieceType||('Piece '+(idx+1)));
           pb.addEventListener('click',function(){
             pc[field]=addMode==='replace'?li.amount:((pc[field]||0)+li.amount);
@@ -8768,14 +8771,14 @@ function addProdMoldRow(prefill){
   topRow.appendChild(topLabel);topRow.appendChild(remBtn);wrapper.appendChild(topRow);
   
   var nameQtyRow=document.createElement('div');nameQtyRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px';
-  nameQtyRow.innerHTML='<div><div class="field-label">Mold name / #</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="e.g. M-042" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>'
-    +'<div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>';
+  nameQtyRow.innerHTML='<div><div class="field-label">Mold name / #</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="e.g. M-042" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>'
+    +'<div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>';
   var qtyIn=nameQtyRow.querySelector('#pm-qty-'+id);if(qtyIn)qtyIn.addEventListener('input',updateProdCastEst);
   wrapper.appendChild(nameQtyRow);
   
   var purityOpts=[['10k',0.417],['14k',0.583],['18k',0.75],['22k',0.917],['24k',1.0]].map(function(p){return'<option value="'+p[0]+'"'+(prefill&&prefill.purity===p[0]?' selected':'')+'>'+p[0]+'</option>';}).join('');
   var weightRow=document.createElement('div');weightRow.style.cssText='display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin-bottom:6px;align-items:end';
-  var purityDiv=document.createElement('div');purityDiv.innerHTML='<div class="field-label">Purity</div><select id="pm-purity-'+id+'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">'+purityOpts+'</select>';
+  var purityDiv=document.createElement('div');purityDiv.innerHTML='<div class="field-label">Purity</div><select id="pm-purity-'+id+'" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">'+purityOpts+'</select>';
   var puritySel=purityDiv.querySelector('select');if(puritySel)puritySel.addEventListener('change',updateProdCastEst);
   
   var gBtn=document.createElement('button');gBtn.id='pm-unit-g-'+id;gBtn.textContent='g';gBtn.style.cssText='font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:0;border:1px solid '+(wu==='g'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='g'?'var(--teal-dim)':'none')+';color:'+(wu==='g'?'#fafaf7':'var(--text-dim)')+';cursor:pointer';
@@ -8785,7 +8788,7 @@ function addProdMoldRow(prefill){
   var unitBtns=document.createElement('div');unitBtns.style.cssText='display:flex;gap:4px';unitBtns.appendChild(gBtn);unitBtns.appendChild(dwtBtn);
   var weightLabel=document.createElement('div');weightLabel.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px';
   var wl=document.createElement('div');wl.className='field-label';wl.style.marginBottom='0';wl.textContent='Weight';weightLabel.appendChild(wl);weightLabel.appendChild(unitBtns);
-  var weightIn=document.createElement('input');weightIn.type='number';weightIn.id='pm-weight-'+id;weightIn.value=prefill&&prefill.weight||'';weightIn.placeholder='0';weightIn.step='0.01';weightIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';weightIn.addEventListener('input',updateProdCastEst);
+  var weightIn=document.createElement('input');weightIn.type='number';weightIn.id='pm-weight-'+id;weightIn.value=prefill&&prefill.weight||'';weightIn.placeholder='0';weightIn.step='0.01';weightIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';weightIn.addEventListener('input',updateProdCastEst);
   var weightDiv=document.createElement('div');weightDiv.appendChild(weightLabel);weightDiv.appendChild(weightIn);
   
   var convertDiv=document.createElement('div');var convertEl=document.createElement('div');convertEl.id='pm-convert-'+id;convertEl.style.cssText='font-size:11px;color:var(--text-dim);padding:8px 0;text-align:center';convertDiv.appendChild(convertEl);
@@ -8795,7 +8798,7 @@ function addProdMoldRow(prefill){
   // Cost input for this mold/CAD
   var costRow=document.createElement('div');costRow.style.cssText='margin-top:8px;display:flex;align-items:center;gap:8px';
   var costLabel=document.createElement('div');costLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';costLabel.textContent='Last known cost ($)';
-  var costIn=document.createElement('input');costIn.type='number';costIn.id='pm-cost-'+id;costIn.value=prefill&&prefill.cost||'';costIn.placeholder='0';costIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
+  var costIn=document.createElement('input');costIn.type='number';costIn.id='pm-cost-'+id;costIn.value=prefill&&prefill.cost||'';costIn.placeholder='0';costIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
   costIn.addEventListener('input',recalcProdFromComponents);
   costRow.appendChild(costLabel);costRow.appendChild(costIn);wrapper.appendChild(costRow);
   container.appendChild(wrapper);
@@ -8834,21 +8837,21 @@ function addProdStoneRow(prefill){
   var id=++_prodStoneCounter;var container=document.getElementById('prod-stones');if(!container)return;
   var wrapper=document.createElement('div');wrapper.id='prod-stone-wrap-'+id;wrapper.style.cssText='background:#fafaf7;border-radius:0;padding:8px;margin-bottom:6px';
   var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center';
-  var shapeIn=document.createElement('input');shapeIn.type='text';shapeIn.id='ps-shape-'+id;shapeIn.value=prefill&&prefill.shape||'';shapeIn.placeholder='Shape';shapeIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
-  var sizeIn=document.createElement('input');sizeIn.type='text';sizeIn.id='ps-size-'+id;sizeIn.value=prefill&&prefill.size||'';sizeIn.placeholder='2.5mm';sizeIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
-  var qtyIn=document.createElement('input');qtyIn.type='number';qtyIn.id='ps-qty-'+id;qtyIn.value=prefill&&prefill.qty||'';qtyIn.placeholder='Qty';qtyIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var shapeIn=document.createElement('input');shapeIn.type='text';shapeIn.id='ps-shape-'+id;shapeIn.value=prefill&&prefill.shape||'';shapeIn.placeholder='Shape';shapeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var sizeIn=document.createElement('input');sizeIn.type='text';sizeIn.id='ps-size-'+id;sizeIn.value=prefill&&prefill.size||'';sizeIn.placeholder='2.5mm';sizeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var qtyIn=document.createElement('input');qtyIn.type='number';qtyIn.id='ps-qty-'+id;qtyIn.value=prefill&&prefill.qty||'';qtyIn.placeholder='Qty';qtyIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
   var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtn.addEventListener('click',function(){wrapper.remove();});
   row1.appendChild(shapeIn);row1.appendChild(sizeIn);row1.appendChild(qtyIn);row1.appendChild(remBtn);
   var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';
-  var dealerSel=document.createElement('select');dealerSel.id='ps-dealer-'+id;dealerSel.innerHTML=buildVendorOptions(prefill&&prefill.dealer||'',true);dealerSel.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
-  var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='ps-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:0;outline:none';
+  var dealerSel=document.createElement('select');dealerSel.id='ps-dealer-'+id;dealerSel.innerHTML=buildVendorOptions(prefill&&prefill.dealer||'',true);dealerSel.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='ps-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:0;outline:none';
   row2.appendChild(dealerSel);row2.appendChild(urlIn);
   var dealerNewRow=document.createElement('div');dealerNewRow.style.cssText='display:none;margin-bottom:6px';
-  var dealerNewIn=document.createElement('input');dealerNewIn.type='text';dealerNewIn.id='ps-dealer-new-'+id;dealerNewIn.placeholder='New vendor';dealerNewIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
+  var dealerNewIn=document.createElement('input');dealerNewIn.type='text';dealerNewIn.id='ps-dealer-new-'+id;dealerNewIn.placeholder='New vendor';dealerNewIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
   dealerSel.addEventListener('change',function(){handleVendorChange(dealerSel,dealerNewIn);});
   dealerNewIn.addEventListener('blur',function(){commitNewVendor(dealerSel,dealerNewIn);});
   dealerNewRow.appendChild(dealerNewIn);
-  var notesIn=document.createElement('input');notesIn.type='text';notesIn.id='ps-notes-'+id;notesIn.value=prefill&&prefill.notes||'';notesIn.placeholder='Notes e.g. must be eye clean';notesIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
+  var notesIn=document.createElement('input');notesIn.type='text';notesIn.id='ps-notes-'+id;notesIn.value=prefill&&prefill.notes||'';notesIn.placeholder='Notes e.g. must be eye clean';notesIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
   // Stone type toggle: main vs melee
   var isMelee = !!(prefill&&prefill.isMelee);
   var tb2='font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:0;cursor:pointer;border:1px solid ';
@@ -8872,7 +8875,7 @@ function addProdStoneRow(prefill){
   // Cost input
   var sCostRow=document.createElement('div');sCostRow.style.cssText='display:flex;align-items:center;gap:8px;margin-top:4px';
   var sCostLabel=document.createElement('div');sCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';sCostLabel.textContent='Last known cost ($)';
-  var sCostIn=document.createElement('input');sCostIn.type='number';sCostIn.id='ps-cost-'+id;sCostIn.value=prefill&&prefill.cost||'';sCostIn.placeholder='0';sCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
+  var sCostIn=document.createElement('input');sCostIn.type='number';sCostIn.id='ps-cost-'+id;sCostIn.value=prefill&&prefill.cost||'';sCostIn.placeholder='0';sCostIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
   sCostIn.addEventListener('input',recalcProdFromComponents);
   sCostRow.appendChild(sCostLabel);sCostRow.appendChild(sCostIn);
   wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);wrapper.appendChild(typeToggleRow);wrapper.appendChild(sCostRow);container.appendChild(wrapper);
@@ -8897,16 +8900,16 @@ function addProdFindingRow(prefill){
   // Manual entry section
   var manualSection=document.createElement('div');manualSection.style.display=useInventory?'none':'block';
   var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;align-items:center';
-  var typeIn=document.createElement('input');typeIn.type='text';typeIn.id='pf-type-'+id;typeIn.value=prefill&&prefill.type||'';typeIn.placeholder='Type e.g. chain, clasp';typeIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
-  var specIn=document.createElement('input');specIn.type='text';specIn.id='pf-spec-'+id;specIn.value=prefill&&prefill.spec||'';specIn.placeholder='Spec e.g. 1.2mm cable 18in';specIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var typeIn=document.createElement('input');typeIn.type='text';typeIn.id='pf-type-'+id;typeIn.value=prefill&&prefill.type||'';typeIn.placeholder='Type e.g. chain, clasp';typeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var specIn=document.createElement('input');specIn.type='text';specIn.id='pf-spec-'+id;specIn.value=prefill&&prefill.spec||'';specIn.placeholder='Spec e.g. 1.2mm cable 18in';specIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
   var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.type='button';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtn.addEventListener('click',function(){wrapper.remove();});
   row1.appendChild(typeIn);row1.appendChild(specIn);row1.appendChild(remBtn);
   var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';
-  var vendorSel=document.createElement('select');vendorSel.id='pf-vendor-'+id;vendorSel.innerHTML=buildVendorOptions(prefill&&prefill.source||'',true);vendorSel.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
-  var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='pf-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:0;outline:none';
+  var vendorSel=document.createElement('select');vendorSel.id='pf-vendor-'+id;vendorSel.innerHTML=buildVendorOptions(prefill&&prefill.source||'',true);vendorSel.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
+  var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='pf-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:0;outline:none';
   row2.appendChild(vendorSel);row2.appendChild(urlIn);
   var vendorNewRow=document.createElement('div');vendorNewRow.style.cssText='display:none;margin-bottom:6px';
-  var vendorNewIn=document.createElement('input');vendorNewIn.type='text';vendorNewIn.id='pf-vendor-new-'+id;vendorNewIn.placeholder='New vendor';vendorNewIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
+  var vendorNewIn=document.createElement('input');vendorNewIn.type='text';vendorNewIn.id='pf-vendor-new-'+id;vendorNewIn.placeholder='New vendor';vendorNewIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box';
   vendorSel.addEventListener('change',function(){handleVendorChange(vendorSel,vendorNewIn);});
   vendorNewIn.addEventListener('blur',function(){commitNewVendor(vendorSel,vendorNewIn);});
   vendorNewRow.appendChild(vendorNewIn);
@@ -8930,7 +8933,7 @@ function addProdFindingRow(prefill){
   // Cost input
   var fCostRow=document.createElement('div');fCostRow.style.cssText='margin-top:8px;display:flex;align-items:center;gap:8px';
   var fCostLabel=document.createElement('div');fCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';fCostLabel.textContent='Last known cost ($)';
-  var fCostIn=document.createElement('input');fCostIn.type='number';fCostIn.id='pf-cost-'+id;fCostIn.value=prefill&&prefill.cost||'';fCostIn.placeholder='0';fCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
+  var fCostIn=document.createElement('input');fCostIn.type='number';fCostIn.id='pf-cost-'+id;fCostIn.value=prefill&&prefill.cost||'';fCostIn.placeholder='0';fCostIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
   fCostIn.addEventListener('input',recalcProdFromComponents);
   fCostRow.appendChild(fCostLabel);fCostRow.appendChild(fCostIn);
   wrapper.appendChild(manualSection);wrapper.appendChild(inventorySection);wrapper.appendChild(fCostRow);container.appendChild(wrapper);
@@ -9051,12 +9054,12 @@ function saveProdSpec(){
 function markProdLastMade(id){
   var prod=getProduction();var spec=prod.find(function(s){return s.id===id;});if(!spec)return;
   var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
-  var modal=document.createElement('div');modal.style.cssText='background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:20px;width:100%;max-width:380px';
+  var modal=document.createElement('div');modal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:380px';
   var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
   var title=document.createElement('div');title.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px';title.textContent='Log production run';modal.appendChild(title);
-  var dateDiv=document.createElement('div');dateDiv.style.marginBottom='10px';dateDiv.innerHTML='<div class="field-label">Date invoiced</div>';var dateIn=document.createElement('input');dateIn.type='text';dateIn.id='pm-log-date';dateIn.value=today;dateIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box';dateDiv.appendChild(dateIn);modal.appendChild(dateDiv);
-  var costDiv=document.createElement('div');costDiv.style.marginBottom='10px';costDiv.innerHTML='<div class="field-label">Actual casting cost</div>';var costIn=document.createElement('input');costIn.type='number';costIn.id='pm-log-cost';costIn.placeholder='0';costIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box';costDiv.appendChild(costIn);modal.appendChild(costDiv);
-  var vendorDiv=document.createElement('div');vendorDiv.style.marginBottom='14px';vendorDiv.innerHTML='<div class="field-label">Casting vendor</div>';var vendorIn=document.createElement('input');vendorIn.type='text';vendorIn.id='pm-log-vendor';vendorIn.value=spec.caster||'';vendorIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box';vendorDiv.appendChild(vendorIn);modal.appendChild(vendorDiv);
+  var dateDiv=document.createElement('div');dateDiv.style.marginBottom='10px';dateDiv.innerHTML='<div class="field-label">Date invoiced</div>';var dateIn=document.createElement('input');dateIn.type='text';dateIn.id='pm-log-date';dateIn.value=today;dateIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box';dateDiv.appendChild(dateIn);modal.appendChild(dateDiv);
+  var costDiv=document.createElement('div');costDiv.style.marginBottom='10px';costDiv.innerHTML='<div class="field-label">Actual casting cost</div>';var costIn=document.createElement('input');costIn.type='number';costIn.id='pm-log-cost';costIn.placeholder='0';costIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box';costDiv.appendChild(costIn);modal.appendChild(costDiv);
+  var vendorDiv=document.createElement('div');vendorDiv.style.marginBottom='14px';vendorDiv.innerHTML='<div class="field-label">Casting vendor</div>';var vendorIn=document.createElement('input');vendorIn.type='text';vendorIn.id='pm-log-vendor';vendorIn.value=spec.caster||'';vendorIn.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box';vendorDiv.appendChild(vendorIn);modal.appendChild(vendorDiv);
   var goldSpot=window._goldSpot||0;var purityMap={'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
   if(goldSpot&&spec.molds&&spec.molds.length){
     var estDiv=document.createElement('div');estDiv.style.cssText='background:#fafaf7;border-radius:0;padding:10px;margin-bottom:14px;font-size:12px';
@@ -9085,7 +9088,7 @@ function renderProduction(){
 
   function renderSpec(spec, container){
     var linked=spec.linkedId?getSavedQuotes().find(function(q){return q.id==spec.linkedId;}):null;
-    var card=document.createElement('div');card.style.cssText='background:#fafaf7;border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0;margin-bottom:8px;overflow:hidden';
+    var card=document.createElement('div');card.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-left:3px solid var(--gold);border-radius:0;margin-bottom:8px;overflow:hidden';
 
     // Collapsed header — always visible
     var totalCost=(spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0);
@@ -9193,7 +9196,7 @@ function renderProduction(){
   Object.keys(grouped).sort().forEach(function(groupName){
     var groupSpecs=grouped[groupName];
     var groupWrap=document.createElement('div');groupWrap.style.cssText='margin-bottom:10px';
-    var groupHdr=document.createElement('div');groupHdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#fafaf7;border:1px solid var(--border);border-radius:0;cursor:pointer;user-select:none;margin-bottom:4px';
+    var groupHdr=document.createElement('div');groupHdr.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;cursor:pointer;user-select:none;margin-bottom:4px';
     var gL=document.createElement('div');
     var gName=document.createElement('span');gName.style.cssText='font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)';gName.textContent=groupName;
     var gCount=document.createElement('span');gCount.style.cssText='font-size:11px;color:var(--text-dim);margin-left:8px';gCount.textContent='('+groupSpecs.length+')';
@@ -9267,11 +9270,11 @@ function editFieldEntry(id) {
   var wrap = document.createElement('div'); wrap.id='fl-edit-'+id;
   wrap.style.cssText='margin-top:8px;padding:10px;background:#fafaf7;border-radius:0';
   var ta = document.createElement('textarea'); ta.value=e.description; ta.rows=2;
-  ta.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
+  ta.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;resize:none;box-sizing:border-box;margin-bottom:8px';
   var amtRow = document.createElement('div'); amtRow.style.cssText='display:flex;gap:8px;margin-bottom:8px;align-items:center';
   amtRow.innerHTML='<span style="font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap">Amount ($)</span>';
   var amtIn = document.createElement('input'); amtIn.type='number'; amtIn.value=e.amount||'';
-  amtIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';
+  amtIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';
   amtRow.appendChild(amtIn);
   var br = document.createElement('div'); br.style.cssText='display:flex;gap:8px';
   var sb = document.createElement('button'); sb.textContent='Save';
@@ -9317,16 +9320,16 @@ function addProdMoldRow(prefill) {
   wrap.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
     +'<div style="display:flex;gap:5px"><button id="pm-type-mold-'+id+'" style="'+(mt==='mold'?ta:ti)+'" onclick="setProdMoldType(\''+id+'\',\'mold\')">Mold</button><button id="pm-type-cad-'+id+'" style="'+(mt==='cad'?ta:ti)+'" onclick="setProdMoldType(\''+id+'\',\'cad\')">CAD file</button></div>'
     +'<button onclick="document.getElementById(\'prod-mold-wrap-'+id+'\').remove();updateProdCastEst()" style="background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0">x</button></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><div><div class="field-label" id="pm-name-label-'+id+'">'+(mt==='cad'?'CAD file name':'Mold name / #')+'</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="'+(mt==='cad'?'e.g. Lettera-B.3dm':'e.g. M-042')+'" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div><div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" oninput="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin-bottom:6px;align-items:end"><div><div class="field-label">Purity</div><select id="pm-purity-'+id+'" onchange="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">'+po+'</select></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px"><div><div class="field-label" id="pm-name-label-'+id+'">'+(mt==='cad'?'CAD file name':'Mold name / #')+'</div><input type="text" id="pm-name-'+id+'" value="'+(prefill&&prefill.name||'')+'" placeholder="'+(mt==='cad'?'e.g. Lettera-B.3dm':'e.g. M-042')+'" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div><div><div class="field-label">Qty per run</div><input type="number" id="pm-qty-'+id+'" value="'+(prefill&&prefill.qty||1)+'" min="1" oninput="updateProdCastEst()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 80px;gap:8px;margin-bottom:6px;align-items:end"><div><div class="field-label">Purity</div><select id="pm-purity-'+id+'" onchange="updateProdCastEst()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">'+po+'</select></div>'
     +'<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><div class="field-label" style="margin-bottom:0">Weight</div><div style="display:flex;gap:4px"><button id="pm-unit-g-'+id+'" onclick="setProdWeightUnit(\''+id+'\',\'g\')" style="font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:0;border:1px solid '+(wu==='g'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='g'?'var(--teal-dim)':'none')+';color:'+(wu==='g'?'#fafaf7':'var(--text-dim)')+';cursor:pointer">g</button><button id="pm-unit-dwt-'+id+'" onclick="setProdWeightUnit(\''+id+'\',\'dwt\')" style="font-family:var(--font-mono);font-size:10px;padding:2px 6px;border-radius:0;border:1px solid '+(wu==='dwt'?'var(--teal-dim)':'var(--border)')+';background:'+(wu==='dwt'?'var(--teal-dim)':'none')+';color:'+(wu==='dwt'?'#fafaf7':'var(--text-dim)')+';cursor:pointer">dwt</button></div></div>'
-    +'<input type="number" id="pm-weight-'+id+'" value="'+(prefill&&prefill.weight||'')+'" placeholder="0" step="0.01" oninput="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>'
+    +'<input type="number" id="pm-weight-'+id+'" value="'+(prefill&&prefill.weight||'')+'" placeholder="0" step="0.01" oninput="updateProdCastEst()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>'
     +'<div><div id="pm-convert-'+id+'" style="font-size:11px;color:var(--text-dim);padding:8px 0;text-align:center"></div></div></div>'
     +'<div id="pm-est-'+id+'" style="font-size:12px;background:var(--bg);border-radius:0;padding:6px 8px;display:none"></div>';
   // Cost input for this mold/CAD
   var mCostRow=document.createElement('div');mCostRow.style.cssText='margin-top:8px;display:flex;align-items:center;gap:8px';
   var mCostLabel=document.createElement('div');mCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';mCostLabel.textContent='Last cast cost ($)';
-  var mCostIn=document.createElement('input');mCostIn.type='number';mCostIn.id='pm-cost-'+id;mCostIn.value=prefill&&prefill.cost||'';mCostIn.placeholder='0';mCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';
+  var mCostIn=document.createElement('input');mCostIn.type='number';mCostIn.id='pm-cost-'+id;mCostIn.value=prefill&&prefill.cost||'';mCostIn.placeholder='0';mCostIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none';
   mCostIn.addEventListener('input',recalcProdFromComponents);
   mCostRow.appendChild(mCostLabel);mCostRow.appendChild(mCostIn);wrap.appendChild(mCostRow);
   container.appendChild(wrap); if(prefill&&prefill.weight)updateProdCastEst();
