@@ -9235,6 +9235,12 @@ function addProdMoldRow(prefill) {
     +'<input type="number" id="pm-weight-'+id+'" value="'+(prefill&&prefill.weight||'')+'" placeholder="0" step="0.01" oninput="updateProdCastEst()" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box"></div>'
     +'<div><div id="pm-convert-'+id+'" style="font-size:11px;color:var(--text-dim);padding:8px 0;text-align:center"></div></div></div>'
     +'<div id="pm-est-'+id+'" style="font-size:12px;background:var(--bg);border-radius:3px;padding:6px 8px;display:none"></div>';
+  // Cost input for this mold/CAD
+  var mCostRow=document.createElement('div');mCostRow.style.cssText='margin-top:8px;display:flex;align-items:center;gap:8px';
+  var mCostLabel=document.createElement('div');mCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';mCostLabel.textContent='Last cast cost ($)';
+  var mCostIn=document.createElement('input');mCostIn.type='number';mCostIn.id='pm-cost-'+id;mCostIn.value=prefill&&prefill.cost||'';mCostIn.placeholder='0';mCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:3px;outline:none';
+  mCostIn.addEventListener('input',recalcProdFromComponents);
+  mCostRow.appendChild(mCostLabel);mCostRow.appendChild(mCostIn);wrap.appendChild(mCostRow);
   container.appendChild(wrap); if(prefill&&prefill.weight)updateProdCastEst();
 }
 function setProdWeightUnit(moldId, unit) {
