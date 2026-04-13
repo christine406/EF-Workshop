@@ -216,7 +216,6 @@
     align-items: center;
     justify-content: space-between;
     margin-bottom: 10px;
-    gap: 10px;
   }
 
   .dd-checklist-label {
@@ -230,16 +229,17 @@
 
   .dd-date-pill {
     font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 400;
     color: #f5f0e7;
-    background: #560c25;
+    background: #630f2f;
     border: none;
     border-radius: 0;
     padding: 3px 8px;
     cursor: pointer;
     white-space: nowrap;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
 
@@ -1029,11 +1029,14 @@
   <div class="dd-checklist">
     <div class="dd-checklist-header">
       <span class="dd-checklist-label">⛓️ diamond district tasks</span>
-      <span style="font-size:14px;margin-right:4px">🗓️</span><div style="position:relative;display:inline-block">
-        <span class="dd-date-pill" id="ddDatePill">pick a date</span>
-        <input type="date" id="ddDatePicker" onchange="ddSetDate(this.value)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;background:none">
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+        <span style="font-size:13px">🗓️</span>
+        <div style="position:relative;display:inline-block">
+          <span class="dd-date-pill" id="ddDatePill">pick a date</span>
+          <input type="date" id="ddDatePicker" onchange="ddSetDate(this.value)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;background:none">
+        </div>
+        <button onclick="clearDdDay()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;white-space:nowrap">Clear day</button>
       </div>
-      <button onclick="clearDdDay()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer;white-space:nowrap;flex-shrink:0">Clear day</button>
     </div>
     <ul class="dd-items" id="ddList"></ul>
     <div class="dd-input-row">
