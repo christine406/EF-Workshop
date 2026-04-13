@@ -1622,21 +1622,40 @@
           </div>
           <div id="prod-findings"></div>
         </div>
-        <!-- Pricing section -->
+        <!-- Pricing tally (auto-built from components) -->
         <div style="margin-bottom:10px;padding:12px;background:var(--bg);border-radius:3px;border:1px solid var(--border)">
           <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Pricing</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-            <div><div class="field-label">Stone cost</div><input type="number" id="prod-stone-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-            <div><div class="field-label">Melee / materials</div><input type="number" id="prod-melee-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-            <div><div class="field-label">Metal / casting</div><input type="number" id="prod-metal-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-            <div><div class="field-label">Labor / setting</div><input type="number" id="prod-labor-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-            <div><div class="field-label">Findings / chain</div><input type="number" id="prod-findings-cost" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
-            <div><div class="field-label">Design fee</div><input type="number" id="prod-design-fee" placeholder="0" oninput="calcProdRetail()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box"></div>
+          <!-- Hidden inputs keep calcProdRetail working unchanged -->
+          <input type="hidden" id="prod-stone-cost">
+          <input type="hidden" id="prod-melee-cost">
+          <input type="hidden" id="prod-metal-cost">
+          <input type="hidden" id="prod-findings-cost">
+          <!-- Component cost summary -->
+          <div id="prod-cost-summary" style="font-size:12px;color:var(--text-dim);margin-bottom:10px"></div>
+          <!-- Manual overrides: labor + design fee -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div class="field-label">Labor / setting</div>
+              <input type="number" id="prod-labor-cost" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+            </div>
+            <div>
+              <div class="field-label">Design fee</div>
+              <input type="number" id="prod-design-fee" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+            </div>
           </div>
           <div id="prod-calc-breakdown" style="display:none;font-size:12px;color:var(--text-dim);background:var(--surface2);border-radius:3px;padding:8px;margin-bottom:8px"></div>
-          <div>
-            <div class="field-label">Retail price</div>
-            <input type="number" id="prod-retail-price" placeholder="0" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:16px;font-weight:500;padding:9px;border-radius:3px;outline:none;box-sizing:border-box">
+          <!-- Tally -->
+          <div style="border-top:1px solid var(--border);padding-top:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="field-label" style="margin-bottom:0">Suggested retail</div>
+              <div id="prod-retail-display" style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--gold)">—</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <div class="field-label" style="margin-bottom:0">Est. profit</div>
+              <div id="prod-profit-display" style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--green-bright)">—</div>
+            </div>
+            <div class="field-label">Override retail price</div>
+            <input type="number" id="prod-retail-price" placeholder="Leave blank to use suggested" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:3px;outline:none;box-sizing:border-box" oninput="recalcProdFromComponents()">
           </div>
         </div>
         <div style="margin-bottom:12px">
@@ -8474,6 +8493,12 @@ function addProdMoldRow(prefill){
   weightRow.appendChild(purityDiv);weightRow.appendChild(weightDiv);weightRow.appendChild(convertDiv);wrapper.appendChild(weightRow);
   
   var estEl=document.createElement('div');estEl.id='pm-est-'+id;estEl.style.cssText='font-size:12px;color:var(--text-dim);background:var(--bg);border-radius:3px;padding:6px 8px;display:none';wrapper.appendChild(estEl);
+  // Cost input for this mold/CAD
+  var costRow=document.createElement('div');costRow.style.cssText='margin-top:8px;display:flex;align-items:center;gap:8px';
+  var costLabel=document.createElement('div');costLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';costLabel.textContent='Last known cost ($)';
+  var costIn=document.createElement('input');costIn.type='number';costIn.id='pm-cost-'+id;costIn.value=prefill&&prefill.cost||'';costIn.placeholder='0';costIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:3px;outline:none';
+  costIn.addEventListener('input',recalcProdFromComponents);
+  costRow.appendChild(costLabel);costRow.appendChild(costIn);wrapper.appendChild(costRow);
   container.appendChild(wrapper);
   if(prefill&&prefill.weight)updateProdCastEst();
 }
@@ -8525,7 +8550,13 @@ function addProdStoneRow(prefill){
   dealerNewIn.addEventListener('blur',function(){commitNewVendor(dealerSel,dealerNewIn);});
   dealerNewRow.appendChild(dealerNewIn);
   var notesIn=document.createElement('input');notesIn.type='text';notesIn.id='ps-notes-'+id;notesIn.value=prefill&&prefill.notes||'';notesIn.placeholder='Notes e.g. must be eye clean';notesIn.style.cssText='width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:3px;outline:none;box-sizing:border-box';
-  wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);container.appendChild(wrapper);
+  // Cost input
+  var sCostRow=document.createElement('div');sCostRow.style.cssText='margin-top:6px;display:flex;align-items:center;gap:8px';
+  var sCostLabel=document.createElement('div');sCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';sCostLabel.textContent='Last known cost ($)';
+  var sCostIn=document.createElement('input');sCostIn.type='number';sCostIn.id='ps-cost-'+id;sCostIn.value=prefill&&prefill.cost||'';sCostIn.placeholder='0';sCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:3px;outline:none';
+  sCostIn.addEventListener('input',recalcProdFromComponents);
+  sCostRow.appendChild(sCostLabel);sCostRow.appendChild(sCostIn);
+  wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);wrapper.appendChild(sCostRow);container.appendChild(wrapper);
 }
 
 function addProdFindingRow(prefill){
@@ -8577,7 +8608,13 @@ function addProdFindingRow(prefill){
   var remBtnInv=document.createElement('button');remBtnInv.textContent='x';remBtnInv.type='button';remBtnInv.style.cssText='float:right;background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtnInv.addEventListener('click',function(){wrapper.remove();});
   inventorySection.appendChild(remBtnInv);inventorySection.appendChild(chainLabel);inventorySection.appendChild(chainHiddenInput);inventorySection.appendChild(browseBtn);inventorySection.appendChild(chainTree);
 
-  wrapper.appendChild(manualSection);wrapper.appendChild(inventorySection);container.appendChild(wrapper);
+  // Cost input
+  var fCostRow=document.createElement('div');fCostRow.style.cssText='margin-top:8px;display:flex;align-items:center;gap:8px';
+  var fCostLabel=document.createElement('div');fCostLabel.style.cssText='font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap';fCostLabel.textContent='Last known cost ($)';
+  var fCostIn=document.createElement('input');fCostIn.type='number';fCostIn.id='pf-cost-'+id;fCostIn.value=prefill&&prefill.cost||'';fCostIn.placeholder='0';fCostIn.style.cssText='flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:3px;outline:none';
+  fCostIn.addEventListener('input',recalcProdFromComponents);
+  fCostRow.appendChild(fCostLabel);fCostRow.appendChild(fCostIn);
+  wrapper.appendChild(manualSection);wrapper.appendChild(inventorySection);wrapper.appendChild(fCostRow);container.appendChild(wrapper);
 
   // Toggle handlers
   manualBtn.addEventListener('click',function(){
@@ -8595,9 +8632,10 @@ function addProdFindingRow(prefill){
           var c=CHAINS[idx];
           chainLabel.textContent=c.name+' · '+c.karat;
           chainLabel.style.color='var(--gold)';
-          // Push wholesale cost into findings cost field so calcProdRetail picks it up
-          var findingsField=document.getElementById('prod-findings-cost');
-          if(findingsField){findingsField.value=c.wholesale;calcProdRetail();}
+          // Also fill the per-row cost input
+          var perRowCost=document.getElementById('pf-cost-'+id);
+          if(perRowCost&&!perRowCost.value)perRowCost.value=c.wholesale;
+          recalcProdFromComponents();
         }
         browseBtn.style.display='inline-block';
       });
@@ -8650,7 +8688,7 @@ function openProductionForm(editId){
       }
       if(document.getElementById('prod-design-fee'))document.getElementById('prod-design-fee').value=spec.designFee||'';
       if(document.getElementById('prod-retail-price'))document.getElementById('prod-retail-price').value=spec.retailPrice||'';
-      (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});
+      (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});setTimeout(recalcProdFromComponents,50);
     }
   }else{addProdMoldRow();addProdStoneRow();addProdFindingRow();}
   form.scrollIntoView({behavior:'smooth',block:'start'});
@@ -8663,7 +8701,7 @@ function handleProdPieceSel(){
 }
 function saveProdSpec(){
   var name=document.getElementById('prod-name').value.trim();if(!name){showToast('Add a piece name');return;}
-  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';if(shape||size||dealer)stones.push({shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes});});
+  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';var sCostEl=document.getElementById('ps-cost-'+i);var stoneCostVal=parseFloat(sCostEl&&sCostEl.value)||0;if(shape||size||dealer)stones.push({shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes,cost:stoneCostVal});});
   var findings=[];document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-finding-wrap-','');
     var chainIdxEl=document.getElementById('pf-chain-idx-'+i);
     var chainIdx=chainIdxEl&&chainIdxEl.value!==''?parseInt(chainIdxEl.value):null;
@@ -8671,10 +8709,10 @@ function saveProdSpec(){
       var c=CHAINS[chainIdx];
       findings.push({type:'chain',spec:c.name,source:'Downeast Jewelry',url:'',chainIdx:chainIdx,chainKarat:c.karat,chainWholesale:c.wholesale});
     } else {
-      var tEl=document.getElementById('pf-type-'+i);var sEl=document.getElementById('pf-spec-'+i);var vEl=document.getElementById('pf-vendor-'+i);var vnEl=document.getElementById('pf-vendor-new-'+i);var uEl=document.getElementById('pf-url-'+i);var type=tEl?tEl.value.trim():'';var spec=sEl?sEl.value.trim():'';var source=vEl?(vEl.value==='__new__'?(vnEl?vnEl.value.trim():''):vEl.value):'';if(vEl&&vEl.value==='__new__'&&source)addVendor(source);var url=uEl?uEl.value.trim():'';if(type||spec||source)findings.push({type:type,spec:spec,source:source,url:url});
+      var tEl=document.getElementById('pf-type-'+i);var sEl=document.getElementById('pf-spec-'+i);var vEl=document.getElementById('pf-vendor-'+i);var vnEl=document.getElementById('pf-vendor-new-'+i);var uEl=document.getElementById('pf-url-'+i);var type=tEl?tEl.value.trim():'';var spec=sEl?sEl.value.trim():'';var source=vEl?(vEl.value==='__new__'?(vnEl?vnEl.value.trim():''):vEl.value):'';if(vEl&&vEl.value==='__new__'&&source)addVendor(source);var url=uEl?uEl.value.trim():'';var fCostEl=document.getElementById('pf-cost-'+i);var findCostVal=parseFloat(fCostEl&&fCostEl.value)||0;if(type||spec||source)findings.push({type:type,spec:spec,source:source,url:url,cost:findCostVal});
     }
   });
-  var molds=[];document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-mold-wrap-','');var nEl=document.getElementById('pm-name-'+i);var pEl=document.getElementById('pm-purity-'+i);var wEl=document.getElementById('pm-weight-'+i);var qEl=document.getElementById('pm-qty-'+i);var moldName=nEl?nEl.value.trim():'';var purity=pEl?pEl.value:'18k';var weight=wEl?wEl.value.trim():'';var qty=qEl?parseInt(qEl.value)||1:1;var weightUnit=wrap.dataset.weightUnit||'g';var moldType=wrap.dataset.moldType||'mold';if(moldName||weight)molds.push({name:moldName,purity:purity,weight:weight,weightUnit:weightUnit,qty:qty,moldType:moldType});});
+  var molds=[];document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-mold-wrap-','');var nEl=document.getElementById('pm-name-'+i);var pEl=document.getElementById('pm-purity-'+i);var wEl=document.getElementById('pm-weight-'+i);var qEl=document.getElementById('pm-qty-'+i);var moldName=nEl?nEl.value.trim():'';var purity=pEl?pEl.value:'18k';var weight=wEl?wEl.value.trim():'';var qty=qEl?parseInt(qEl.value)||1:1;var weightUnit=wrap.dataset.weightUnit||'g';var moldType=wrap.dataset.moldType||'mold';var mCostEl=document.getElementById('pm-cost-'+i);var moldCostVal=parseFloat(mCostEl&&mCostEl.value)||0;if(moldName||weight)molds.push({name:moldName,purity:purity,weight:weight,weightUnit:weightUnit,qty:qty,moldType:moldType,cost:moldCostVal});});
   var existing=_editingProdId?(getProduction().find(function(s){return s.id===_editingProdId;})||{}):{};
   var casterEl=document.getElementById('prod-caster');var caster=casterEl?(casterEl.value==='__new__'?(document.getElementById('prod-caster-new')?document.getElementById('prod-caster-new').value.trim():''):casterEl.value):'';
   var prodGroup=document.getElementById('prod-group')?document.getElementById('prod-group').value.trim():'';
@@ -9005,6 +9043,81 @@ function updateProdCastEst() {
 }
 
 
+
+function recalcProdFromComponents() {
+  // Sum costs from each component row
+  var moldCost = 0;
+  document.querySelectorAll('[id^="prod-mold-wrap-"]').forEach(function(wrap) {
+    var i = wrap.id.replace('prod-mold-wrap-','');
+    var el = document.getElementById('pm-cost-'+i);
+    moldCost += parseFloat((el&&el.value)||0) || 0;
+  });
+  var stoneCostSum = 0;
+  document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap) {
+    var i = wrap.id.replace('prod-stone-wrap-','');
+    var el = document.getElementById('ps-cost-'+i);
+    stoneCostSum += parseFloat((el&&el.value)||0) || 0;
+  });
+  var findingsCostSum = 0;
+  document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap) {
+    var i = wrap.id.replace('prod-finding-wrap-','');
+    var el = document.getElementById('pf-cost-'+i);
+    findingsCostSum += parseFloat((el&&el.value)||0) || 0;
+  });
+
+  // Feed hidden inputs so calcProdRetail works unchanged
+  var metalEl = document.getElementById('prod-metal-cost');
+  if (metalEl) metalEl.value = moldCost || '';
+  var stoneEl = document.getElementById('prod-stone-cost');
+  if (stoneEl) stoneEl.value = stoneCostSum || '';
+  var findEl = document.getElementById('prod-findings-cost');
+  if (findEl) findEl.value = findingsCostSum || '';
+  // melee stays 0 (no component rows for melee yet)
+  var meleeEl = document.getElementById('prod-melee-cost');
+  if (meleeEl) meleeEl.value = '';
+
+  // Build cost summary display
+  var summary = document.getElementById('prod-cost-summary');
+  if (summary) {
+    var lines = [];
+    if (moldCost) lines.push('<span style="color:var(--text-mid)">Molds / CAD</span> <span style="color:var(--gold)">' + fmt(moldCost) + '</span>');
+    if (stoneCostSum) lines.push('<span style="color:var(--text-mid)">Stones</span> <span style="color:var(--gold)">' + fmt(stoneCostSum) + '</span>');
+    if (findingsCostSum) lines.push('<span style="color:var(--text-mid)">Findings / chain</span> <span style="color:var(--gold)">' + fmt(findingsCostSum) + '</span>');
+    var laborVal = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
+    var designVal = parseFloat(document.getElementById('prod-design-fee').value) || 0;
+    if (laborVal) lines.push('<span style="color:var(--text-mid)">Labor / setting</span> <span style="color:var(--gold)">' + fmt(laborVal) + '</span>');
+    if (designVal) lines.push('<span style="color:var(--text-mid)">Design fee</span> <span style="color:var(--gold)">' + fmt(designVal) + '</span>');
+    var totalCost = moldCost + stoneCostSum + findingsCostSum + laborVal + designVal;
+    if (totalCost) lines.push('<span style="color:var(--text-dim);font-size:11px;border-top:1px solid var(--border);display:block;padding-top:6px;margin-top:4px">Total cost: <strong style="color:var(--text)">' + fmt(totalCost) + '</strong></span>');
+    summary.innerHTML = lines.map(function(l,i){return '<div style="display:flex;justify-content:space-between;padding:3px 0' + (i<lines.length-1?';border-bottom:1px solid var(--border)':'') + '">' + l + '</div>';}).join('');
+  }
+
+  // Run the retail calc
+  calcProdRetail(false);
+
+  // Update retail + profit display
+  function stoneMarkupFn(c){if(c<=5000)return 2.1;if(c<=10000)return 1.8;if(c<=15000)return 1.6;if(c<=25000)return 1.55;return 1.5;}
+  var laborCost2 = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
+  var designFee2 = parseFloat(document.getElementById('prod-design-fee').value) || 0;
+  var stoneRetail2 = stoneCostSum * stoneMarkupFn(stoneCostSum);
+  var metalRetail2 = moldCost * 1.35;
+  var findingsRetail2 = findingsCostSum * 1.35;
+  var laborRetail2 = laborCost2 * 1.4;
+  var overhead2 = (metalRetail2 + findingsRetail2 + laborRetail2 + designFee2) * 1.13;
+  var suggested2 = Math.round((stoneRetail2 + overhead2) / 50) * 50;
+  var overridePrice = parseFloat(document.getElementById('prod-retail-price').value) || 0;
+  var finalRetail = overridePrice || suggested2;
+  var totalCostAll = moldCost + stoneCostSum + findingsCostSum + laborCost2 + designFee2;
+  var profit = finalRetail - totalCostAll;
+
+  var retailDisp = document.getElementById('prod-retail-display');
+  var profitDisp = document.getElementById('prod-profit-display');
+  if (retailDisp) retailDisp.textContent = suggested2 ? fmt(suggested2) : '—';
+  if (profitDisp) {
+    profitDisp.textContent = totalCostAll ? fmt(profit) : '—';
+    profitDisp.style.color = profit >= 0 ? 'var(--green-bright)' : 'var(--red)';
+  }
+}
 
 function calcProdRetail(showBreakdown) {
   var stoneCost = parseFloat(document.getElementById('prod-stone-cost').value) || 0;
