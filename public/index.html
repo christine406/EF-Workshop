@@ -620,20 +620,6 @@
     transform: translateX(-50%) translateY(0);
   }
 
-  /* CARD LOGO WATERMARK */
-  .card-logo {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    height: 20px;
-    width: auto;
-    opacity: 0.25;
-    pointer-events: none;
-    display: block;
-    z-index: 2;
-  }
-  .quote-item { position: relative; overflow: visible; }
-
   /* QUOTES LIST */
   .quote-item {
     background: var(--surface);
@@ -2777,7 +2763,7 @@ function renderStones() {
         </div>
       </div>` : ''}`;
 
-    addCardLogo(card);
+    
     list.appendChild(card);
   });
 }
@@ -5372,7 +5358,6 @@ function renderSaved() {
         div.className = 'quote-item';
         div.dataset.id = q.id;
         div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
-        addCardLogo(div);
         body.appendChild(div);
       });
 
@@ -5390,7 +5375,6 @@ function renderSaved() {
       div.className = 'quote-item';
       div.dataset.id = q.id;
       div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
-      addCardLogo(div);
       list.appendChild(div);
     });
   }
@@ -7072,7 +7056,7 @@ function renderStoneInventory() {
           + (s.cost ? '<div style="font-size:13px;color:var(--text-dim)">cost $' + Number(s.cost).toLocaleString() + '</div>' : '')
           + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:2px">' + soldLabel + '</div>'
           + '</div></div>';
-        addCardLogo(card);
+        
         list.appendChild(card);
       });
     }
@@ -7282,22 +7266,6 @@ function goHome() {
   const goldDot2 = document.getElementById('goldDot');
   if (goldDot2) goldDot2.style.display = '';
   window.scrollTo(0, 0);
-}
-
-// =================== CARD LOGO ===================
-let _CARD_LOGO_SRC = null;
-function getCardLogoSrc() {
-  if (!_CARD_LOGO_SRC) _CARD_LOGO_SRC = (document.querySelector('.cc-logo') || document.querySelector('[alt="EF Workshop"]') || {}).src || '';
-  return _CARD_LOGO_SRC;
-}
-function addCardLogo(el) {
-  const src = getCardLogoSrc();
-  if (!src) return;
-  const img = document.createElement('img');
-  img.src = src;
-  img.className = 'card-logo';
-  el.style.position = 'relative';
-  el.appendChild(img);
 }
 
 // =================== TOAST ===================
@@ -8327,7 +8295,7 @@ function renderInvoices(){
         var paidBtn=document.createElement('button');paidBtn.textContent=isPaid?'Mark outstanding':'Mark paid';paidBtn.style.cssText='background:none;border:1px solid '+(isPaid?'var(--border)':'var(--green-bright)')+';color:'+(isPaid?'var(--text-dim)':'var(--green-bright)')+';font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){paidBtn.addEventListener('click',function(){toggleInvoiceStatus(invId);});})(inv.id);
         var editBtn2=document.createElement('button');editBtn2.textContent='Edit';editBtn2.style.cssText='background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){editBtn2.addEventListener('click',function(){openInvoiceForm(invId);});})(inv.id);
         var delBtn2=document.createElement('button');delBtn2.textContent='Delete';delBtn2.style.cssText='background:none;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 8px;border-radius:2px;cursor:pointer';(function(invId){delBtn2.addEventListener('click',function(){deleteInvoice(invId);});})(inv.id);
-        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);body.appendChild(actions);addCardLogo(card);list.appendChild(card);
+        actions.appendChild(paidBtn);actions.appendChild(editBtn2);actions.appendChild(delBtn2);body.appendChild(actions);list.appendChild(card);
       });
     });
   });
@@ -8729,7 +8697,7 @@ function renderProduction(){
       body.appendChild(histSection);
     }
 
-    addCardLogo(card);
+    
     (container||list).appendChild(card);
   } // end renderSpec
 
