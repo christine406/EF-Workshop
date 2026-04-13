@@ -79,6 +79,7 @@
     letter-spacing: 0.08em;
     color: var(--gold);
   }
+  .header-title img { height: 28px; display: block; }
 
   .header-title span {
     color: var(--text-dim);
@@ -624,13 +625,14 @@
     position: absolute;
     top: 8px;
     right: 10px;
-    height: 18px;
+    height: 20px;
     width: auto;
-    opacity: 0.13;
+    opacity: 0.25;
     pointer-events: none;
     display: block;
+    z-index: 2;
   }
-  .quote-item { position: relative; }
+  .quote-item { position: relative; overflow: visible; }
 
   /* QUOTES LIST */
   .quote-item {
@@ -7242,7 +7244,7 @@ function showScreen(name) {
   if (cc) cc.classList.remove('active');
   const headerLogo = document.getElementById('headerLogo');
   const headerBack = document.getElementById('headerBack');
-  if (headerLogo) headerLogo.style.display = 'none';
+  if (headerLogo) headerLogo.style.display = '';
   if (headerBack) headerBack.classList.add('visible');
   const appHeader = document.getElementById('appHeader');
   if (appHeader) appHeader.classList.add('in-section');
