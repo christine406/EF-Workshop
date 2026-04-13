@@ -7543,17 +7543,15 @@ function goHome() {
 }
 
 // =================== DD CHECKLIST ===================
-function loadDdTasks() {
-  try { return JSON.parse(localStorage.getItem('ef_dd_tasks') || '{}'); } catch(e) { return {}; }
-}
-function saveDdTasks(data) {
-  localStorage.setItem('ef_dd_tasks', JSON.stringify(data));
-}
 function ddGetData() {
-  var data = loadDdTasks();
+  var data = window._ddTasks || {};
   if (!data.date) data.date = '';
   if (!data.tasks) data.tasks = [];
   return data;
+}
+function saveDdTasks(data) {
+  window._ddTasks = data;
+  if (window._fb) window._fb.saveDdTasks(data);
 }
 function clearDdDay() {
   if (!confirm('Clear all tasks and date for this day?')) return;
@@ -7636,10 +7634,11 @@ function deleteDdTask(idx) {
 
 // =================== DEV NOTES ===================
 function loadDevNotes() {
-  try { return JSON.parse(localStorage.getItem('ef_dev_notes') || '[]'); } catch(e) { return []; }
+  return window._devNotes || [];
 }
 function saveDevNotes(notes) {
-  localStorage.setItem('ef_dev_notes', JSON.stringify(notes));
+  window._devNotes = notes;
+  if (window._fb) window._fb.saveDevNotes(notes);
 }
 function renderDevNotes() {
   const list = document.getElementById('devNotesList');
@@ -9547,6 +9546,8 @@ function startProdOrder(specId) {
     saveVendors: (data) => set(ref(db, 'vendors'), data),
     saveInvoices: (data) => set(ref(db, 'invoices'), data),
     saveProduction: (data) => set(ref(db, 'production'), data),
+    saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
+    saveDevNotes: (data) => set(ref(db, 'devNotes'), data),
     saveVendors: (data) => set(ref(db, 'vendors'), data),
     saveInvoices: (data) => set(ref(db, 'invoices'), data),
   };
@@ -9565,6 +9566,16 @@ function startProdOrder(specId) {
   onValue(ref(db, 'chainPhotos'), snap => {
     window._chainPhotos = snap.val() || {};
     if (typeof renderChainList === 'function') renderChainList();
+  });
+
+  onValue(ref(db, 'devNotes'), snap => {
+    window._devNotes = snap.val() ? (Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val())) : [];
+    if (typeof renderDevNotes === 'function') renderDevNotes();
+  });
+
+  onValue(ref(db, 'ddTasks'), snap => {
+    window._ddTasks = snap.val() || { date: '', tasks: [] };
+    if (typeof renderDdChecklist === 'function') renderDdChecklist();
   });
 
   onValue(ref(db, 'quotes'), snap => {
