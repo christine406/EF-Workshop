@@ -222,12 +222,13 @@
 
   .dd-date-pill {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--teal-dim);
+    font-size: 15px;
+    font-weight: 500;
+    color: #4a7068;
     background: var(--teal-faint);
-    border: 1px solid rgba(109,148,150,0.3);
+    border: 1.5px solid var(--teal-dim);
     border-radius: 3px;
-    padding: 3px 8px;
+    padding: 5px 12px;
     cursor: pointer;
     white-space: nowrap;
     letter-spacing: 0.04em;
@@ -1028,6 +1029,7 @@
       <span class="dd-checklist-label">⛓️ diamond district tasks</span>
       <span class="dd-date-pill" id="ddDatePill" onclick="document.getElementById('ddDatePicker').showPicker()">pick a date</span>
       <input type="date" id="ddDatePicker" class="dd-date-input" onchange="ddSetDate(this.value)">
+      <button onclick="clearDdDay()" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0">Clear day</button>
     </div>
     <ul class="dd-items" id="ddList"></ul>
     <div class="dd-input-row">
@@ -7552,6 +7554,13 @@ function ddGetData() {
   if (!data.date) data.date = '';
   if (!data.tasks) data.tasks = [];
   return data;
+}
+function clearDdDay() {
+  if (!confirm('Clear all tasks and date for this day?')) return;
+  saveDdTasks({ date: '', tasks: [] });
+  var picker = document.getElementById('ddDatePicker');
+  if (picker) picker.value = '';
+  renderDdChecklist();
 }
 function ddSetDate(val) {
   var data = ddGetData();
