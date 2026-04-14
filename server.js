@@ -144,10 +144,26 @@ app.post('/api/jotform-webhook', (req, res) => {
     const processStage = data['q12_q12_radio10'] || data['q9_q9_radio7'] || get(['process','where']);
     const needBy      = data['q10_q10_radio8'] || get(['needBy','need','date']);
     const howFound    = data['q11_q11_textarea9'] || get(['find','found','elvie','how']);
-    const sourcingStone = get(['sourcing','stone','q6','q7']);
-    const stoneType   = get(['cut','stoneType','q13','q14']);
-    const occasion    = get(['milestone','occasion','q15','q16']);
-    const notes       = get(['anything','know','q18','q19','q20','additional']);
+    const sourcingStone = data['q6_sourcing'] || data['q7_stone'] || get(['sourcing']);
+    const stoneType   = data['q13_stoneType'] || data['q14_cut'] || get(['cut','stonePrefer']);
+    const occasion    = data['q15_occasion'] || data['q16_milestone'] || get(['milestone','occasion']);
+    const notes       = data['q18_anything'] || data['q19_notes'] || data['q20_additional'] || get(['anything','additional']);
+
+      // Tighter get() — only match if key starts with the search term or has it after underscore
+      const getStrict = (keys) => {
+        for (const k of keys) {
+          const fullKey = Object.keys(data).find(rk => {
+            const parts = rk.toLowerCase().split('_');
+            return parts.some(p => p.startsWith(k.toLowerCase()));
+          });
+          if (fullKey && data[fullKey] && String(data[fullKey]).length < 500) {
+            const val = data[fullKey];
+            if (typeof val === 'object' && !Array.isArray(val)) return Object.values(val).filter(Boolean).join(' ');
+            return String(val);
+          }
+        }
+        return '';
+      };
     const design      = designNotes;
     const submissionId = raw.submissionID || Date.now().toString();
 
