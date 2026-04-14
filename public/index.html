@@ -431,6 +431,56 @@
   }
   .dev-notes-add:active { background: var(--teal-faint); }
 
+  /* INQUIRIES */
+  .inq-filter-btn {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    background: #fafaf7;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+  }
+  .inq-filter-btn.active {
+    background: var(--teal-dim);
+    border-color: var(--teal-dim);
+    color: #fafaf7;
+  }
+  .inq-card {
+    background: #fafaf7;
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .inq-card-header {
+    padding: 12px 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .inq-card-body {
+    display: none;
+    padding: 0 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .inq-field { margin-top: 10px; }
+  .inq-field-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 3px;
+  }
+  .inq-field-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text);
+  }
+
   /* BACK BUTTON (in section header) */
   .header-back {
     display: none;
@@ -1037,9 +1087,13 @@
       <div class="cc-btn-icon">🧾</div>
       <div class="cc-btn-label">Invoices</div>
     </button>
-    <button class="cc-btn accent-gold" onclick="showScreen('data')" style="grid-column: span 2;">
+    <button class="cc-btn accent-gold" onclick="showScreen('data')">
       <div class="cc-btn-icon">📊</div>
       <div class="cc-btn-label">Data</div>
+    </button>
+    <button class="cc-btn" onclick="showScreen('inquiries')">
+      <div class="cc-btn-icon">📥</div>
+      <div class="cc-btn-label">Inquiries <span id="inq-badge" style="display:none;background:#741435;color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px">0</span></div>
     </button>
   </div>
 
@@ -1862,6 +1916,25 @@
         <button onclick="renderDataScreen()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Refresh</button>
       </div>
       <div id="data-screen-content" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+<!-- =================== INQUIRIES SCREEN =================== -->
+  <div class="screen" id="screen-inquiries">
+    <div class="section">
+      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
+        📥 Inquiries
+        <button onclick="renderInquiries()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Refresh</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+        <button onclick="setInquiryFilter('all',this)" class="inq-filter-btn active">All</button>
+        <button onclick="setInquiryFilter('new',this)" class="inq-filter-btn">New</button>
+        <button onclick="setInquiryFilter('reviewed',this)" class="inq-filter-btn">Reviewed</button>
+        <button onclick="setInquiryFilter('converted',this)" class="inq-filter-btn">Converted</button>
+        <button onclick="setInquiryFilter('bespoke',this)" class="inq-filter-btn">Bespoke</button>
+        <button onclick="setInquiryFilter('semi-custom',this)" class="inq-filter-btn">Semi-custom</button>
+      </div>
+      <div id="inquiriesList"></div>
     </div>
   </div>
 
@@ -3062,6 +3135,17 @@ function renderStones() {
 
     
     list.appendChild(card);
+  });
+  // Event delegation for action buttons
+  list.querySelectorAll('.inq-action-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var id = btn.closest('[data-inq-id]').dataset.inqId;
+      var action = btn.dataset.action;
+      if (action === 'convert') convertInquiryToQuote(id);
+      else if (action === 'review') markInquiryReviewed(id);
+      else if (action === 'delete') deleteInquiry(id);
+    });
   });
 }
 
@@ -7787,6 +7871,167 @@ function deleteDevNote(idx) {
   renderDevNotes();
 }
 
+// =================== INQUIRIES ===================
+var _inquiryFilter = 'all';
+function getInquiries() { return window._inquiries || []; }
+
+function updateInquiryBadge() {
+  var badge = document.getElementById('inq-badge');
+  if (!badge) return;
+  var newCount = getInquiries().filter(function(i){ return i.status === 'new'; }).length;
+  badge.textContent = newCount;
+  badge.style.display = newCount > 0 ? 'inline' : 'none';
+}
+
+function setInquiryFilter(filter, btn) {
+  _inquiryFilter = filter;
+  document.querySelectorAll('.inq-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  renderInquiries();
+}
+
+function renderInquiries() {
+  var list = document.getElementById('inquiriesList');
+  if (!list) return;
+  var all = getInquiries();
+  var filtered = all.filter(function(inq) {
+    if (_inquiryFilter === 'all') return true;
+    if (_inquiryFilter === 'new') return inq.status === 'new';
+    if (_inquiryFilter === 'reviewed') return inq.status === 'reviewed';
+    if (_inquiryFilter === 'converted') return inq.status === 'converted';
+    if (_inquiryFilter === 'bespoke') return inq.formType === 'bespoke';
+    if (_inquiryFilter === 'semi-custom') return inq.formType === 'semi-custom';
+    return true;
+  });
+  if (!filtered.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;padding:20px 0;text-align:center">No inquiries yet.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach(function(inq) {
+    var card = document.createElement('div');
+    card.className = 'inq-card';
+    card.dataset.inqId = inq.id;
+    var date = inq.receivedAt ? new Date(inq.receivedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    var statusColor = inq.status === 'new' ? '#741435' : inq.status === 'converted' ? 'var(--teal-dim)' : 'var(--text-dim)';
+    var fields = [
+      inq.email ? ['Email', '<a href="mailto:' + inq.email + '" style="color:var(--teal-dim)">' + inq.email + '</a>'] : null,
+      inq.budget ? ['Budget', inq.budget] : null,
+      inq.sourcingStone ? ['Sourcing stone?', inq.sourcingStone] : null,
+      inq.stoneType ? ['Stone preference', inq.stoneType] : null,
+      inq.ringSize ? ['Ring size', inq.ringSize] : null,
+      inq.occasion ? ['Occasion', inq.occasion] : null,
+      inq.processStage ? ['Where in process', inq.processStage] : null,
+      inq.designNotes ? ['Design notes', inq.designNotes] : null,
+      inq.wearerInvolved ? ['Wearer involved?', inq.wearerInvolved] : null,
+      inq.needBy ? ['Need by', inq.needBy] : null,
+      inq.stoneView ? ['Stone viewing pref', inq.stoneView] : null,
+      inq.howFound ? ['How they found Elvie', inq.howFound] : null,
+      inq.notes ? ['Additional notes', inq.notes] : null,
+    ].filter(Boolean);
+
+    var fieldsHtml = fields.map(function(f) {
+      return '<div class="inq-field"><div class="inq-field-label">' + f[0] + '</div><div class="inq-field-value">' + f[1] + '</div></div>';
+    }).join('');
+
+    var reviewBtn = (inq.status !== 'reviewed' && inq.status !== 'converted')
+      ? '<button class="inq-action-btn" data-action="review" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">Mark reviewed</button>'
+      : '';
+
+    card.innerHTML = '<div class="inq-card-header">'
+      + '<div style="flex:1">'
+      + '<div style="font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px">' + (inq.name || 'Unknown') + '</div>'
+      + '<div style="font-size:12px;color:var(--text-dim)">' + date + ' · ' + (inq.formType === 'bespoke' ? 'Bespoke' : 'Semi-custom') + (inq.pieceType ? ' · ' + inq.pieceType : '') + '</div>'
+      + '</div>'
+      + '<span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:' + statusColor + ';white-space:nowrap">' + (inq.status || 'new') + '</span>'
+      + '</div>'
+      + '<div class="inq-card-body">'
+      + fieldsHtml
+      + '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'
+      + '<button class="inq-action-btn" data-action="convert" style="background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">→ Create quote</button>'
+      + reviewBtn
+      + '<button class="inq-action-btn" data-action="delete" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">Delete</button>'
+      + '</div>'
+      + '</div>';
+
+    // Header toggle
+    card.querySelector('.inq-card-header').addEventListener('click', function() {
+      var body = card.querySelector('.inq-card-body');
+      body.style.display = body.style.display === 'none' || !body.style.display ? 'block' : 'none';
+    });
+
+    // Action buttons
+    card.querySelectorAll('.inq-action-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var action = btn.dataset.action;
+        if (action === 'convert') convertInquiryToQuote(inq.id);
+        else if (action === 'review') markInquiryReviewed(inq.id);
+        else if (action === 'delete') deleteInquiry(inq.id);
+      });
+    });
+
+    list.appendChild(card);
+  });
+}
+
+function markInquiryReviewed(id) {
+  var inqs = getInquiries();
+  var inq = inqs.find(function(i){ return String(i.id) === String(id); });
+  if (!inq) return;
+  inq.status = 'reviewed';
+  window._inquiries = inqs;
+  if (window._fb) window._fb.saveInquiries(inqs);
+  renderInquiries();
+  updateInquiryBadge();
+}
+
+function deleteInquiry(id) {
+  var inqs = getInquiries().filter(function(i){ return String(i.id) !== String(id); });
+  window._inquiries = inqs;
+  if (window._fb) window._fb.saveInquiries(inqs);
+  renderInquiries();
+  updateInquiryBadge();
+}
+
+function convertInquiryToQuote(id) {
+  var inq = getInquiries().find(function(i){ return String(i.id) === String(id); });
+  if (!inq) return;
+  var quoteType = inq.formType === 'semi-custom' ? 'semi-custom' : 'bespoke';
+  var newQuote = {
+    id: Date.now(),
+    client: inq.name || '',
+    email: inq.email || '',
+    quoteType: quoteType,
+    status: 'quote',
+    pieceType: inq.pieceType || '',
+    purity: '18k Yellow',
+    occasion: inq.occasion || '',
+    fingerSize: inq.ringSize || '',
+    notes: [inq.designNotes, inq.notes].filter(Boolean).join(' | ') || '',
+    clientBudget: 0,
+    date: new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+    stones: [],
+    total: 0,
+    fromInquiryId: inq.id,
+  };
+  var quotes = getSavedQuotes();
+  quotes.unshift(newQuote);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  var inqs = getInquiries();
+  var found = inqs.find(function(i){ return String(i.id) === String(id); });
+  if (found) {
+    found.status = 'converted';
+    found.convertedQuoteId = newQuote.id;
+    window._inquiries = inqs;
+    if (window._fb) window._fb.saveInquiries(inqs);
+  }
+  showToast((inq.name || 'Inquiry') + ' → quote created');
+  updateInquiryBadge();
+  showScreen('saved');
+}
+
 // =================== TOAST ===================
 function showToast(msg) {
   const t = document.getElementById('toast');
@@ -9686,6 +9931,7 @@ function startProdOrder(specId) {
     saveProduction: (data) => set(ref(db, 'production'), data),
     saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
     saveDevNotes: (data) => set(ref(db, 'devNotes'), data),
+    saveInquiries: (data) => set(ref(db, 'inquiries'), data),
     saveVendors: (data) => set(ref(db, 'vendors'), data),
     saveInvoices: (data) => set(ref(db, 'invoices'), data),
   };
@@ -9704,6 +9950,14 @@ function startProdOrder(specId) {
   onValue(ref(db, 'chainPhotos'), snap => {
     window._chainPhotos = snap.val() || {};
     if (typeof renderChainList === 'function') renderChainList();
+  });
+
+  onValue(ref(db, 'inquiries'), snap => {
+    const val = snap.val();
+    window._inquiries = val ? Object.values(val) : [];
+    window._inquiries.sort((a,b) => new Date(b.receivedAt) - new Date(a.receivedAt));
+    updateInquiryBadge();
+    if (typeof renderInquiries === 'function') renderInquiries();
   });
 
   onValue(ref(db, 'devNotes'), snap => {
@@ -9775,6 +10029,7 @@ function startProdOrder(specId) {
     const val = snap.val();
     window._production = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     if (typeof renderProduction === 'function') renderProduction();
+  if (id === 'inquiries' && typeof renderInquiries === 'function') renderInquiries();
   });
 
 

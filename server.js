@@ -64,6 +64,95 @@ app.post('/login', express.urlencoded({ extended: false }), (req, res) => {
   }
 });
 
+// ─── JotForm Webhook ──────────────────────────────────────────────────────────
+app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), (req, res) => {
+  try {
+    const formType = req.query.form || 'unknown'; // 'bespoke' or 'semi-custom'
+    const raw = req.body;
+
+    // JotForm sends fields like q3_fullName[first], q4_email, q5_whatType etc.
+    // Extract by looking for common patterns
+    const get = (keys) => {
+      for (const k of keys) {
+        const fullKey = Object.keys(raw).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
+        if (fullKey && raw[fullKey]) {
+          const val = raw[fullKey];
+          if (typeof val === 'object') return Object.values(val).filter(Boolean).join(' ');
+          return val;
+        }
+      }
+      return '';
+    };
+
+    const firstName = get(['first', 'firstName']);
+    const lastName  = get(['last', 'lastName']);
+    const fullName  = (firstName + ' ' + lastName).trim() || get(['fullName', 'name']);
+    const email     = get(['email']);
+    const pieceType = formType === 'bespoke'
+      ? get(['whatType', 'piece', 'interested'])
+      : get(['signature', 'design', 'interested']);
+    const budget    = get(['budget', 'range', 'spending']);
+    const sourcingStone = get(['sourcing', 'stone']);
+    const stoneType = get(['cut', 'stone', 'type']) || get(['stoneType']);
+    const ringSize  = get(['ring', 'size', 'ringSize']);
+    const occasion  = get(['milestone', 'occasion']);
+    const needBy    = get(['needBy', 'date', 'need']);
+    const howFound  = get(['find', 'found', 'elvie', 'how']);
+    const stoneView = get(['view', 'stone', 'prefer']);
+    const process   = get(['process', 'where']);
+    const design    = get(['design', 'style', 'drawn', 'elements']);
+    const wearerInvolved = get(['wearer', 'involved']);
+    const notes     = get(['anything', 'know', 'notes', 'additional']);
+    const submissionId = raw.submissionID || raw.rawRequest ? JSON.parse(raw.rawRequest || '{}').submissionID : Date.now().toString();
+
+    const inquiry = {
+      id: Date.now(),
+      submissionId,
+      formType,
+      receivedAt: new Date().toISOString(),
+      status: 'new', // new | reviewed | converted
+      name: fullName,
+      email,
+      pieceType,
+      budget,
+      sourcingStone,
+      stoneType,
+      ringSize,
+      occasion,
+      needBy,
+      howFound,
+      stoneView,
+      processStage: process,
+      designNotes: design,
+      wearerInvolved,
+      notes,
+    };
+
+    // Save to Firebase via fetch to the Firebase REST API
+    const fbUrl = process.env.FIREBASE_URL || 'https://ef-workshop-ff6cf-default-rtdb.firebaseio.com';
+    const https = require('https');
+    const data = JSON.stringify(inquiry);
+    const url = new URL(`${fbUrl}/inquiries.json`);
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+    };
+    const fireReq = https.request(options, (fireRes) => {
+      console.log('JotForm inquiry saved to Firebase:', inquiry.name, formType);
+    });
+    fireReq.on('error', (e) => console.error('Firebase write error:', e));
+    fireReq.write(data);
+    fireReq.end();
+
+    res.status(200).json({ ok: true });
+  } catch (e) {
+    console.error('JotForm webhook error:', e);
+    res.status(200).json({ ok: true }); // always 200 to JotForm
+  }
+});
+
 // Auth middleware
 app.use((req, res, next) => {
   const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png'];
