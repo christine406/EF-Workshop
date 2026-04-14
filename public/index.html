@@ -1933,46 +1933,23 @@
       <div id="addInquiryForm" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);padding:14px;margin-bottom:14px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Add inquiry manually</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div>
-            <div class="field-label">Full name</div>
-            <input type="text" id="aiq-name" placeholder="First Last" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Email</div>
-            <input type="email" id="aiq-email" placeholder="email@example.com" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Form type</div>
-            <select id="aiq-formtype" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none">
-              <option value="bespoke">Bespoke</option>
-              <option value="semi-custom">Semi-custom</option>
-            </select>
-          </div>
-          <div>
-            <div class="field-label">Piece type</div>
-            <input type="text" id="aiq-piece" placeholder="e.g. Engagement ring" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Budget</div>
-            <input type="text" id="aiq-budget" placeholder="e.g. $15k–$25k" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box">
-          </div>
-          <div>
-            <div class="field-label">Ring size</div>
-            <input type="text" id="aiq-ringsize" placeholder="e.g. 6" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box">
-          </div>
+          <div><div class="field-label">Full name</div><input type="text" id="aiq-name" placeholder="First Last" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Email</div><input type="email" id="aiq-email" placeholder="email@example.com" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Form type</div><select id="aiq-formtype" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none"><option value="bespoke">Bespoke</option><option value="semi-custom">Semi-custom</option></select></div>
+          <div><div class="field-label">Piece type / signature design</div><input type="text" id="aiq-piece" placeholder="e.g. Engagement ring" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Budget range</div><input type="text" id="aiq-budget" placeholder="e.g. $15k–$25k" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Ring size (if known)</div><input type="text" id="aiq-ringsize" placeholder="e.g. 6" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Sourcing a stone?</div><input type="text" id="aiq-stone" placeholder="Yes / No / TBD" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Stone type / cut preference</div><input type="text" id="aiq-stonetype" placeholder="e.g. Old mine cut, oval" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Where in the process?</div><input type="text" id="aiq-process" placeholder="e.g. Just starting" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Occasion / milestone</div><input type="text" id="aiq-occasion" placeholder="e.g. Engagement" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Wearer involved in design?</div><input type="text" id="aiq-wearer" placeholder="Yes / No" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Need-by date</div><input type="text" id="aiq-needby" placeholder="e.g. Dec 2025" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">Stone viewing preference</div><input type="text" id="aiq-stoneview" placeholder="e.g. In person, video" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
+          <div><div class="field-label">How they found Elvie</div><input type="text" id="aiq-howfound" placeholder="e.g. Instagram" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>
         </div>
-        <div style="margin-bottom:8px">
-          <div class="field-label">Sourcing stone?</div>
-          <input type="text" id="aiq-stone" placeholder="Yes / No / TBD" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box">
-        </div>
-        <div style="margin-bottom:8px">
-          <div class="field-label">Design notes</div>
-          <textarea id="aiq-design" rows="2" placeholder="Design interests, inspiration, Elvie pieces they love..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;resize:none;box-sizing:border-box"></textarea>
-        </div>
-        <div style="margin-bottom:12px">
-          <div class="field-label">Additional notes</div>
-          <textarea id="aiq-notes" rows="2" placeholder="Anything else..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;resize:none;box-sizing:border-box"></textarea>
-        </div>
+        <div style="margin-bottom:8px"><div class="field-label">Design elements / styles / Elvie pieces they love</div><textarea id="aiq-design" rows="2" placeholder="Design notes, inspiration..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;resize:none;box-sizing:border-box"></textarea></div>
+        <div style="margin-bottom:12px"><div class="field-label">Anything else?</div><textarea id="aiq-notes" rows="2" placeholder="Additional notes..." style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;resize:none;box-sizing:border-box"></textarea></div>
         <div style="display:flex;gap:8px">
           <button onclick="saveManualInquiry()" style="flex:1;background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;cursor:pointer">Save inquiry</button>
           <button onclick="document.getElementById('addInquiryForm').style.display='none'" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;padding:10px 16px;cursor:pointer">Cancel</button>
@@ -8032,7 +8009,7 @@ function openAddInquiryForm() {
   if (!form) return;
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
   if (form.style.display === 'block') {
-    ['aiq-name','aiq-email','aiq-piece','aiq-budget','aiq-ringsize','aiq-stone','aiq-design','aiq-notes'].forEach(function(id){
+    ['aiq-name','aiq-email','aiq-piece','aiq-budget','aiq-ringsize','aiq-stone','aiq-stonetype','aiq-process','aiq-occasion','aiq-wearer','aiq-needby','aiq-stoneview','aiq-howfound','aiq-design','aiq-notes'].forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.value = '';
     });
@@ -8043,20 +8020,28 @@ function openAddInquiryForm() {
 function saveManualInquiry() {
   var name = (document.getElementById('aiq-name').value || '').trim();
   if (!name) { showToast('Add a name'); return; }
+  var g = function(id){ return (document.getElementById(id) || {}).value || ''; };
   var inq = {
     id: Date.now(),
     submissionId: 'manual-' + Date.now(),
-    formType: document.getElementById('aiq-formtype').value || 'bespoke',
+    formType: g('aiq-formtype') || 'bespoke',
     receivedAt: new Date().toISOString(),
     status: 'new',
     name: name,
-    email: (document.getElementById('aiq-email').value || '').trim(),
-    pieceType: (document.getElementById('aiq-piece').value || '').trim(),
-    budget: (document.getElementById('aiq-budget').value || '').trim(),
-    sourcingStone: (document.getElementById('aiq-stone').value || '').trim(),
-    ringSize: (document.getElementById('aiq-ringsize').value || '').trim(),
-    designNotes: (document.getElementById('aiq-design').value || '').trim(),
-    notes: (document.getElementById('aiq-notes').value || '').trim(),
+    email: g('aiq-email').trim(),
+    pieceType: g('aiq-piece').trim(),
+    budget: g('aiq-budget').trim(),
+    sourcingStone: g('aiq-stone').trim(),
+    stoneType: g('aiq-stonetype').trim(),
+    ringSize: g('aiq-ringsize').trim(),
+    processStage: g('aiq-process').trim(),
+    occasion: g('aiq-occasion').trim(),
+    wearerInvolved: g('aiq-wearer').trim(),
+    needBy: g('aiq-needby').trim(),
+    stoneView: g('aiq-stoneview').trim(),
+    howFound: g('aiq-howfound').trim(),
+    designNotes: g('aiq-design').trim(),
+    notes: g('aiq-notes').trim(),
   };
   var inqs = getInquiries();
   inqs.unshift(inq);
