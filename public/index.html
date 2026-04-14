@@ -4335,7 +4335,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <input type="number" id="eq-clientprice-piece-${id}" value="${q.clientPrice||''}" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
     </div>
-    <div style="margin-bottom:10px">
+    ${q.status !== "quote" ? `<div style="margin-bottom:10px">
       <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
       <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:12px;margin-top:6px">
         ${_linkedLabel}
@@ -4362,37 +4362,12 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <div style="display:flex;align-items:center;gap:8px">
           <input type="checkbox" id="ep-antique-${id}" ${_epAntique?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
           <label for="ep-antique-${id}" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
-        </div>
+        </` : ``}div>
       </div>
     </div>
     <div style="margin-bottom:10px">
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none;box-sizing:border-box">${q.notes || ''}</textarea>
-    </div>
-    <div style="margin-bottom:12px;padding:12px;background:#f5f0e7;border:1px solid var(--border)">
-      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Costs &amp; pricing</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div>
-          <div class="field-label">Stone cost ($)</div>
-          <input type="number" id="eq-stone-cost-${id}" value="${(q.stones&&q.stones[0]&&q.stones[0].cost)||q.stoneCost||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div class="field-label">Est. grams</div>
-          <input type="number" id="eq-grams-${id}" value="${q.grams||''}" placeholder="0" step="0.1" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div class="field-label">Labor / setting ($)</div>
-          <input type="number" id="eq-labor-${id}" value="${q.laborEst||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div class="field-label">Design fee ($)</div>
-          <input type="number" id="eq-designfee-${id}" value="${q.designFee||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
-        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Suggested retail</div>
-        <div id="eq-retail-preview-${id}" style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--gold)">${q.total ? fmt(q.total) : '—'}</div>
-      </div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
@@ -4534,6 +4509,31 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     <div style="margin-bottom:8px">
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none">${q.notes || ''}</textarea>
+    </div>
+    <div style="margin-bottom:12px;padding:12px;background:#f5f0e7;border:1px solid var(--border)">
+      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Costs &amp; pricing</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <div class="field-label">Stone cost ($)</div>
+          <input type="number" id="eq-stone-cost-${id}" value="${(q.stones&&q.stones[0]&&q.stones[0].cost)||q.stoneCost||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div class="field-label">Est. grams</div>
+          <input type="number" id="eq-grams-${id}" value="${q.grams||''}" placeholder="0" step="0.1" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div class="field-label">Labor / setting ($)</div>
+          <input type="number" id="eq-labor-${id}" value="${q.laborEst||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div class="field-label">Design fee ($)</div>
+          <input type="number" id="eq-designfee-${id}" value="${q.designFee||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Suggested retail</div>
+        <div id="eq-retail-preview-${id}" style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--gold)">${q.total ? fmt(q.total) : '—'}</div>
+      </div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
