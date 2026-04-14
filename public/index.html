@@ -3129,7 +3129,7 @@ function recalcAndSaveActualTotal(q) {
   var laborRetail2 = laborCost2 * 1.4;
   var rest2 = Math.round(metalCost2*1.35)+Math.round(chainCost2*1.35)+Math.round(laborRetail2)+Math.round(meleeRetail2)+designFee2;
   var recalc2 = Math.round((stoneRetail2 + rest2*1.13)/50)*50;
-  // Only update if we got a meaningful number — don't overwrite with 0 if actuals are sparse
+  // Only update if we got a meaningful number — don't overwrite with 0 if costs are sparse
   if (recalc2 > 0 || q.clientPrice > 0) {
     q.actualTotal = q.clientPrice > 0 ? q.clientPrice : (recalc2 || q.total);
   }
@@ -4013,7 +4013,7 @@ function saveQuote(quoteType = 'client') {
     actualStones: null,
   };
 
-  // If saving directly as a project, pre-fill actuals from quoted costs
+  // If saving directly as a project, pre-fill costs from quoted costs
   if (isProject) {
     const quotedStoneCost = (stones||[]).reduce((s,st) => s+(st.cost||0), 0);
     quote.actualStoneCost = quotedStoneCost || 0;
@@ -4228,33 +4228,6 @@ function saveSetHeader(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
   q.client = document.getElementById('esh-client-' + id)?.value.trim() || q.client;
-  // Save cost edits and recalc total
-  const _newStoneCost = parseFloat(document.getElementById('eq-stone-cost-'+id)?.value);
-  const _newGrams = parseFloat(document.getElementById('eq-grams-'+id)?.value);
-  const _newLabor = parseFloat(document.getElementById('eq-labor-'+id)?.value);
-  const _newDesignFee = parseFloat(document.getElementById('eq-designfee-'+id)?.value);
-  if (!isNaN(_newStoneCost) || !isNaN(_newGrams) || !isNaN(_newLabor) || !isNaN(_newDesignFee)) {
-    const goldSpot = window._goldSpot || 0;
-    const purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
-    const purity = purityMap[q.purity] || 0.75;
-    const stoneCost = isNaN(_newStoneCost) ? (q.stones&&q.stones[0]&&q.stones[0].cost||0) : _newStoneCost;
-    const grams = isNaN(_newGrams) ? (q.grams||0) : _newGrams;
-    const labor = isNaN(_newLabor) ? (q.laborEst||0) : _newLabor;
-    const designFee = isNaN(_newDesignFee) ? (q.designFee||0) : _newDesignFee;
-    const metalCost = grams > 0 && goldSpot ? Math.round((grams/31.1035)*goldSpot*purity*1.25) : 0;
-    function _sm(c){if(c<=5000)return 2.1;if(c<=10000)return 1.8;if(c<=15000)return 1.6;if(c<=25000)return 1.55;return 1.5;}
-    const stoneRetail = stoneCost * _sm(stoneCost);
-    const metalRetail = metalCost * 1.35;
-    const laborRetail = labor * 1.4;
-    const overhead = (metalRetail + laborRetail + designFee) * 1.13;
-    const suggested = Math.round((stoneRetail + overhead) / 50) * 50;
-    if (q.stones && q.stones[0]) q.stones[0].cost = stoneCost;
-    q.grams = grams;
-    q.laborEst = labor;
-    q.designFee = designFee;
-    if (suggested) q.total = suggested;
-  }
-
   window._savedQuotes = quotes;
   persistQuotes();
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
@@ -4515,29 +4488,6 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none">${q.notes || ''}</textarea>
     </div>
-    <div style="margin-bottom:12px;padding:12px;background:#f5f0e7;border:1px solid var(--border)">
-      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Costs &amp; pricing</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div>
-          <div class="field-label">Stone cost ($)</div>
-          <input type="number" id="eq-stone-cost-${id}" value="${(q.stones&&q.stones[0]&&q.stones[0].cost)||q.stoneCost||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div class="field-label">Est. grams</div>
-          <input type="number" id="eq-grams-${id}" value="${q.grams||''}" placeholder="0" step="0.1" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div class="field-label">Labor / setting ($)</div>
-          <input type="number" id="eq-labor-${id}" value="${q.laborEst||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-        <div>
-          <div class="field-label">Design fee ($)</div>
-          <input type="number" id="eq-designfee-${id}" value="${q.designFee||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
-        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Suggested retail</div>
-        <div id="eq-retail-preview-${id}" style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--gold)">${q.total ? fmt(q.total) : '—'}</div>
       </div>
     </div>
     <div style="display:flex;gap:8px">
@@ -4570,27 +4520,6 @@ function setCollectionType(id, type) {
   }
   mtoBtn.dataset.selected = type === 'mto' ? '1' : '0';
   rtsBtn.dataset.selected = type === 'rts' ? '1' : '0';
-}
-
-function recalcEditQuote(id) {
-  const q = getSavedQuotes().find(q => q.id === id);
-  if (!q) return;
-  const stoneCost = parseFloat(document.getElementById('eq-stone-cost-'+id)?.value) || 0;
-  const grams = parseFloat(document.getElementById('eq-grams-'+id)?.value) || 0;
-  const labor = parseFloat(document.getElementById('eq-labor-'+id)?.value) || 0;
-  const designFee = parseFloat(document.getElementById('eq-designfee-'+id)?.value) || 0;
-  const goldSpot = window._goldSpot || 0;
-  const purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
-  const purity = purityMap[q.purity] || 0.75;
-  const metalCost = grams > 0 && goldSpot ? Math.round((grams/31.1035)*goldSpot*purity*1.25) : 0;
-  function stoneMarkup(c){if(c<=5000)return 2.1;if(c<=10000)return 1.8;if(c<=15000)return 1.6;if(c<=25000)return 1.55;return 1.5;}
-  const stoneRetail = stoneCost * stoneMarkup(stoneCost);
-  const metalRetail = metalCost * 1.35;
-  const laborRetail = labor * 1.4;
-  const overhead = (metalRetail + laborRetail + designFee) * 1.13;
-  const suggested = Math.round((stoneRetail + overhead) / 50) * 50;
-  const preview = document.getElementById('eq-retail-preview-'+id);
-  if (preview) preview.textContent = suggested ? fmt(suggested) : '—';
 }
 
 function saveQuoteEdit(id) {
@@ -4913,8 +4842,8 @@ function saveNewPieceToSet(setId) {
   showToast('Piece added to set');
 }
 
-function editPieceActuals(setId, pieceIdx, e) {
-  // Open the edit form then scroll to actuals section
+function editPieceCosts(setId, pieceIdx, e) {
+  // Open the edit form then scroll to costs section
   editPieceInSet(setId, pieceIdx, e);
   setTimeout(() => {
     const el = document.getElementById('pe-actual-stone-' + setId + '-' + pieceIdx);
@@ -4975,12 +4904,12 @@ function editPieceAsQuote(setId, pieceIdx, e) {
   editQuoteCard(setId, e, synth, pieceIdx);
 }
 
-function editPieceActualsAsQuote(setId, pieceIdx, e) {
+function editPieceCostsAsQuote(setId, pieceIdx, e) {
   e.stopPropagation();
   // Close any open overlays first
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
-  // Use the standard actuals flow on the set, passing pieceIdx
-  updateActuals(setId, e, pieceIdx);
+  // Use the standard costs flow on the set, passing pieceIdx
+  updateCosts(setId, e, pieceIdx);
 }
 
 function editPieceInSet(setId, pieceIdx, e) {
@@ -5020,12 +4949,12 @@ function editPieceInSet(setId, pieceIdx, e) {
     + '<div class="field"><div class="field-label">Metal cost ($)</div><input type="number" id="pe-metal-' + setId + '-' + pieceIdx + '" value="' + (p.metalCost||p.actualMetalCost||0) + '" min="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
     + '<div class="field"><div class="field-label">Labor cost ($)</div><input type="number" id="pe-labor-' + setId + '-' + pieceIdx + '" value="' + (p.laborEst||0) + '" min="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field"><div class="field-label">Notes</div><input type="text" id="pe-notes-' + setId + '-' + pieceIdx + '" value="' + (p.notes||'') + '" placeholder="Stone details, design notes..." style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);margin:12px 0 8px">Actual costs (when complete)</div>'
+    + '<div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold-dim);margin:12px 0 8px">Update costs</div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Actual stone cost ($)</div><input type="number" id="pe-actual-stone-' + setId + '-' + pieceIdx + '" value="' + (p.actualStoneCost||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
-    + '<div class="field"><div class="field-label">Actual casting/metal ($)</div><input type="number" id="pe-actual-metal-' + setId + '-' + pieceIdx + '" value="' + (p.actualMetalCost||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
+    + '<div class="field"><div class="field-label">Stone cost ($)</div><input type="number" id="pe-actual-stone-' + setId + '-' + pieceIdx + '" value="' + (p.actualStoneCost||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Casting/metal ($)</div><input type="number" id="pe-actual-metal-' + setId + '-' + pieceIdx + '" value="' + (p.actualMetalCost||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div class="field-row">'
-    + '<div class="field"><div class="field-label">Actual labor ($)</div><input type="number" id="pe-actual-labor-' + setId + '-' + pieceIdx + '" value="' + (p.actualLabor||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
+    + '<div class="field"><div class="field-label">Labor ($)</div><input type="number" id="pe-actual-labor-' + setId + '-' + pieceIdx + '" value="' + (p.actualLabor||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div>'
     + '<div class="field"><div class="field-label">Client price for piece ($)</div><input type="number" id="pe-client-price-' + setId + '-' + pieceIdx + '" value="' + (p.clientPrice||'') + '" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none"></div></div>'
     + '<div style="display:flex;gap:8px;margin-top:10px">'
     + '<button onclick="savePieceEdit(' + setId + ',' + pieceIdx + ')" class="btn-primary" style="flex:1;padding:8px;font-size:11px">Save</button>'
@@ -5054,7 +4983,7 @@ function savePieceEdit(setId, pieceIdx) {
   p.laborEst = parseFloat(g('pe-labor-' + setId + '-' + pieceIdx)?.value) || 0;
   p.notes = g('pe-notes-' + setId + '-' + pieceIdx)?.value || '';
 
-  // Save actuals if filled in
+  // Save costs if filled in
   const actualStone = parseFloat(g('pe-actual-stone-' + setId + '-' + pieceIdx)?.value);
   const actualMetal = parseFloat(g('pe-actual-metal-' + setId + '-' + pieceIdx)?.value);
   const actualLabor = parseFloat(g('pe-actual-labor-' + setId + '-' + pieceIdx)?.value);
@@ -5159,7 +5088,7 @@ function buildMultiPieceCard(q) {
       + '<div style="display:flex;align-items:center;gap:8px">'
       + '<div style="font-size:14px;color:' + (p.actualTotal||p.clientPrice ? 'var(--teal-dim)' : 'var(--gold)') + ';white-space:nowrap">$' + (p.actualTotal||p.clientPrice||p.total||0).toLocaleString() + '</div>'
       + '<button onclick="editPieceAsQuote(' + q.id + ',' + i + ',event)" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
-      + '<button onclick="editPieceActualsAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Actuals</button>'
+      + '<button onclick="editPieceCostsAsQuote(' + q.id + ',' + i + ',event)" style="background:none;border:1px solid var(--gold-dim);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Costs</button>'
       + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
       + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:#fafaf7;border-radius:0;padding:8px 10px">'
@@ -5218,7 +5147,7 @@ function buildMultiPieceCard(q) {
     if (q.status === 'collection-quote') {
       html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Move to collection</button>';
     }
-    // Actuals are updated per-piece via the Edit button on each piece row
+    // Costs are updated per-piece via the Edit button on each piece row
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
   } else {
@@ -5382,7 +5311,7 @@ function buildQuoteCard(q) {
 
   if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
 
-  // Cost summary — show actuals if entered, estimates if not
+  // Cost summary — show costs if entered, estimates if not
   const hasActuals = q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null || q.actualMeleeCost != null || q.actualChainCost != null;
   const showStoneCost = hasActuals ? (q.actualStoneCost || 0) : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const showMetalCost = hasActuals ? (q.actualMetalCost || 0) : (q.metalEstimate || 0);
@@ -5416,14 +5345,14 @@ function buildQuoteCard(q) {
   if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
 
   if (q.status === 'project' || q.status === 'collection' || q.status === 'collection-quote') {
-    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
+    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateCosts(' + q.id + ',event)">Update costs</button>';
   }
   if (q.status === 'project' || q.status === 'collection') {
     html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',\'completed\',event)">✓ Completed</button>';
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'abandoned\',event)">✕ Abandoned</button>';
   }
   if (q.status === 'completed') {
-    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateActuals(' + q.id + ',event)">Update actuals</button>';
+    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateCosts(' + q.id + ',event)">Update costs</button>';
     html += '<span style="font-size:13px;color:var(--green-bright);padding:4px 0">✓ Completed</span>';
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
   }
@@ -5943,7 +5872,7 @@ function convertToProject(id, e) {
   if (q) {
     q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
 
-    // Auto pre-fill actuals from quoted costs if not already set
+    // Auto pre-fill costs from quoted costs if not already set
     const quotedStoneCost = (q.stones||[]).reduce((s,st) => s+(st.cost||0), 0) || q.stoneCost || 0;
     if (q.actualStoneCost == null) q.actualStoneCost = quotedStoneCost;
     if (q.actualMeleeCost == null) q.actualMeleeCost = q.meleeCost || 0;
@@ -5990,11 +5919,11 @@ function convertToProject(id, e) {
   }
 }
 
-function updateActuals(id, e, pieceIdx) {
+function updateCosts(id, e, pieceIdx) {
   e.stopPropagation();
 
   // Remove any existing overlay
-  const existingOverlay = document.getElementById('actuals-overlay-' + id);
+  const existingOverlay = document.getElementById('costs-overlay-' + id);
   if (existingOverlay) { existingOverlay.remove(); return; }
 
   const quotes = getSavedQuotes();
@@ -6015,7 +5944,7 @@ function updateActuals(id, e, pieceIdx) {
   } : q;
   // Do NOT assign piece data back to q — keep effectiveQ separate
   const overlay = document.createElement('div');
-  overlay.id = 'actuals-overlay-' + id;
+  overlay.id = 'costs-overlay-' + id;
   if (pieceIdx !== undefined) overlay.dataset.pieceIdx = pieceIdx;
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
 
@@ -6046,32 +5975,32 @@ function updateActuals(id, e, pieceIdx) {
       </div>
       <div>
         <div class="field-label">Final casting cost ($)</div>
-        <input type="number" id="af-metal-${id}" value="${src.actualMetalCost != null ? src.actualMetalCost : (src.metalEstimate || src.metalCost || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-metal-${id}" value="${src.actualMetalCost != null ? src.actualMetalCost : (src.metalEstimate || src.metalCost || '')}" min="0" placeholder="from quote" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Stone cost ($)</div>
-        <input type="number" id="af-stone-${id}" value="${src.actualStoneCost != null ? src.actualStoneCost : (src.stones?.reduce((s,st)=>s+(st.cost||0),0) || src.stoneCost || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-stone-${id}" value="${src.actualStoneCost != null ? src.actualStoneCost : (src.stones?.reduce((s,st)=>s+(st.cost||0),0) || src.stoneCost || '')}" min="0" placeholder="from quote" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Final labor cost ($)</div>
-        <input type="number" id="af-labor-${id}" value="${src.actualLabor != null ? src.actualLabor : (src.laborEst || '')}" min="0" placeholder="from quote" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-labor-${id}" value="${src.actualLabor != null ? src.actualLabor : (src.laborEst || '')}" min="0" placeholder="from quote" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">+ materials/melee ($)</div>
-        <input type="number" id="af-melee-${id}" value="${src.actualMeleeCost != null ? src.actualMeleeCost : (src.meleeCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-melee-${id}" value="${src.actualMeleeCost != null ? src.actualMeleeCost : (src.meleeCost || '')}" min="0" placeholder="0" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Design fee ($)</div>
-        <input type="number" id="af-design-${id}" value="${src.actualDesignFee != null ? src.actualDesignFee : (src.designFee || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-design-${id}" value="${src.actualDesignFee != null ? src.actualDesignFee : (src.designFee || '')}" min="0" placeholder="0" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
       <div>
         <div class="field-label">Findings / chain cost ($)</div>
-        <input type="number" id="af-chain-cost-${id}" value="${src.actualChainCost != null ? src.actualChainCost : (src.chainCost || '')}" min="0" placeholder="0" oninput="calcActualsLive(${id})"
+        <input type="number" id="af-chain-cost-${id}" value="${src.actualChainCost != null ? src.actualChainCost : (src.chainCost || '')}" min="0" placeholder="0" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
       </div>
     </div>
@@ -6087,23 +6016,23 @@ function updateActuals(id, e, pieceIdx) {
     <div id="af-live-${id}" style="background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:10px;margin-bottom:10px;display:none"></div>
     <div style="margin-bottom:12px">
       <div class="field-label">Client price ($) — what you're actually charging</div>
-      <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcActualsLive(${id})"
+      <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcCostsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:0;outline:none">
     </div>
     <div style="display:flex;gap:8px">
       <button onclick="saveActuals(${id})" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer">Save</button>
-      <button onclick="document.getElementById('actuals-overlay-${id}').remove()" style="flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer">Cancel</button>
+      <button onclick="document.getElementById('costs-overlay-${id}').remove()" style="flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer">Cancel</button>
     </div>`;
 
   overlay.appendChild(modal);
   overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
   document.body.appendChild(overlay);
-  buildChainTreePicker('af-chain-tree-' + id, 'af-chain-' + id, 'af-chain-label-' + id, () => { calcActualsLive(id); });
+  buildChainTreePicker('af-chain-tree-' + id, 'af-chain-' + id, 'af-chain-label-' + id, () => { calcCostsLive(id); });
   // Show live panel immediately based on prefilled values
-  setTimeout(() => calcActualsLive(id), 50);
+  setTimeout(() => calcCostsLive(id), 50);
 }
 
-function calcActualsLive(id) {
+function calcCostsLive(id) {
   const stoneCost = parseFloat(document.getElementById('af-stone-' + id)?.value) || 0;
   const metalCost = parseFloat(document.getElementById('af-metal-' + id)?.value) || 0;
   const laborCost = parseFloat(document.getElementById('af-labor-' + id)?.value) || 0;
@@ -6209,7 +6138,7 @@ function saveActuals(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
   // For multi-piece: _pieceIdx is stored on the overlay element, not on q
-  const overlayEl = document.getElementById('actuals-overlay-' + id);
+  const overlayEl = document.getElementById('costs-overlay-' + id);
   const storedPieceIdx = overlayEl?.dataset?.pieceIdx;
   if (storedPieceIdx !== undefined && storedPieceIdx !== '' && q._pieceIdx === undefined) {
     q._pieceIdx = parseInt(storedPieceIdx);
@@ -6254,7 +6183,7 @@ function saveActuals(id) {
   const rawTotal = stoneRetail + rest * 1.13;
   const recalcRetail = Math.round(rawTotal / 50) * 50;
 
-  // If this is a piece in a set, write actuals ONLY to the specific piece
+  // If this is a piece in a set, write costs ONLY to the specific piece
   if (q._pieceIdx !== undefined && q.pieces?.[q._pieceIdx]) {
     const p = q.pieces[q._pieceIdx];
     p.actualStoneCost = stoneCost;
@@ -6290,10 +6219,10 @@ function saveActuals(id) {
 
   window._savedQuotes = quotes;
   persistQuotes();
-  const form = document.getElementById('actuals-overlay-' + id);
+  const form = document.getElementById('costs-overlay-' + id);
   if (form) form.remove();
   renderSaved();
-  showToast('Actuals saved');
+  showToast('Costs saved');
 }
 
 function applyDiscount(id, val, type) {
@@ -9286,8 +9215,8 @@ function renderProduction(){
     actionRow.appendChild(orderBtn);actionRow.appendChild(logRunBtn);actionRow.appendChild(editBtn);actionRow.appendChild(delBtn);body.appendChild(actionRow);
 
     // Cost summary
-    var hasCosts=spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost;
-    if(hasCosts){
+    var hasActuals=spec.stoneCost||spec.meleeCost||spec.metalCost||spec.laborCost||spec.findingsCost;
+    if(hasActuals){
       var costsDiv=document.createElement('div');costsDiv.style.cssText='display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;padding:8px;background:#fafaf7;border-radius:0;margin-bottom:10px';
       var pairs=[['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost]];
       pairs.forEach(function(p){if(!p[1])return;var span=document.createElement('span');span.style.color='var(--text-dim)';span.textContent=p[0]+' '+fmt(p[1]);costsDiv.appendChild(span);});
@@ -9718,7 +9647,7 @@ function startProdOrder(specId) {
     var el = document.querySelector('[data-id="' + now + '"]');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     var fakeEvent = { stopPropagation: function(){} };
-    updateActuals(now, fakeEvent);
+    updateCosts(now, fakeEvent);
   }, 400);
   showToast('Order started for ' + clientName);
 }
@@ -9798,7 +9727,7 @@ function startProdOrder(specId) {
       if (q.stones && !Array.isArray(q.stones)) q.stones = Object.values(q.stones);
       if (q.pieces && !Array.isArray(q.pieces)) q.pieces = Object.values(q.pieces);
       // Recalc actualTotal for any project with actual costs so card header stays current
-      // Skip multi-piece sets (pieces handle their own totals) and projects with no actuals entered
+      // Skip multi-piece sets (pieces handle their own totals) and projects with no costs entered
       const hasActuals = !q.isMultiPiece && (q.actualStoneCost != null || q.actualMetalCost != null || q.actualLabor != null || q.actualMeleeCost != null);
       if (hasActuals && typeof recalcAndSaveActualTotal === 'function') recalcAndSaveActualTotal(q);
     });
