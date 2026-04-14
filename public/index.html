@@ -1458,6 +1458,16 @@
         </div>
       </div>
 
+      <!-- ARCHIVE SUB-PANEL -->
+      <div id="archivePanel" style="display:none;margin-bottom:8px">
+        <div style="overflow-x:auto;scrollbar-width:none">
+          <div class="toggle-group" style="min-width:max-content;border-top:2px solid var(--border)">
+            <button class="toggle-btn" onclick="setArchiveSub('archived-all',this)">All archived</button>
+            <button class="toggle-btn" onclick="setArchiveSub('completed',this)">✓ Completed</button>
+            <button class="toggle-btn" onclick="setArchiveSub('abandoned',this)">✕ Abandoned</button>
+          </div>
+        </div>
+      </div>
 
       <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
         <button id="sortDateBtn" onclick="setSavedSort('date')" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 0 0 2px;cursor:pointer">Date</button>
@@ -5579,7 +5589,7 @@ function renderSaved() {
   } else if (savedFilter === 'collection') {
     filtered = allQuotes.filter(q => q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts');
   } else if (savedFilter === 'archived-all') {
-    filtered = allQuotes.filter(q => archived.includes(q.status));
+    filtered = allQuotes.filter(q => nonActive.includes(q.status));
   } else if (savedFilter === 'completed') {
     filtered = allQuotes.filter(q => q.status === 'completed');
   } else if (savedFilter === 'abandoned') {
@@ -5696,9 +5706,33 @@ function setSavedSort(sort) {
 }
 
 function toggleArchivePanel(btn) {
+  const panel = document.getElementById('archivePanel');
+  const isOpen = panel && panel.style.display !== 'none';
+  if (isOpen) {
+    panel.style.display = 'none';
+    btn.textContent = 'Archived ▾';
+    btn.classList.remove('active');
+    setFilter('all', document.querySelector('#screen-saved .toggle-group:first-of-type .toggle-btn'));
+    return;
+  }
   document.querySelectorAll('#screen-saved .toggle-group:first-of-type .toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  btn.textContent = 'Archived ▴';
+  if (panel) {
+    panel.style.display = 'block';
+    // Default to all archived, activate first sub-btn
+    const firstSub = panel.querySelector('.toggle-btn');
+    panel.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+    if (firstSub) firstSub.classList.add('active');
+  }
   setFilter('archived-all', null);
+}
+
+function setArchiveSub(filter, btn) {
+  const panel = document.getElementById('archivePanel');
+  if (panel) panel.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  setFilter(filter, null);
 }
 function setFilter(filter, btn) {
   savedFilter = filter;
