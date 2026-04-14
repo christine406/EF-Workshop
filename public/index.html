@@ -4498,7 +4498,8 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       <div>
         <div class="field-label">Type</div>
         <select id="eq-quotetype-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
-          <option value="client" ${q.quoteType!=='collection'?'selected':''}>Client</option>
+          <option value="bespoke" ${q.quoteType==='bespoke'||q.quoteType==='client'||(!q.quoteType&&q.status!=='collection'&&q.status!=='collection-quote')?'selected':''}>Bespoke</option>
+          <option value="semi-custom" ${q.quoteType==='semi-custom'?'selected':''}>Semi-custom</option>
           <option value="collection" ${q.quoteType==='collection'?'selected':''}>Collection</option>
         </select>
       </div>
@@ -4698,9 +4699,9 @@ function saveQuoteEdit(id) {
     if (newType !== q.quoteType) {
       q.quoteType = newType;
       if (q.status === 'quote' && newType === 'collection') q.status = 'collection-quote';
-      else if (q.status === 'collection-quote' && newType === 'client') q.status = 'quote';
+      else if (q.status === 'collection-quote' && (newType === 'client' || newType === 'bespoke' || newType === 'semi-custom')) q.status = 'quote';
       else if (q.status === 'project' && newType === 'collection') q.status = 'collection';
-      else if (q.status === 'collection' && newType === 'client') q.status = 'project';
+      else if (q.status === 'collection' && (newType === 'client' || newType === 'bespoke' || newType === 'semi-custom')) q.status = 'project';
     }
   }
 
