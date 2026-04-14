@@ -99,18 +99,18 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), (req, r
     const needBy    = get(['needBy', 'date', 'need']);
     const howFound  = get(['find', 'found', 'elvie', 'how']);
     const stoneView = get(['view', 'stone', 'prefer']);
-    const process   = get(['process', 'where']);
+    const processStage = get(['process', 'where']);
     const design    = get(['design', 'style', 'drawn', 'elements']);
     const wearerInvolved = get(['wearer', 'involved']);
     const notes     = get(['anything', 'know', 'notes', 'additional']);
-    const submissionId = raw.submissionID || raw.rawRequest ? JSON.parse(raw.rawRequest || '{}').submissionID : Date.now().toString();
+    const submissionId = raw.submissionID || Date.now().toString();
 
     const inquiry = {
       id: Date.now(),
       submissionId,
       formType,
       receivedAt: new Date().toISOString(),
-      status: 'new', // new | reviewed | converted
+      status: 'new',
       name: fullName,
       email,
       pieceType,
@@ -122,14 +122,14 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), (req, r
       needBy,
       howFound,
       stoneView,
-      processStage: process,
+      processStage,
       designNotes: design,
       wearerInvolved,
       notes,
     };
 
-    // Save to Firebase via fetch to the Firebase REST API
-    const fbUrl = process.env.FIREBASE_URL || 'https://ef-workshop-ff6cf-default-rtdb.firebaseio.com';
+    // Save to Firebase REST API
+    const fbUrl = 'https://ef-workshop-ff6cf-default-rtdb.firebaseio.com';
     const https = require('https');
     const data = JSON.stringify(inquiry);
     const url = new URL(`${fbUrl}/inquiries.json`);
@@ -155,7 +155,7 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), (req, r
 
 // Auth middleware
 app.use((req, res, next) => {
-  const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png'];
+  const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png', '/api/jotform-webhook'];
   if (skipPaths.includes(req.path)) return next();
 
   const password = process.env.APP_PASSWORD;

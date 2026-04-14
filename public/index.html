@@ -1926,7 +1926,7 @@
         💌 Inquiries
         <div style="display:flex;gap:6px">
           <button onclick="openAddInquiryForm()" style="background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;cursor:pointer">+ Add</button>
-          <button onclick="renderInquiries()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Refresh</button>
+          <button onclick="refreshInquiries(this)" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Refresh</button>
         </div>
       </div>
       <!-- Manual add form -->
@@ -7904,6 +7904,18 @@ function deleteDevNote(idx) {
 // =================== INQUIRIES ===================
 var _inquiryFilter = 'all';
 function getInquiries() { return window._inquiries || []; }
+
+function refreshInquiries(btn) {
+  if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+  // Re-read from Firebase via onValue (already subscribed — just re-render)
+  // Force a fresh read by reading window._inquiries which Firebase keeps live
+  setTimeout(function() {
+    renderInquiries();
+    updateInquiryBadge();
+    if (btn) { btn.textContent = 'Refresh'; btn.disabled = false; }
+    showToast('Refreshed');
+  }, 300);
+}
 
 function updateInquiryBadge() {
   var badge = document.getElementById('inq-badge');
