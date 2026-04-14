@@ -7879,6 +7879,22 @@ if (!window._fieldLog) window._fieldLog = [];
 if (!window._fieldLogType) window._fieldLogType = 'main-stone';
 
 function getFieldLog() { return window._fieldLog || []; }
+function purgeOldFieldLogEntries() {
+  const log = getFieldLog();
+  const cutoff = Date.now() - (30 * 24 * 60 * 60 * 1000);
+  const filtered = log.filter(function(e) {
+    if (!e.done && !e.reconciled) return true; // never auto-delete active entries
+    // Parse the date string to timestamp
+    var ts = e.timestamp || (e.date ? new Date(e.date).getTime() : 0);
+    return ts > cutoff;
+  });
+  if (filtered.length < log.length) {
+    window._fieldLog = filtered;
+    persistFieldLog();
+    console.log('Purged ' + (log.length - filtered.length) + ' old field log entries');
+  }
+}
+
 function persistFieldLog() { if (window._fb) window._fb.saveFieldLog(window._fieldLog); }
 
 function setFieldLogType(type, btn) {
@@ -7928,6 +7944,7 @@ function saveFieldLogEntry() {
   const projectClient = projectId ? (getSavedQuotes().find(q => q.id === projectId)?.client || null) : null;
   const entry = {
     id: Date.now(),
+    timestamp: Date.now(),
     type: window._fieldLogType || 'main-stone',
     description: desc,
     amount: parseFloat(document.getElementById('fl-amount').value) || 0,
@@ -8281,8 +8298,11 @@ function renderFieldLog() {
     active.forEach(e => list.appendChild(renderEntry(e)));
   }
   if (done.length) {
-    const h = document.createElement('div'); h.style.cssText='font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-top:16px;margin-bottom:8px'; h.textContent='Done (' + done.length + ')'; list.appendChild(h);
-    done.forEach(e => list.appendChild(renderEntry(e)));
+    const doneWrapper = document.createElement('div');
+    doneWrapper.style.cssText = 'background:#fafaf7;margin:16px -16px 0;padding:12px 16px';
+    const h = document.createElement('div'); h.style.cssText='font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px'; h.textContent='Done (' + done.length + ')'; doneWrapper.appendChild(h);
+    done.forEach(e => doneWrapper.appendChild(renderEntry(e)));
+    list.appendChild(doneWrapper);
   }
 }
 
@@ -9673,6 +9693,7 @@ function startProdOrder(specId) {
   onValue(ref(db, 'fieldLog'), snap => {
     const val = snap.val();
     window._fieldLog = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof purgeOldFieldLogEntries === 'function') purgeOldFieldLogEntries();
     if (typeof renderFieldLog === 'function') renderFieldLog();
   });
 
