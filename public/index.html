@@ -4341,9 +4341,9 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <div style="display:flex;align-items:center;gap:8px">
           <input type="checkbox" id="ep-antique-${id}" ${_epAntique?'checked':''} style="width:16px;height:16px;accent-color:var(--gold);cursor:pointer">
           <label for="ep-antique-${id}" style="font-size:13px;color:var(--text);cursor:pointer">Genuine antique stone</label>
-        </` : ``}div>
+        </div>
       </div>
-    </div>
+    </div>` : ``}
     <div style="margin-bottom:10px">
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none;box-sizing:border-box">${q.notes || ''}</textarea>
