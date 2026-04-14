@@ -69,6 +69,8 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), (req, r
   try {
     const formType = req.query.form || 'unknown'; // 'bespoke' or 'semi-custom'
     const raw = req.body;
+    console.log('JotForm raw keys:', Object.keys(raw));
+    console.log('JotForm raw body:', JSON.stringify(raw).slice(0, 2000));
 
     // JotForm sends fields like q3_fullName[first], q4_email, q5_whatType etc.
     // Extract by looking for common patterns
