@@ -65,35 +65,58 @@ app.post('/login', express.urlencoded({ extended: false }), (req, res) => {
 });
 
 // ─── JotForm Webhook ──────────────────────────────────────────────────────────
-app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), express.json(), (req, res) => {
-  try {
-    const formType = req.query.form || 'unknown';
-    // JotForm sends a rawRequest field containing the actual JSON submission
-    let raw = req.body || {};
-    console.log('JotForm raw keys:', Object.keys(raw));
-    console.log('JotForm raw body:', JSON.stringify(raw).slice(0, 2000));
+app.post('/api/jotform-webhook', (req, res) => {
+  let body = '';
+  req.on('data', chunk => { body += chunk.toString(); });
+  req.on('end', () => {
+    try {
+      const formType = req.query.form || 'unknown';
+      const contentType = req.headers['content-type'] || '';
+      console.log('JotForm content-type:', contentType);
+      console.log('JotForm raw body string:', body.slice(0, 3000));
 
-    // JotForm often sends everything inside a rawRequest JSON string
-    let parsedReq = {};
-    if (raw.rawRequest) {
-      try { parsedReq = JSON.parse(raw.rawRequest); } catch(e) {}
-    }
-    // Merge: use parsedReq if available, fall back to raw
-    const data = Object.keys(parsedReq).length > 0 ? parsedReq : raw;
-    console.log('JotForm parsed keys:', Object.keys(data));
-
-    const get = (keys) => {
-      for (const k of keys) {
-        const fullKey = Object.keys(data).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
-        if (fullKey && data[fullKey]) {
-          const val = data[fullKey];
-          if (typeof val === 'object' && !Array.isArray(val)) return Object.values(val).filter(Boolean).join(' ');
-          if (Array.isArray(val)) return val.filter(Boolean).join(', ');
-          return String(val);
+      // Parse depending on content type
+      let raw = {};
+      if (contentType.includes('application/json')) {
+        try { raw = JSON.parse(body); } catch(e) {}
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        const params = new URLSearchParams(body);
+        params.forEach((v, k) => { raw[k] = v; });
+      } else {
+        // Try urlencoded first, then JSON
+        try {
+          const params = new URLSearchParams(body);
+          params.forEach((v, k) => { raw[k] = v; });
+        } catch(e) {}
+        if (Object.keys(raw).length === 0) {
+          try { raw = JSON.parse(body); } catch(e) {}
         }
       }
-      return '';
-    };
+
+      // JotForm often wraps everything in rawRequest
+      let data = raw;
+      if (raw.rawRequest) {
+        try {
+          const inner = JSON.parse(raw.rawRequest);
+          data = Object.assign({}, raw, inner);
+        } catch(e) {}
+      }
+
+      console.log('JotForm parsed keys:', Object.keys(data));
+      console.log('JotForm parsed data:', JSON.stringify(data).slice(0, 2000));
+
+      const get = (keys) => {
+        for (const k of keys) {
+          const fullKey = Object.keys(data).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
+          if (fullKey && data[fullKey]) {
+            const val = data[fullKey];
+            if (typeof val === 'object' && !Array.isArray(val)) return Object.values(val).filter(Boolean).join(' ');
+            if (Array.isArray(val)) return val.filter(Boolean).join(', ');
+            return String(val);
+          }
+        }
+        return '';
+      };
 
     const firstName = get(['first', 'firstName']);
     const lastName  = get(['last', 'lastName']);
@@ -153,15 +176,16 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), express
     const fireReq = https.request(options, (fireRes) => {
       console.log('JotForm inquiry saved to Firebase:', inquiry.name, formType);
     });
-    fireReq.on('error', (e) => console.error('Firebase write error:', e));
-    fireReq.write(payload);
-    fireReq.end();
+      fireReq.on('error', (e) => console.error('Firebase write error:', e));
+      fireReq.write(payload);
+      fireReq.end();
 
-    res.status(200).json({ ok: true });
-  } catch (e) {
-    console.error('JotForm webhook error:', e);
-    res.status(200).json({ ok: true }); // always 200 to JotForm
-  }
+      res.status(200).json({ ok: true });
+    } catch (e) {
+      console.error('JotForm webhook error:', e);
+      res.status(200).json({ ok: true });
+    }
+  });
 });
 
 // Auth middleware
