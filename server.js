@@ -65,22 +65,31 @@ app.post('/login', express.urlencoded({ extended: false }), (req, res) => {
 });
 
 // ─── JotForm Webhook ──────────────────────────────────────────────────────────
-app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), (req, res) => {
+app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), express.json(), (req, res) => {
   try {
-    const formType = req.query.form || 'unknown'; // 'bespoke' or 'semi-custom'
-    const raw = req.body;
+    const formType = req.query.form || 'unknown';
+    // JotForm sends a rawRequest field containing the actual JSON submission
+    let raw = req.body || {};
     console.log('JotForm raw keys:', Object.keys(raw));
     console.log('JotForm raw body:', JSON.stringify(raw).slice(0, 2000));
 
-    // JotForm sends fields like q3_fullName[first], q4_email, q5_whatType etc.
-    // Extract by looking for common patterns
+    // JotForm often sends everything inside a rawRequest JSON string
+    let parsed = {};
+    if (raw.rawRequest) {
+      try { parsed = JSON.parse(raw.rawRequest); } catch(e) {}
+    }
+    // Merge: use parsed if available, fall back to raw
+    const data = Object.keys(parsed).length > 0 ? parsed : raw;
+    console.log('JotForm parsed keys:', Object.keys(data));
+
     const get = (keys) => {
       for (const k of keys) {
-        const fullKey = Object.keys(raw).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
-        if (fullKey && raw[fullKey]) {
-          const val = raw[fullKey];
-          if (typeof val === 'object') return Object.values(val).filter(Boolean).join(' ');
-          return val;
+        const fullKey = Object.keys(data).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
+        if (fullKey && data[fullKey]) {
+          const val = data[fullKey];
+          if (typeof val === 'object' && !Array.isArray(val)) return Object.values(val).filter(Boolean).join(' ');
+          if (Array.isArray(val)) return val.filter(Boolean).join(', ');
+          return String(val);
         }
       }
       return '';
