@@ -4223,6 +4223,33 @@ function saveSetHeader(id) {
   const q = quotes.find(q => q.id === id);
   if (!q) return;
   q.client = document.getElementById('esh-client-' + id)?.value.trim() || q.client;
+  // Save cost edits and recalc total
+  const _newStoneCost = parseFloat(document.getElementById('eq-stone-cost-'+id)?.value);
+  const _newGrams = parseFloat(document.getElementById('eq-grams-'+id)?.value);
+  const _newLabor = parseFloat(document.getElementById('eq-labor-'+id)?.value);
+  const _newDesignFee = parseFloat(document.getElementById('eq-designfee-'+id)?.value);
+  if (!isNaN(_newStoneCost) || !isNaN(_newGrams) || !isNaN(_newLabor) || !isNaN(_newDesignFee)) {
+    const goldSpot = window._goldSpot || 0;
+    const purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
+    const purity = purityMap[q.purity] || 0.75;
+    const stoneCost = isNaN(_newStoneCost) ? (q.stones&&q.stones[0]&&q.stones[0].cost||0) : _newStoneCost;
+    const grams = isNaN(_newGrams) ? (q.grams||0) : _newGrams;
+    const labor = isNaN(_newLabor) ? (q.laborEst||0) : _newLabor;
+    const designFee = isNaN(_newDesignFee) ? (q.designFee||0) : _newDesignFee;
+    const metalCost = grams > 0 && goldSpot ? Math.round((grams/31.1035)*goldSpot*purity*1.25) : 0;
+    function _sm(c){if(c<=5000)return 2.1;if(c<=10000)return 1.8;if(c<=15000)return 1.6;if(c<=25000)return 1.55;return 1.5;}
+    const stoneRetail = stoneCost * _sm(stoneCost);
+    const metalRetail = metalCost * 1.35;
+    const laborRetail = labor * 1.4;
+    const overhead = (metalRetail + laborRetail + designFee) * 1.13;
+    const suggested = Math.round((stoneRetail + overhead) / 50) * 50;
+    if (q.stones && q.stones[0]) q.stones[0].cost = stoneCost;
+    q.grams = grams;
+    q.laborEst = labor;
+    q.designFee = designFee;
+    if (suggested) q.total = suggested;
+  }
+
   window._savedQuotes = quotes;
   persistQuotes();
   document.querySelectorAll('.inline-edit-overlay').forEach(f => f.remove());
@@ -4341,6 +4368,31 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     <div style="margin-bottom:10px">
       <div class="field-label">Notes</div>
       <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none;box-sizing:border-box">${q.notes || ''}</textarea>
+    </div>
+    <div style="margin-bottom:12px;padding:12px;background:#f5f0e7;border:1px solid var(--border)">
+      <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Costs &amp; pricing</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <div class="field-label">Stone cost ($)</div>
+          <input type="number" id="eq-stone-cost-${id}" value="${(q.stones&&q.stones[0]&&q.stones[0].cost)||q.stoneCost||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div class="field-label">Est. grams</div>
+          <input type="number" id="eq-grams-${id}" value="${q.grams||''}" placeholder="0" step="0.1" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div class="field-label">Labor / setting ($)</div>
+          <input type="number" id="eq-labor-${id}" value="${q.laborEst||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div class="field-label">Design fee ($)</div>
+          <input type="number" id="eq-designfee-${id}" value="${q.designFee||''}" placeholder="0" oninput="recalcEditQuote(${id})" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--border)">
+        <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Suggested retail</div>
+        <div id="eq-retail-preview-${id}" style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:var(--gold)">${q.total ? fmt(q.total) : '—'}</div>
+      </div>
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
@@ -4513,6 +4565,27 @@ function setCollectionType(id, type) {
   }
   mtoBtn.dataset.selected = type === 'mto' ? '1' : '0';
   rtsBtn.dataset.selected = type === 'rts' ? '1' : '0';
+}
+
+function recalcEditQuote(id) {
+  const q = getSavedQuotes().find(q => q.id === id);
+  if (!q) return;
+  const stoneCost = parseFloat(document.getElementById('eq-stone-cost-'+id)?.value) || 0;
+  const grams = parseFloat(document.getElementById('eq-grams-'+id)?.value) || 0;
+  const labor = parseFloat(document.getElementById('eq-labor-'+id)?.value) || 0;
+  const designFee = parseFloat(document.getElementById('eq-designfee-'+id)?.value) || 0;
+  const goldSpot = window._goldSpot || 0;
+  const purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
+  const purity = purityMap[q.purity] || 0.75;
+  const metalCost = grams > 0 && goldSpot ? Math.round((grams/31.1035)*goldSpot*purity*1.25) : 0;
+  function stoneMarkup(c){if(c<=5000)return 2.1;if(c<=10000)return 1.8;if(c<=15000)return 1.6;if(c<=25000)return 1.55;return 1.5;}
+  const stoneRetail = stoneCost * stoneMarkup(stoneCost);
+  const metalRetail = metalCost * 1.35;
+  const laborRetail = labor * 1.4;
+  const overhead = (metalRetail + laborRetail + designFee) * 1.13;
+  const suggested = Math.round((stoneRetail + overhead) / 50) * 50;
+  const preview = document.getElementById('eq-retail-preview-'+id);
+  if (preview) preview.textContent = suggested ? fmt(suggested) : '—';
 }
 
 function saveQuoteEdit(id) {
