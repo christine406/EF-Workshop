@@ -7944,6 +7944,7 @@ function renderInquiries() {
     card.dataset.inqId = inq.id;
     var date = inq.receivedAt ? new Date(inq.receivedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
     var statusColor = inq.status === 'new' ? '#741435' : inq.status === 'converted' ? 'var(--teal-dim)' : 'var(--text-dim)';
+    var statusLabel = inq.status === 'new' ? '✨ new ✨' : (inq.status || 'new');
     var formPillColor = inq.formType === 'bespoke' ? '#741435' : '#4a7a7d';
     var formPillLabel = inq.formType === 'bespoke' ? 'Bespoke' : 'Semi-custom';
     var fields = [
@@ -7978,7 +7979,7 @@ function renderInquiries() {
       + '<span style="font-size:12px;color:var(--text-dim)">' + date + (inq.pieceType ? ' · ' + inq.pieceType : '') + '</span>'
       + '</div>'
       + '</div>'
-      + '<span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:' + statusColor + ';white-space:nowrap;margin-left:8px">' + (inq.status || 'new') + '</span>'
+      + '<span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:' + statusColor + ';white-space:nowrap;margin-left:8px">' + statusLabel + '</span>'
       + '</div>'
       + '<div class="inq-card-body">'
       + fieldsHtml
