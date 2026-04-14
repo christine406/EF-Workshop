@@ -5136,6 +5136,7 @@ function buildMultiPieceCard(q) {
   } else {
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;project&quot;,event)">Reopen</button>';
   }
+  html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
   html += '<button class="convert-btn" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
 
@@ -5346,6 +5347,7 @@ function buildQuoteCard(q) {
   } else if (archived.includes(q.status)) {
     html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="unarchiveItem(' + q.id + ',event)">Unarchive</button>';
   }
+  html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
   html += '</div>';
 
@@ -5707,6 +5709,27 @@ function setFilter(filter, btn) {
     btn.classList.add('active');
   }
   renderSaved();
+}
+
+function copyQuote(id, e) {
+  e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const original = quotes.find(q => q.id == id);
+  if (!original) return;
+  const copy = JSON.parse(JSON.stringify(original));
+  copy.id = Date.now();
+  copy.status = 'quote';
+  copy.client = (original.client || 'Untitled') + ' copy';
+  copy.date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  copy.invoiceLinks = [];
+  copy.actualTotal = null;
+  copy.clientPrice = null;
+  copy.linkedId = null;
+  quotes.unshift(copy);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+  showToast('Copy created in Quotes');
 }
 
 function archiveItem(id, e) {
