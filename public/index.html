@@ -865,8 +865,8 @@
   }
 
   /* CARD BODY */
-  .card-body { background: #5a8d90; }
-  .card-body { color: #ffffff; }
+  .card-body { background: #f7eae9; }
+  .card-body { color: var(--text); }
   .card-body .convert-btn { background: #fafaf7 !important; }
 
   /* QUOTES LIST */
@@ -5055,7 +5055,7 @@ function buildMultiPieceCard(q) {
     + '<div style="font-size:12px;color:var(--text-dim)" class="tap-arrow">▾</div>'
     + '</div></div></div>';
 
-  html += '<div class="card-body" style="display:none;margin-top:10px;background:#5a8d90;border-radius:0;padding:10px;border:1px solid #4a7a7d">';
+  html += '<div class="card-body" style="display:none;margin-top:10px;background:#f7eae9;border-radius:0;padding:10px;border:1px solid #e8d0ce">';
 
   // Pieces breakdown
   html += '<div style="background:#fafaf7;border-radius:0;padding:10px;margin-bottom:8px">';
@@ -5092,7 +5092,7 @@ function buildMultiPieceCard(q) {
       + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
       + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:#fafaf7;border-radius:0;padding:8px 10px">'
-      + (hasActuals ? '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px;color:rgba(255,255,255,0.7)">Actual costs</div>' : '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Estimated costs</div>')
+      + (hasActuals ? '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px;color:var(--text-dim)">Actual costs</div>' : '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Estimated costs</div>')
       + costLines.map(l => '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text);margin-bottom:3px"><span>' + l.split(':')[0] + '</span><span>' + l.split(':')[1] + '</span></div>').join('')
       + '<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);margin-top:4px;padding-top:4px"><span style="color:var(--text-dim)">Total cost</span><span style="color:var(--text)">$' + totalCost.toLocaleString() + '</span></div>'
       + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:2px"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + '">$' + profit.toLocaleString() + '</span></div>'
@@ -5281,7 +5281,7 @@ function buildQuoteCard(q) {
     + '</div>';
 
   // BODY — hidden by default
-  html += '<div class="card-body" style="display:none;margin-top:10px;background:#5a8d90;border-radius:0;padding:10px;border:1px solid #4a7a7d">';
+  html += '<div class="card-body" style="display:none;margin-top:10px;background:#f7eae9;border-radius:0;padding:10px;border:1px solid #e8d0ce">';
 
   // Discount + pricing breakdown
   html += '<div style="padding:10px;background:#fafaf7;border-radius:0;font-size:13px;margin-bottom:8px">';
@@ -5322,19 +5322,19 @@ function buildQuoteCard(q) {
   const totalCosts = showStoneCost + showMetalCost + showLaborCost + showMeleeCost + showChainCost;
   if (totalCosts > 0 || showDesignFee != null) {
     html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:8px 10px">';
-    html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:6px">'
+    html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">'
       + (hasActuals ? 'Actual costs' : 'Est. costs') + '</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:12px">';
-    if (showStoneCost) html += '<span style="color:rgba(255,255,255,0.8)">Stone</span><span style="color:#fff">$' + showStoneCost.toLocaleString() + '</span>';
-    if (showMetalCost) html += '<span style="color:rgba(255,255,255,0.8)">Metal</span><span style="color:#fff">$' + showMetalCost.toLocaleString() + '</span>';
-    if (showLaborCost) html += '<span style="color:rgba(255,255,255,0.8)">Labor</span><span style="color:#fff">$' + showLaborCost.toLocaleString() + '</span>';
-    if (showMeleeCost) html += '<span style="color:rgba(255,255,255,0.8)">Materials</span><span style="color:#fff">$' + showMeleeCost.toLocaleString() + '</span>';
+    if (showStoneCost) html += '<span style="color:var(--text-dim)">Stone</span><span style="color:#fff">$' + showStoneCost.toLocaleString() + '</span>';
+    if (showMetalCost) html += '<span style="color:var(--text-dim)">Metal</span><span style="color:#fff">$' + showMetalCost.toLocaleString() + '</span>';
+    if (showLaborCost) html += '<span style="color:var(--text-dim)">Labor</span><span style="color:#fff">$' + showLaborCost.toLocaleString() + '</span>';
+    if (showMeleeCost) html += '<span style="color:var(--text-dim)">Materials</span><span style="color:#fff">$' + showMeleeCost.toLocaleString() + '</span>';
     if (showChainCost) html += '<span style="color:var(--text-dim)">Chain</span><span style="color:var(--text)">$' + showChainCost.toLocaleString() + '</span>';
-    html += '<span style="color:rgba(255,255,255,0.8)">Design fee</span><span style="color:' + (showDesignFee ? 'var(--text)' : 'var(--text-dim)') + '">' + (showDesignFee ? '$' + showDesignFee.toLocaleString() : '—') + '</span>';
+    html += '<span style="color:var(--text-dim)">Design fee</span><span style="color:' + (showDesignFee ? 'var(--text)' : 'var(--text-dim)') + '">' + (showDesignFee ? '$' + showDesignFee.toLocaleString() : '—') + '</span>';
     html += '</div>';
     if (totalCosts > 0) {
       html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);margin-top:6px;padding-top:6px;font-size:13px">'
-        + '<span style="color:rgba(255,255,255,0.8)">Total costs</span>'
+        + '<span style="color:var(--text-dim)">Total costs</span>'
         + '<span style="color:var(--text);font-weight:500">$' + totalCosts.toLocaleString() + '</span></div>';
     }
     html += '</div>';
