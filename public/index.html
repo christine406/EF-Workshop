@@ -1458,18 +1458,7 @@
         </div>
       </div>
 
-      <!-- ARCHIVE SUB-FILTERS -->
-      <div id="archivePanel" style="display:none;margin-bottom:12px">
-        <div style="overflow-x:auto;scrollbar-width:none">
-          <div class="toggle-group" style="min-width:max-content;border-top:2px solid var(--teal-dim)">
-            <button class="toggle-btn" onclick="setFilter('archived-quote',this)">Quotes</button>
-            <button class="toggle-btn" onclick="setFilter('archived-project',this)">Client projects</button>
-            <button class="toggle-btn" onclick="setFilter('archived-collection',this)">Collection</button>
-            <button class="toggle-btn" onclick="setFilter('completed',this)">✓ Completed</button>
-            <button class="toggle-btn" onclick="setFilter('abandoned',this)">✕ Abandoned</button>
-          </div>
-        </div>
-      </div>
+
       <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
         <button id="sortDateBtn" onclick="setSavedSort('date')" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 0 0 2px;cursor:pointer">Date</button>
         <button id="sortAlphaBtn" onclick="setSavedSort('alpha')" style="background:#fafaf7;color:var(--text-dim);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 2px 2px 0;cursor:pointer;border-left:1px solid var(--border)">A–Z</button>
@@ -5705,21 +5694,10 @@ function setSavedSort(sort) {
 }
 
 function toggleArchivePanel(btn) {
-  const panel = document.getElementById('archivePanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  btn.textContent = isOpen ? 'Archived ▾' : 'Archived ▴';
-  if (!isOpen) {
-    // deactivate main tabs, activate archive tab button
-    document.querySelectorAll('#screen-saved .toggle-group:first-of-type .toggle-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    setFilter('archived-all', null);
-  } else {
-    btn.classList.remove('active');
-    setFilter('all', document.querySelector('#screen-saved .toggle-group .toggle-btn'));
-  }
+  document.querySelectorAll('#screen-saved .toggle-group:first-of-type .toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  setFilter('archived-all', null);
 }
-
 function setFilter(filter, btn) {
   savedFilter = filter;
   if (btn) {
