@@ -129,41 +129,65 @@ app.post('/api/jotform-webhook', (req, res) => {
         return '';
       };
 
-    // Map exact JotForm field names (from parsed data keys)
-    const nameField = data['q2_q2_fullname0'] || data['q2_fullname'] || '';
-    const fullName  = typeof nameField === 'object'
+    // Helper: get a value by exact key, skip if value is too long (junk fields)
+    const dget = (key) => {
+      const v = data[key];
+      if (!v) return '';
+      if (typeof v === 'object' && !Array.isArray(v)) return Object.values(v).filter(Boolean).join(' ');
+      if (Array.isArray(v)) return v.filter(Boolean).join(', ');
+      const s = String(v);
+      return s.length < 500 ? s : ''; // skip junk like jsExecutionTracker
+    };
+
+    // Name (shared field q2 on both forms)
+    const nameField = data['q2_q2_fullname0'] || data['q2_fullname2'] || data['q2_fullName'] || '';
+    const fullName = typeof nameField === 'object'
       ? Object.values(nameField).filter(Boolean).join(' ')
       : String(nameField || '');
-    const email       = data['q3_q3_email1'] || data['q3_email1'] || get(['email']);
-    const pieceType   = data['q4_q4_checkbox2'] || data['q4_checkbox'] || get(['whatType','piece','signature','design','interested']);
-    const budget      = data['q27_whatBudget'] || data['q27_budget'] || get(['budget','range','spending']);
-    const stoneView   = data['q21_howWould'] || get(['view','prefer','stone']);
-    const designNotes = data['q5_q5_textarea3'] || data['q5_textarea'] || get(['design','style','drawn']);
-    const wearerInvolved = data['q17_willThe'] || get(['wearer','involved']);
-    const ringSize    = data['q8_q8_textbox6'] || data['q8_textbox'] || get(['ring','size']);
-    const processStage = data['q12_q12_radio10'] || data['q9_q9_radio7'] || get(['process','where']);
-    const needBy      = data['q10_q10_radio8'] || get(['needBy','need','date']);
-    const howFound    = data['q11_q11_textarea9'] || get(['find','found','elvie','how']);
-    const sourcingStone = data['q6_sourcing'] || data['q7_stone'] || get(['sourcing']);
-    const stoneType   = data['q13_stoneType'] || data['q14_cut'] || get(['cut','stonePrefer']);
-    const occasion    = data['q15_occasion'] || data['q16_milestone'] || get(['milestone','occasion']);
-    const notes       = data['q18_anything'] || data['q19_notes'] || data['q20_additional'] || get(['anything','additional']);
 
-      // Tighter get() — only match if key starts with the search term or has it after underscore
-      const getStrict = (keys) => {
-        for (const k of keys) {
-          const fullKey = Object.keys(data).find(rk => {
-            const parts = rk.toLowerCase().split('_');
-            return parts.some(p => p.startsWith(k.toLowerCase()));
-          });
-          if (fullKey && data[fullKey] && String(data[fullKey]).length < 500) {
-            const val = data[fullKey];
-            if (typeof val === 'object' && !Array.isArray(val)) return Object.values(val).filter(Boolean).join(' ');
-            return String(val);
-          }
-        }
-        return '';
-      };
+    // Email (shared q3)
+    const email = dget('q3_q3_email1') || dget('q3_email1') || dget('q3_email');
+
+    // Form-specific field mapping
+    let pieceType, sourcingStone, stoneType, budget, processStage, howLearnProcess,
+        designNotes, wearerInvolved, ringSize, needByYesNo, needBy, howFound, stoneView, occasion, notes;
+
+    if (formType === 'bespoke') {
+      // BESPOKE FORM fields
+      pieceType       = dget('q4_whatType') || dget('q4_q4_checkbox2');     // "What type of piece..."
+      sourcingStone   = dget('q5_willWe')   || dget('q5_sourcing');          // "Will we be sourcing a stone..."
+      budget          = dget('q7_budget')   || dget('q27_whatBudget') || dget('q7_isThere'); // "Is there a budget range..."
+      stoneType       = dget('q9_ifWere')   || dget('q9_stoneType');         // "If we're sourcing a stone..."
+      ringSize        = dget('q10_ifWe')    || dget('q10_ringSize') || dget('q8_q8_textbox6'); // "Ring size"
+      processStage    = dget('q11_whereAre') || dget('q11_process');         // "Where are you in the process..."
+      howLearnProcess = dget('q12_howWould') || dget('q12_q12_radio10');     // "How would you prefer to learn..."
+      designNotes     = dget('q13_whatDesign') || dget('q5_q5_textarea3');   // "What design elements..."
+      wearerInvolved  = dget('q14_willThe') || dget('q17_willThe');          // "Will the wearer..."
+      needByYesNo     = dget('q15_doYou')   || dget('q10_q10_radio8');       // "Do you have a need-by date..."
+      needBy          = dget('q16_byWhat')  || dget('q16_needBy');           // "By what date..."
+      howFound        = dget('q17_howDid')  || dget('q11_q11_textarea9');    // "How did you find Elvie..."
+      stoneView       = dget('q18_ifThe')   || dget('q21_howWould');         // "How would you prefer to view stone options..."
+      occasion        = '';
+      notes           = dget('q19_anything') || dget('q18_anything');        // "Anything you'd like me to know..."
+    } else {
+      // SEMI-CUSTOM FORM fields
+      pieceType       = dget('q4_whichOf')  || dget('q4_q4_checkbox2');     // "Which of our signature designs..."
+      budget          = dget('q5_whatBudget') || dget('q27_whatBudget');     // "What budget range..."
+      processStage    = dget('q6_whereAre') || dget('q9_q9_radio7');        // "Where are you in the process..."
+      howLearnProcess = dget('q7_howWould') || dget('q12_q12_radio10');     // "How would you prefer to learn..."
+      occasion        = dget('q8_isThis')   || dget('q15_occasion');        // "Is this piece for a particular milestone..."
+      wearerInvolved  = dget('q9_willThe')  || dget('q17_willThe');         // "Will the wearer..."
+      needByYesNo     = dget('q10_doYou')   || dget('q10_q10_radio8');      // "Do you have a need-by date..."
+      needBy          = dget('q11_byWhat')  || dget('q11_needBy');          // "By what date..."
+      ringSize        = dget('q12_ringSize') || dget('q8_q8_textbox6');     // "Ring size"
+      howFound        = dget('q13_howDid')  || dget('q11_q11_textarea9');   // "How did you find Elvie..."
+      stoneView       = dget('q14_ifThe')   || dget('q21_howWould');        // "How would you prefer to view stone options..."
+      notes           = dget('q15_anything') || dget('q18_anything');       // "Anything you'd like me to know..."
+      sourcingStone   = '';
+      stoneType       = '';
+      designNotes     = '';
+    }
+    const needByFull = [needByYesNo, needBy].filter(Boolean).join(' — ');
     const design      = designNotes;
     const submissionId = raw.submissionID || Date.now().toString();
 
@@ -181,11 +205,12 @@ app.post('/api/jotform-webhook', (req, res) => {
       stoneType,
       ringSize,
       occasion,
-      needBy,
+      needBy: needByFull,
       howFound,
       stoneView,
       processStage,
-      designNotes: design || designNotes,
+      howLearnProcess,
+      designNotes,
       wearerInvolved,
       notes,
     };
