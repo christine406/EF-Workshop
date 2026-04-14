@@ -5096,7 +5096,7 @@ function savePieceEdit(setId, pieceIdx) {
 
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
-  const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
+  const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : q.status === 'quote' ? 'QUOTE' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
   // Collect unique occasion emojis from all pieces
   const pieceEmojis = (q.pieces||[]).map(p => p.occasion ? (OCCASION_EMOJIS[p.occasion] || '') : (PIECE_EMOJIS[p.pieceType] || '')).filter(Boolean);
   const uniqueEmojis = [...new Set(pieceEmojis)];
@@ -5309,6 +5309,7 @@ function buildQuoteCard(q) {
     : q.status === 'abandoned' ? '✕ ABANDONED'
     : q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
     : q.quoteType === 'collection' ? (q.collectionType === 'rts' ? 'READY TO SHIP' : 'MADE TO ORDER') || 'COLLECTION' : q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'COLLECTION'
+    : q.status === 'quote' ? 'QUOTE'
     : 'BESPOKE';
   const occasionEmoji = q.occasion ? (OCCASION_EMOJIS[q.occasion] || '💝') : '';
 
