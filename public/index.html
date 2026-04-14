@@ -5832,6 +5832,24 @@ function copyQuote(id, e) {
   copy.actualTotal = null;
   copy.clientPrice = null;
   copy.linkedId = null;
+  // Strip inventory links from stones but keep cost and descriptive data
+  if (copy.stones) {
+    copy.stones = copy.stones.map(function(s) {
+      var clean = Object.assign({}, s);
+      delete clean.inventoryId;
+      delete clean.usedInProjectId;
+      delete clean.usedInQuoteId;
+      return clean;
+    });
+  }
+  // Strip top-level inventory link if present
+  delete copy.inventoryId;
+  delete copy.usedInProjectId;
+  delete copy.usedInQuoteId;
+  if (copy.stoneDetail) {
+    copy.stoneDetail = Object.assign({}, copy.stoneDetail);
+    delete copy.stoneDetail.inventoryId;
+  }
   quotes.unshift(copy);
   window._savedQuotes = quotes;
   persistQuotes();
