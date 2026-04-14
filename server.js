@@ -74,12 +74,12 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), express
     console.log('JotForm raw body:', JSON.stringify(raw).slice(0, 2000));
 
     // JotForm often sends everything inside a rawRequest JSON string
-    let parsed = {};
+    let parsedReq = {};
     if (raw.rawRequest) {
-      try { parsed = JSON.parse(raw.rawRequest); } catch(e) {}
+      try { parsedReq = JSON.parse(raw.rawRequest); } catch(e) {}
     }
-    // Merge: use parsed if available, fall back to raw
-    const data = Object.keys(parsed).length > 0 ? parsed : raw;
+    // Merge: use parsedReq if available, fall back to raw
+    const data = Object.keys(parsedReq).length > 0 ? parsedReq : raw;
     console.log('JotForm parsed keys:', Object.keys(data));
 
     const get = (keys) => {
@@ -142,19 +142,19 @@ app.post('/api/jotform-webhook', express.urlencoded({ extended: true }), express
     // Save to Firebase REST API
     const fbUrl = 'https://ef-workshop-ff6cf-default-rtdb.firebaseio.com';
     const https = require('https');
-    const data = JSON.stringify(inquiry);
+    const payload = JSON.stringify(inquiry);
     const url = new URL(`${fbUrl}/inquiries.json`);
     const options = {
       hostname: url.hostname,
       path: url.pathname + url.search,
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
     };
     const fireReq = https.request(options, (fireRes) => {
       console.log('JotForm inquiry saved to Firebase:', inquiry.name, formType);
     });
     fireReq.on('error', (e) => console.error('Firebase write error:', e));
-    fireReq.write(data);
+    fireReq.write(payload);
     fireReq.end();
 
     res.status(200).json({ ok: true });
