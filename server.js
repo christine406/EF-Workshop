@@ -129,25 +129,26 @@ app.post('/api/jotform-webhook', (req, res) => {
         return '';
       };
 
-    const firstName = get(['first', 'firstName']);
-    const lastName  = get(['last', 'lastName']);
-    const fullName  = (firstName + ' ' + lastName).trim() || get(['fullName', 'name']);
-    const email     = get(['email']);
-    const pieceType = formType === 'bespoke'
-      ? get(['whatType', 'piece', 'interested'])
-      : get(['signature', 'design', 'interested']);
-    const budget    = get(['budget', 'range', 'spending']);
-    const sourcingStone = get(['sourcing', 'stone']);
-    const stoneType = get(['cut', 'stone', 'type']) || get(['stoneType']);
-    const ringSize  = get(['ring', 'size', 'ringSize']);
-    const occasion  = get(['milestone', 'occasion']);
-    const needBy    = get(['needBy', 'date', 'need']);
-    const howFound  = get(['find', 'found', 'elvie', 'how']);
-    const stoneView = get(['view', 'stone', 'prefer']);
-    const processStage = get(['process', 'where']);
-    const design    = get(['design', 'style', 'drawn', 'elements']);
-    const wearerInvolved = get(['wearer', 'involved']);
-    const notes     = get(['anything', 'know', 'notes', 'additional']);
+    // Map exact JotForm field names (from parsed data keys)
+    const nameField = data['q2_q2_fullname0'] || data['q2_fullname'] || '';
+    const fullName  = typeof nameField === 'object'
+      ? Object.values(nameField).filter(Boolean).join(' ')
+      : String(nameField || '');
+    const email       = data['q3_q3_email1'] || data['q3_email1'] || get(['email']);
+    const pieceType   = data['q4_q4_checkbox2'] || data['q4_checkbox'] || get(['whatType','piece','signature','design','interested']);
+    const budget      = data['q27_whatBudget'] || data['q27_budget'] || get(['budget','range','spending']);
+    const stoneView   = data['q21_howWould'] || get(['view','prefer','stone']);
+    const designNotes = data['q5_q5_textarea3'] || data['q5_textarea'] || get(['design','style','drawn']);
+    const wearerInvolved = data['q17_willThe'] || get(['wearer','involved']);
+    const ringSize    = data['q8_q8_textbox6'] || data['q8_textbox'] || get(['ring','size']);
+    const processStage = data['q12_q12_radio10'] || data['q9_q9_radio7'] || get(['process','where']);
+    const needBy      = data['q10_q10_radio8'] || get(['needBy','need','date']);
+    const howFound    = data['q11_q11_textarea9'] || get(['find','found','elvie','how']);
+    const sourcingStone = get(['sourcing','stone','q6','q7']);
+    const stoneType   = get(['cut','stoneType','q13','q14']);
+    const occasion    = get(['milestone','occasion','q15','q16']);
+    const notes       = get(['anything','know','q18','q19','q20','additional']);
+    const design      = designNotes;
     const submissionId = raw.submissionID || Date.now().toString();
 
     const inquiry = {
@@ -168,7 +169,7 @@ app.post('/api/jotform-webhook', (req, res) => {
       howFound,
       stoneView,
       processStage,
-      designNotes: design,
+      designNotes: design || designNotes,
       wearerInvolved,
       notes,
     };
