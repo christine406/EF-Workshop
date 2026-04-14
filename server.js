@@ -66,44 +66,55 @@ app.post('/login', express.urlencoded({ extended: false }), (req, res) => {
 
 // ─── JotForm Webhook ──────────────────────────────────────────────────────────
 app.post('/api/jotform-webhook', (req, res) => {
-  let body = '';
-  req.on('data', chunk => { body += chunk.toString(); });
+  let chunks = [];
+  req.on('data', chunk => { chunks.push(chunk); });
   req.on('end', () => {
     try {
       const formType = req.query.form || 'unknown';
       const contentType = req.headers['content-type'] || '';
-      console.log('JotForm content-type:', contentType);
-      console.log('JotForm raw body string:', body.slice(0, 3000));
+      const body = Buffer.concat(chunks).toString('utf8');
 
-      // Parse depending on content type
+      // Parse multipart/form-data manually — extract name=value pairs
       let raw = {};
-      if (contentType.includes('application/json')) {
+      if (contentType.includes('multipart/form-data')) {
+        // Extract boundary
+        const boundaryMatch = contentType.match(/boundary=([^\s;]+)/);
+        if (boundaryMatch) {
+          const boundary = '--' + boundaryMatch[1];
+          const parts = body.split(boundary);
+          parts.forEach(part => {
+            const nameMatch = part.match(/Content-Disposition:[^\n]*name="([^"]+)"/i);
+            if (!nameMatch) return;
+            const fieldName = nameMatch[1];
+            // Value is after the double newline
+            const valueStart = part.indexOf('\r\n\r\n');
+            if (valueStart === -1) return;
+            const value = part.slice(valueStart + 4).replace(/\r\n--$/, '').replace(/--$/, '').trim();
+            if (value) raw[fieldName] = value;
+          });
+        }
+      } else if (contentType.includes('application/json')) {
         try { raw = JSON.parse(body); } catch(e) {}
-      } else if (contentType.includes('application/x-www-form-urlencoded')) {
-        const params = new URLSearchParams(body);
-        params.forEach((v, k) => { raw[k] = v; });
       } else {
-        // Try urlencoded first, then JSON
         try {
           const params = new URLSearchParams(body);
           params.forEach((v, k) => { raw[k] = v; });
         } catch(e) {}
-        if (Object.keys(raw).length === 0) {
-          try { raw = JSON.parse(body); } catch(e) {}
-        }
       }
 
-      // JotForm often wraps everything in rawRequest
+      console.log('JotForm parsed keys:', Object.keys(raw).slice(0, 20));
+
+      // JotForm wraps submission JSON in rawRequest or customBody
       let data = raw;
-      if (raw.rawRequest) {
+      const jsonSource = raw.rawRequest || raw.customBody;
+      if (jsonSource) {
         try {
-          const inner = JSON.parse(raw.rawRequest);
+          const inner = JSON.parse(jsonSource);
           data = Object.assign({}, raw, inner);
         } catch(e) {}
       }
 
-      console.log('JotForm parsed keys:', Object.keys(data));
-      console.log('JotForm parsed data:', JSON.stringify(data).slice(0, 2000));
+      console.log('JotForm data keys:', Object.keys(data).slice(0, 30));
 
       const get = (keys) => {
         for (const k of keys) {
