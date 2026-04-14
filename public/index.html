@@ -864,6 +864,11 @@
     transform: translateX(-50%) translateY(0);
   }
 
+  /* CARD BODY */
+  .card-body { background: #2a6566; }
+  .card-body { color: #f5f0e7; }
+  .card-body .convert-btn { background: #fafaf7 !important; }
+
   /* QUOTES LIST */
   .quote-item {
     background: var(--surface);
@@ -925,7 +930,7 @@
 
   .convert-btn {
     margin-top: 8px;
-    background: none;
+    background: #fafaf7;
     border: 1px solid var(--teal-dim);
     color: var(--teal-dim);
     font-family: var(--font-mono);
@@ -5121,7 +5126,7 @@ function buildMultiPieceCard(q) {
     + '<div style="font-size:12px;color:var(--text-dim)" class="tap-arrow">▾</div>'
     + '</div></div></div>';
 
-  html += '<div class="card-body" style="display:none;margin-top:10px;background:rgba(100,180,180,0.06);border-radius:0;padding:10px;border:1px solid rgba(100,180,180,0.15)">';
+  html += '<div class="card-body" style="display:none;margin-top:10px;background:#2d6a6e;border-radius:0;padding:10px;border:1px solid #1f4f52">';
 
   // Pieces breakdown
   html += '<div style="background:#fafaf7;border-radius:0;padding:10px;margin-bottom:8px">';
@@ -5347,7 +5352,7 @@ function buildQuoteCard(q) {
     + '</div>';
 
   // BODY — hidden by default
-  html += '<div class="card-body" style="display:none;margin-top:10px;background:rgba(100,180,180,0.06);border-radius:0;padding:10px;border:1px solid rgba(100,180,180,0.15)">';
+  html += '<div class="card-body" style="display:none;margin-top:10px;background:#2d6a6e;border-radius:0;padding:10px;border:1px solid #1f4f52">';
 
   // Discount + pricing breakdown
   html += '<div style="padding:10px;background:#fafaf7;border-radius:0;font-size:13px;margin-bottom:8px">';
