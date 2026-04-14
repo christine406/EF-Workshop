@@ -7984,6 +7984,7 @@ function renderInquiries() {
       + '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'
       + '<button class="inq-action-btn" data-action="convert" style="background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">→ Create quote</button>'
       + reviewBtn
+      + '<button class="inq-action-btn" data-action="edit" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">Edit</button>'
       + '<button class="inq-action-btn" data-action="delete" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">Delete</button>'
       + '</div>'
       + '</div>';
@@ -8001,6 +8002,7 @@ function renderInquiries() {
         var action = btn.dataset.action;
         if (action === 'convert') convertInquiryToQuote(inq.id);
         else if (action === 'review') markInquiryReviewed(inq.id);
+        else if (action === 'edit') openEditInquiryForm(inq.id);
         else if (action === 'delete') deleteInquiry(inq.id);
       });
     });
@@ -8056,6 +8058,80 @@ function saveManualInquiry() {
   renderInquiries();
   updateInquiryBadge();
   showToast('Inquiry added');
+}
+
+function openEditInquiryForm(id) {
+  var inq = getInquiries().find(function(i){ return String(i.id) === String(id); });
+  if (!inq) return;
+  // Pre-fill the manual add form with existing data and open it
+  var form = document.getElementById('addInquiryForm');
+  if (!form) return;
+  form.style.display = 'block';
+  form.dataset.editId = id;
+  // Update title
+  var title = form.querySelector('div[style*="teal"]');
+  if (title) title.textContent = 'Edit inquiry';
+  // Update save button
+  var saveBtn = form.querySelector('button[onclick="saveManualInquiry()"]');
+  if (saveBtn) { saveBtn.textContent = 'Save changes'; saveBtn.onclick = function(){ saveEditedInquiry(id); }; }
+  // Fill fields
+  var set = function(elId, val){ var el = document.getElementById(elId); if(el) el.value = val || ''; };
+  set('aiq-name', inq.name);
+  set('aiq-email', inq.email);
+  set('aiq-formtype', inq.formType);
+  set('aiq-piece', inq.pieceType);
+  set('aiq-budget', inq.budget);
+  set('aiq-stone', inq.sourcingStone);
+  set('aiq-stonetype', inq.stoneType);
+  set('aiq-ringsize', inq.ringSize);
+  set('aiq-process', inq.processStage);
+  set('aiq-occasion', inq.occasion);
+  set('aiq-wearer', inq.wearerInvolved);
+  set('aiq-needby', inq.needBy);
+  set('aiq-stoneview', inq.stoneView);
+  set('aiq-howfound', inq.howFound);
+  set('aiq-design', inq.designNotes);
+  set('aiq-notes', inq.notes);
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function saveEditedInquiry(id) {
+  var inqs = getInquiries();
+  var inq = inqs.find(function(i){ return String(i.id) === String(id); });
+  if (!inq) return;
+  var g = function(elId){ return (document.getElementById(elId) || {}).value || ''; };
+  var name = g('aiq-name').trim();
+  if (!name) { showToast('Add a name'); return; }
+  inq.name = name;
+  inq.email = g('aiq-email').trim();
+  inq.formType = g('aiq-formtype') || inq.formType;
+  inq.pieceType = g('aiq-piece').trim();
+  inq.budget = g('aiq-budget').trim();
+  inq.sourcingStone = g('aiq-stone').trim();
+  inq.stoneType = g('aiq-stonetype').trim();
+  inq.ringSize = g('aiq-ringsize').trim();
+  inq.processStage = g('aiq-process').trim();
+  inq.occasion = g('aiq-occasion').trim();
+  inq.wearerInvolved = g('aiq-wearer').trim();
+  inq.needBy = g('aiq-needby').trim();
+  inq.stoneView = g('aiq-stoneview').trim();
+  inq.howFound = g('aiq-howfound').trim();
+  inq.designNotes = g('aiq-design').trim();
+  inq.notes = g('aiq-notes').trim();
+  window._inquiries = inqs;
+  if (window._fb) window._fb.saveInquiries(inqs);
+  // Reset form
+  var form = document.getElementById('addInquiryForm');
+  if (form) {
+    form.style.display = 'none';
+    delete form.dataset.editId;
+    var title = form.querySelector('div[style*="teal"]');
+    if (title) title.textContent = 'Add inquiry manually';
+    var saveBtn = form.querySelector('button');
+    if (saveBtn) { saveBtn.textContent = 'Save inquiry'; saveBtn.onclick = saveManualInquiry; }
+  }
+  renderInquiries();
+  showToast('Inquiry updated');
 }
 
 function markInquiryReviewed(id) {
