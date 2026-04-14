@@ -1093,7 +1093,7 @@
     </button>
     <button class="cc-btn" onclick="showScreen('inquiries')">
       <div class="cc-btn-icon">💌</div>
-      <div class="cc-btn-label">Inquiries <span id="inq-badge" style="display:none;background:#741435;color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px">0</span></div>
+      <div class="cc-btn-label">Inquiries <span id="inq-badge" style="display:none;background:#7f0034;color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-left:4px">✨0✨</span></div>
     </button>
   </div>
 
@@ -7908,7 +7908,7 @@ function updateInquiryBadge() {
   var badge = document.getElementById('inq-badge');
   if (!badge) return;
   var newCount = getInquiries().filter(function(i){ return i.status === 'new'; }).length;
-  badge.textContent = newCount;
+  badge.textContent = '✨' + newCount + '✨';
   badge.style.display = newCount > 0 ? 'inline' : 'none';
 }
 
