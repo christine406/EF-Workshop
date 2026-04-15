@@ -1765,6 +1765,10 @@
   <div class="screen" id="screen-invoices" style="background:#fafaf7;min-height:100vh">
     <div class="section" style="background:#fafaf7">
       <div class="section-label">Invoices</div>
+
+      <!-- Outstanding tally -->
+      <div id="inv-outstanding-tally" style="margin-bottom:16px;background:#fafaf7;border:1px solid var(--border);padding:12px"></div>
+
       <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center">
         <div class="toggle-group" style="flex:1">
           <button class="toggle-btn inv-filter-btn active" onclick="setInvoiceFilter('all',this)">All</button>
@@ -9332,7 +9336,51 @@ function pushLineItemToProject(invoiceId,lineItemId){
   overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
 
+function renderOutstandingTally() {
+  var tally = document.getElementById('inv-outstanding-tally');
+  if (!tally) return;
+  var invoices = getInvoices();
+  var outstanding = invoices.filter(function(i){ return i.status === 'outstanding'; });
+  if (!outstanding.length) {
+    tally.innerHTML = '<div style="color:var(--text-dim);font-size:12px;font-family:var(--font-mono)">No outstanding invoices.</div>';
+    return;
+  }
+  // Group by vendor
+  var byVendor = {};
+  outstanding.forEach(function(inv) {
+    var vendor = inv.vendor || 'Unknown';
+    if (!byVendor[vendor]) byVendor[vendor] = { total: 0, count: 0, invoices: [] };
+    var invTotal = (inv.lineItems || []).reduce(function(s, li){ return s + (li.amount || 0); }, 0);
+    byVendor[vendor].total += invTotal;
+    byVendor[vendor].count++;
+    byVendor[vendor].invoices.push(inv);
+  });
+  var grandTotal = Object.values(byVendor).reduce(function(s, v){ return s + v.total; }, 0);
+  var vendors = Object.keys(byVendor).sort(function(a, b){
+    return byVendor[b].total - byVendor[a].total;
+  });
+  var html = '<div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Outstanding balance</div>';
+  html += '<div style="display:grid;gap:0">';
+  vendors.forEach(function(vendor) {
+    var v = byVendor[vendor];
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)">'
+      + '<div>'
+      + '<div style="font-family:var(--font-mono);font-size:13px;color:var(--text)">' + vendor + '</div>'
+      + '<div style="font-size:11px;color:var(--text-dim)">' + v.count + ' invoice' + (v.count !== 1 ? 's' : '') + '</div>'
+      + '</div>'
+      + '<div style="font-family:var(--font-mono);font-size:15px;font-weight:500;color:#741435">$' + v.total.toLocaleString() + '</div>'
+      + '</div>';
+  });
+  html += '</div>';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;margin-top:2px">'
+    + '<div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Total owed</div>'
+    + '<div style="font-family:var(--font-mono);font-size:18px;font-weight:500;color:#741435">$' + grandTotal.toLocaleString() + '</div>'
+    + '</div>';
+  tally.innerHTML = html;
+}
+
 function renderInvoices(){
+  renderOutstandingTally();
   var list=document.getElementById('invoiceList');if(!list)return;
   var invoices=getInvoices();
   if(_invoiceFilter==='outstanding')invoices=invoices.filter(function(i){return i.status!=='paid';});
