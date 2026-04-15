@@ -9409,7 +9409,7 @@ function renderInvoices(){
     var vendors=byType[type];if(!vendors||!Object.keys(vendors).length)return;
     var typeTotal=0;Object.values(vendors).forEach(function(invs){invs.forEach(function(inv){typeTotal+=(inv.lineItems||[]).reduce(function(s,li){return s+(li.amount||0);},0);});});
     var typeHeader=document.createElement('div');typeHeader.style.cssText='font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:'+typeColors[type]+';padding:10px 0 6px;border-bottom:2px solid '+typeColors[type]+';margin-bottom:10px;margin-top:14px;display:flex;justify-content:space-between;align-items:center';
-    var tl=document.createElement('span');tl.textContent=typeLabels[type];var tt=document.createElement('span');tt.textContent=fmt(typeTotal);typeHeader.appendChild(tl);typeHeader.appendChild(tt);
+    var tl=document.createElement('span');tl.textContent=typeLabels[type];typeHeader.appendChild(tl);
     list.appendChild(typeHeader);
     Object.keys(vendors).sort().forEach(function(vendor){
       var invs=vendors[vendor];var vendorTotal=invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
