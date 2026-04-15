@@ -1781,7 +1781,7 @@
         </div>
         <div style="margin-bottom:10px">
           <div class="field-label">Vendor</div>
-          <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'))" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box"></select>
+          <select id="inv-vendor" onchange="handleVendorChange(this,document.getElementById('inv-vendor-other'));autoSetInvType(this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box"></select>
           <div id="inv-vendor-other-row" style="display:none;margin-top:6px"><input type="text" id="inv-vendor-other" placeholder="New vendor name" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box" onblur="commitNewVendor(document.getElementById('inv-vendor'),this)"></div>
         </div>
         <div style="margin-bottom:10px">
@@ -9096,6 +9096,35 @@ function addInvoiceLineItem(prefill){
   botRow.appendChild(amtWrap);
   
   div.appendChild(topRow);div.appendChild(botRow);container.appendChild(div);
+}
+
+function autoSetInvType(vendor) {
+  if (!vendor || vendor === '__new__') return;
+  var invoices = getInvoices();
+  // Build a map of vendor -> most recent type used
+  var vendorTypeMap = {};
+  invoices.forEach(function(inv) {
+    if (inv.vendor && inv.type) {
+      vendorTypeMap[inv.vendor.toLowerCase()] = inv.type;
+    }
+  });
+  // Also seed known vendors
+  var knownMap = {
+    'carerra': 'casting', 'carrera': 'casting',
+    'omega': 'casting', 'pafco': 'casting', 'jm': 'casting', 'jr casting': 'casting',
+    'galapo': 'dealer', 'american gem corp': 'dealer', 'virat': 'dealer',
+    'julius klein': 'dealer', 'l&c': 'findings', 'l&c mfg': 'findings',
+    'downeast jewelry': 'findings',
+  };
+  var key = vendor.toLowerCase();
+  var type = vendorTypeMap[key] || knownMap[key];
+  if (type) {
+    var sel = document.getElementById('inv-type');
+    if (sel) {
+      sel.value = type;
+      toggleInvStoneSection(type);
+    }
+  }
 }
 
 function toggleInvStoneSection(type) {
