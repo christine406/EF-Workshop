@@ -8241,21 +8241,33 @@ function renderDataScreen() {
   // Include stones logged on dealer invoices (not in inventory)
   const invoiceStones = getInvoices().flatMap(function(invoice) {
     if (!invoice.stones || !invoice.stones.length) return [];
-    return invoice.stones.filter(function(s){ return s.ct > 0 && s.cost > 0; }).map(function(s) {
-      return {
-        carat: s.ct,
-        cut: s.cut || 'Unknown',
-        cost: s.cost,
-        color: s.color || '',
-        clarity: s.clarity || '',
-        antique: s.antique === 'yes',
-        dealer: invoice.vendor || '',
-        status: 'sold-by-ef', // treat as sold/used for stats
-        fromInvoice: true,
-        invoiceId: invoice.id,
-        invoiceNumber: invoice.invoiceNumber,
-      };
+    // Calculate total stone cost from dealer line items
+    var lineTotal = (invoice.lineItems || []).reduce(function(sum, li){ return sum + (li.amount || 0); }, 0);
+    var totalStoneQty = invoice.stones.reduce(function(sum, s){ return sum + (s.qty || 1); }, 0);
+    var costPerStone = totalStoneQty > 0 ? lineTotal / totalStoneQty : 0;
+    var expanded = [];
+    invoice.stones.filter(function(s){ return s.ct > 0; }).forEach(function(s) {
+      var qty = s.qty || 1;
+      var stoneCost = costPerStone; // cost per individual stone
+      // Expand matched pairs etc. into individual stone records for analytics
+      for (var q = 0; q < qty; q++) {
+        expanded.push({
+          carat: s.ct,
+          cut: s.cut || 'Unknown',
+          cost: stoneCost,
+          color: s.color || '',
+          clarity: s.clarity || '',
+          antique: s.antique === 'yes',
+          dealer: invoice.vendor || '',
+          status: 'sold-by-ef',
+          fromInvoice: true,
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          notes: s.notes || '',
+        });
+      }
     });
+    return expanded;
   });
   const invAll = inv.filter(s => s.cost > 0 && s.carat > 0);
   const all = invAll.concat(invoiceStones);
@@ -9107,9 +9119,9 @@ function addInvStoneRow(prefill) {
   row.id = 'inv-stone-' + id;
   row.style.cssText = 'background:#fafaf7;border:1px solid var(--border);padding:10px;margin-bottom:8px;position:relative';
   row.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">'
-    + '<div><div class="field-label">Carats</div><input type="number" id="invs-ct-'+id+'" step="0.01" placeholder="e.g. 1.52" value="'+(prefill&&prefill.ct||'')+'" style="'+s+'"></div>'
+    + '<div><div class="field-label">Carats (each)</div><input type="number" id="invs-ct-'+id+'" step="0.01" placeholder="e.g. 1.52" value="'+(prefill&&prefill.ct||'')+'" style="'+s+'"></div>'
     + '<div><div class="field-label">Shape / Cut</div><input type="text" id="invs-cut-'+id+'" placeholder="e.g. Old Mine" value="'+(prefill&&prefill.cut||'')+'" style="'+s+'"></div>'
-    + '<div><div class="field-label">Cost ($)</div><input type="number" id="invs-cost-'+id+'" placeholder="0" value="'+(prefill&&prefill.cost||'')+'" style="'+s+'"></div>'
+    + '<div><div class="field-label">Qty</div><input type="number" id="invs-qty-'+id+'" min="1" placeholder="1" value="'+(prefill&&prefill.qty||1)+'" style="'+s+'"></div>'
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px">'
     + '<div><div class="field-label">Color</div><input type="text" id="invs-color-'+id+'" placeholder="e.g. L" value="'+(prefill&&prefill.color||'')+'" style="'+s+'"></div>'
@@ -9133,13 +9145,13 @@ function getInvStones() {
     var id = row.id.replace('inv-stone-', '');
     var ct = parseFloat(document.getElementById('invs-ct-'+id)?.value) || 0;
     var cut = (document.getElementById('invs-cut-'+id)?.value || '').trim();
-    var cost = parseFloat(document.getElementById('invs-cost-'+id)?.value) || 0;
+    var qty = parseInt(document.getElementById('invs-qty-'+id)?.value) || 1;
     var color = (document.getElementById('invs-color-'+id)?.value || '').trim();
     var clarity = (document.getElementById('invs-clarity-'+id)?.value || '').trim();
     var mm = (document.getElementById('invs-mm-'+id)?.value || '').trim();
     var antique = document.getElementById('invs-antique-'+id)?.value || '';
     var notes = (document.getElementById('invs-notes-'+id)?.value || '').trim();
-    if (ct || cut || cost) stones.push({ ct, cut, cost, color, clarity, mm, antique, notes });
+    if (ct || cut) stones.push({ ct, cut, qty, color, clarity, mm, antique, notes });
   });
   return stones;
 }
