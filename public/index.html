@@ -9060,6 +9060,12 @@ function openInvoiceForm(editId){
   document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
   document.getElementById('inv-line-items').innerHTML='';
   if(document.getElementById('inv-type'))document.getElementById('inv-type').value='casting';
+  // Reset stone section
+  var stoneList = document.getElementById('inv-stones-list');
+  if (stoneList) stoneList.innerHTML = '';
+  _invStoneCounter = 0;
+  var stoneSec = document.getElementById('inv-stone-section');
+  if (stoneSec) stoneSec.style.display = 'none';
   // Reset status toggle
   var os=document.getElementById('inv-status-outstanding');var ps=document.getElementById('inv-status-paid');
   if(os)os.classList.add('active');if(ps)ps.classList.remove('active');
@@ -9080,8 +9086,15 @@ function openInvoiceForm(editId){
       if(inv.status==='paid'){if(os2)os2.classList.remove('active');if(ps2)ps2.classList.add('active');}
       else{if(os2)os2.classList.add('active');if(ps2)ps2.classList.remove('active');}
       (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
+      // Restore stone details if this was a dealer invoice
+      if (inv.type === 'dealer' && inv.stones && inv.stones.length) {
+        toggleInvStoneSection('dealer');
+        document.getElementById('inv-stones-list').innerHTML = '';
+        _invStoneCounter = 0;
+        inv.stones.forEach(function(s){ addInvStoneRow(s); });
+      }
     }
-  }else{addInvoiceLineItem();}
+  } else { addInvoiceLineItem(); }
   form.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function closeInvoiceForm(){var form=document.getElementById('invoiceForm');if(form)form.style.display='none';_editingInvoiceId=null;}
