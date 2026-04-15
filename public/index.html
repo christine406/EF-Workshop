@@ -8251,19 +8251,21 @@ function renderDataScreen() {
       var stoneCost = costPerStone; // cost per individual stone
       // Expand matched pairs etc. into individual stone records for analytics
       for (var q = 0; q < qty; q++) {
+        var isMemo = s.returned === 'memo' || s.returned === 'traded';
         expanded.push({
           carat: s.ct,
           cut: s.cut || 'Unknown',
-          cost: stoneCost,
+          cost: isMemo ? 0 : stoneCost, // zero cost for memos/trades — don't skew analytics
           color: s.color || '',
           clarity: s.clarity || '',
           antique: s.antique === 'yes',
           dealer: invoice.vendor || '',
-          status: 'sold-by-ef',
+          status: isMemo ? 'memo' : 'sold-by-ef',
           fromInvoice: true,
           invoiceId: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
-          notes: s.notes || '',
+          notes: (s.notes ? s.notes + ' · ' : '') + (isMemo ? (s.returned === 'traded' ? 'Traded' : 'Memo/returned') : ''),
+          returned: s.returned || '',
         });
       }
     });
@@ -8271,6 +8273,7 @@ function renderDataScreen() {
   });
   const invAll = inv.filter(s => s.cost > 0 && s.carat > 0);
   const all = invAll.concat(invoiceStones);
+  // Memo/returned stones appear in shape analytics but not cost analytics — handled by cost:0
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project'];
   const active = all.filter(s => !archivedStatuses.includes(s.status));
   const archived = all.filter(s => archivedStatuses.includes(s.status));
@@ -9158,7 +9161,7 @@ function addInvStoneRow(prefill) {
     + '<div><div class="field-label">Dimensions</div><input type="text" id="invs-mm-'+id+'" placeholder="e.g. 7.2x7.1" value="'+(prefill&&prefill.mm||'')+'" style="'+s+'"></div>'
     + '<div><div class="field-label">Antique?</div><select id="invs-antique-'+id+'" style="'+s+'"><option value="">—</option><option value="yes" '+(prefill&&prefill.antique==="yes"?"selected":"")+'>Yes</option><option value="no" '+(prefill&&prefill.antique==="no"?"selected":"")+'>No</option></select></div>'
     + '</div>'
-    + '<div style="margin-bottom:6px"><div class="field-label">Notes (e.g. matched pair, no cert)</div><input type="text" id="invs-notes-'+id+'" placeholder="" value="'+(prefill&&prefill.notes||'')+'" style="'+s+'"></div>'
+    + '<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:6px">'    + '<div><div class="field-label">Notes (e.g. matched pair, no cert)</div><input type="text" id="invs-notes-'+id+'" placeholder="" value="'+(prefill&&prefill.notes||'')+'" style="'+s+'"></div>'    + '<div><div class="field-label">Status</div><select id="invs-returned-'+id+'" style="'+s+';width:auto"><option value="">Kept</option><option value="memo" '+(prefill&&prefill.returned==='memo'?'selected':'')+'>Memo / returned</option><option value="traded" '+(prefill&&prefill.returned==='traded'?'selected':'')+'>Traded</option></select></div>'    + '</div>'
   ;
   var remBtn2 = document.createElement('button');
   remBtn2.textContent = '×';
@@ -9180,7 +9183,8 @@ function getInvStones() {
     var mm = (document.getElementById('invs-mm-'+id)?.value || '').trim();
     var antique = document.getElementById('invs-antique-'+id)?.value || '';
     var notes = (document.getElementById('invs-notes-'+id)?.value || '').trim();
-    if (ct || cut) stones.push({ ct, cut, qty, color, clarity, mm, antique, notes });
+    var returned = document.getElementById('invs-returned-'+id)?.value || '';
+    if (ct || cut) stones.push({ ct, cut, qty, color, clarity, mm, antique, notes, returned });
   });
   return stones;
 }
