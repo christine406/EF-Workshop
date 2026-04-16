@@ -9457,6 +9457,26 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
   modal.appendChild(destLabel);
   modal.appendChild(destSel);
 
+  // Stone type toggle — only relevant when pushing to a project (not prod spec)
+  var stoneTypeLabel = document.createElement('div');
+  stoneTypeLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase';
+  stoneTypeLabel.textContent = 'Stone type';
+  var stoneTypeWrap = document.createElement('div'); stoneTypeWrap.style.cssText = 'display:flex;gap:6px;margin-bottom:14px';
+  var stoneTypeMain = document.createElement('button'); stoneTypeMain.textContent = 'Main stone'; stoneTypeMain.style.cssText = ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  var stoneTypeMelee = document.createElement('button'); stoneTypeMelee.textContent = 'Melee'; stoneTypeMelee.style.cssText = ms+' var(--border);background:none;color:var(--text-dim)';
+  var stoneType = 'main';
+  stoneTypeMain.addEventListener('click',function(){ stoneType='main'; stoneTypeMain.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7'; stoneTypeMelee.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)'; });
+  stoneTypeMelee.addEventListener('click',function(){ stoneType='melee'; stoneTypeMelee.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7'; stoneTypeMain.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)'; });
+  stoneTypeWrap.appendChild(stoneTypeMain); stoneTypeWrap.appendChild(stoneTypeMelee);
+  var stoneTypeSection = document.createElement('div');
+  stoneTypeSection.appendChild(stoneTypeLabel); stoneTypeSection.appendChild(stoneTypeWrap);
+  modal.appendChild(stoneTypeSection);
+
+  // Hide stone type toggle for production spec destinations
+  destSel.addEventListener('change', function(){
+    stoneTypeSection.style.display = destSel.value.startsWith('prod:') ? 'none' : 'block';
+  });
+
   // Add/replace toggle
   var modeWrap = document.createElement('div'); modeWrap.style.cssText = 'display:flex;gap:6px;margin-bottom:14px';
   var modeAdd = document.createElement('button'); modeAdd.textContent = 'Add to existing'; modeAdd.style.cssText = ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
@@ -9487,11 +9507,14 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
     } else {
       var updatedQuotes = getSavedQuotes();
       var q = updatedQuotes.find(function(q){return q.id===destId;}); if(!q)return;
-      q.actualStoneCost = addMode==='replace' ? cost : (q.actualStoneCost||0) + cost;
+      // Route to actualStoneCost (main) or actualMeleeCost (melee)
+      var costField = stoneType === 'melee' ? 'actualMeleeCost' : 'actualStoneCost';
+      var fieldLabel = stoneType === 'melee' ? 'Melee / materials' : 'Stone cost';
+      q[costField] = addMode==='replace' ? cost : (q[costField]||0) + cost;
       if(!q.costPushes) q.costPushes=[];
-      q.costPushes.unshift({id:Date.now(),amount:cost,field:'actualStoneCost',description:stoneLabel||'Stone',mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr});
+      q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr});
       if(!q.invoiceLinks) q.invoiceLinks=[];
-      q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:stoneLabel||'Stone',amount:cost,field:'actualStoneCost',date:dateStr});
+      q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:(stoneLabel||'Stone')+' ('+fieldLabel+')',amount:cost,field:costField,date:dateStr});
       recalcAndSaveActualTotal(q);
       window._savedQuotes=updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
       li.pushed=true; li.pushType='cost'; li.pushedTo=q.client; li.pushedProjectId=q.id;
