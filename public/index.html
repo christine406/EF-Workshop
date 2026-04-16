@@ -1801,18 +1801,22 @@
             <button class="toggle-btn" id="inv-status-paid" onclick="setInvFormStatus('paid',this)">Paid</button>
           </div>
         </div>
-        <div style="margin-bottom:10px">
+        <!-- Non-dealer: standard line items -->
+        <div id="inv-line-items-section" style="margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
             <div class="field-label" style="margin-bottom:0">Line items</div>
             <button onclick="addInvoiceLineItem()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add line</button>
           </div>
           <div id="inv-line-items"></div>
         </div>
-        <!-- Stone details (shown when type = dealer) -->
-        <div id="inv-stone-section" style="display:none;margin-bottom:10px;padding:12px;background:#f5f0e7;border:1px solid var(--border)">
-          <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Stone details <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(for data tracking — no inventory record created)</span></div>
+        <!-- Dealer: stones ARE the line items -->
+        <div id="inv-stone-section" style="display:none;margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">Stones <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(each stone is a line item)</span></div>
+            <button onclick="addInvStoneRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add stone</button>
+          </div>
           <div id="inv-stones-list"></div>
-          <button onclick="addInvStoneRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;cursor:pointer;margin-top:6px">+ Add stone</button>
+          <div id="inv-stone-total" style="text-align:right;font-family:var(--font-mono);font-size:13px;color:var(--text);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>
         </div>
 
         <div style="display:flex;gap:8px">
@@ -9064,8 +9068,11 @@ function openInvoiceForm(editId){
   var stoneList = document.getElementById('inv-stones-list');
   if (stoneList) stoneList.innerHTML = '';
   _invStoneCounter = 0;
+  // Reset to non-dealer view
   var stoneSec = document.getElementById('inv-stone-section');
+  var lineItemsSec = document.getElementById('inv-line-items-section');
   if (stoneSec) stoneSec.style.display = 'none';
+  if (lineItemsSec) lineItemsSec.style.display = 'block';
   // Reset status toggle
   var os=document.getElementById('inv-status-outstanding');var ps=document.getElementById('inv-status-paid');
   if(os)os.classList.add('active');if(ps)ps.classList.remove('active');
@@ -9085,16 +9092,31 @@ function openInvoiceForm(editId){
       var os2=document.getElementById('inv-status-outstanding');var ps2=document.getElementById('inv-status-paid');
       if(inv.status==='paid'){if(os2)os2.classList.remove('active');if(ps2)ps2.classList.add('active');}
       else{if(os2)os2.classList.add('active');if(ps2)ps2.classList.remove('active');}
-      (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
-      // Restore stone details if this was a dealer invoice
-      if (inv.type === 'dealer' && inv.stones && inv.stones.length) {
-        toggleInvStoneSection('dealer');
+      toggleInvStoneSection(inv.type||'other');
+      if (inv.type === 'dealer') {
+        // Restore stones — amounts come from stones if present, else split from line items (migration)
         document.getElementById('inv-stones-list').innerHTML = '';
         _invStoneCounter = 0;
-        inv.stones.forEach(function(s){ addInvStoneRow(s); });
+        var totalLiAmt = (inv.lineItems||[]).reduce(function(s,l){return s+(l.amount||0);},0);
+        var stonesArr = inv.stones||[];
+        var totalQty = stonesArr.reduce(function(s,st){return s+(parseInt(st.qty)||1);},0)||1;
+        stonesArr.forEach(function(s){
+          // If stone already has amount use it, otherwise migrate from line item total
+          if(s.amount==null){
+            var stQty=parseInt(s.qty)||1;
+            s.amount=parseFloat((totalLiAmt/totalQty*stQty).toFixed(2));
+          }
+          addInvStoneRow(s);
+        });
+        if(!stonesArr.length) addInvStoneRow();
+      } else {
+        (inv.lineItems||[]).forEach(function(li){addInvoiceLineItem(li);});
       }
     }
-  } else { addInvoiceLineItem(); }
+  } else {
+    toggleInvStoneSection('casting');
+    addInvoiceLineItem();
+  }
   form.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function closeInvoiceForm(){var form=document.getElementById('invoiceForm');if(form)form.style.display='none';_editingInvoiceId=null;}
@@ -9148,13 +9170,16 @@ function autoSetInvType(vendor) {
 }
 
 function toggleInvStoneSection(type) {
-  var sec = document.getElementById('inv-stone-section');
-  if (!sec) return;
+  var stoneSec = document.getElementById('inv-stone-section');
+  var lineItemsSec = document.getElementById('inv-line-items-section');
   if (type === 'dealer') {
-    sec.style.display = 'block';
+    if (stoneSec) stoneSec.style.display = 'block';
+    if (lineItemsSec) lineItemsSec.style.display = 'none';
     if (!document.getElementById('inv-stones-list').children.length) addInvStoneRow();
   } else {
-    sec.style.display = 'none';
+    if (stoneSec) stoneSec.style.display = 'none';
+    if (lineItemsSec) lineItemsSec.style.display = 'block';
+    if (!document.getElementById('inv-line-items').children.length) addInvoiceLineItem();
   }
 }
 
@@ -9179,13 +9204,31 @@ function addInvStoneRow(prefill) {
     + '<div><div class="field-label">Antique?</div><select id="invs-antique-'+id+'" style="'+s+'"><option value="">—</option><option value="yes" '+(prefill&&prefill.antique==="yes"?"selected":"")+'>Yes</option><option value="no" '+(prefill&&prefill.antique==="no"?"selected":"")+'>No</option></select></div>'
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:6px">'    + '<div><div class="field-label">Notes (e.g. matched pair, no cert)</div><input type="text" id="invs-notes-'+id+'" placeholder="" value="'+(prefill&&prefill.notes||'')+'" style="'+s+'"></div>'    + '<div><div class="field-label">Status</div><select id="invs-returned-'+id+'" style="'+s+';width:auto"><option value="">Kept</option><option value="memo" '+(prefill&&prefill.returned==='memo'?'selected':'')+'>Memo / returned</option><option value="traded" '+(prefill&&prefill.returned==='traded'?'selected':'')+'>Traded</option></select></div>'    + '</div>'
+    + '<div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-top:4px">'
+    + '<div class="field-label" style="margin-bottom:0;white-space:nowrap">Amount ($)</div>'
+    + '<input type="number" id="invs-amt-'+id+'" step="0.01" min="0" placeholder="0" value="'+(prefill&&prefill.amount!=null?prefill.amount:'')+'" oninput="updateInvStoneTotal()" style="'+s+';border-color:var(--teal-dim)">'
+    + '</div>'
   ;
   var remBtn2 = document.createElement('button');
   remBtn2.textContent = '×';
   remBtn2.style.cssText = 'position:absolute;top:8px;right:8px;background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0';
-  (function(r){ remBtn2.addEventListener('click', function(){ r.remove(); }); })(row);
+  (function(r){
+    remBtn2.addEventListener('click', function(){ r.remove(); updateInvStoneTotal(); });
+  })(row);
   row.appendChild(remBtn2);
   list.appendChild(row);
+  updateInvStoneTotal();
+}
+
+function updateInvStoneTotal() {
+  var total = 0;
+  document.querySelectorAll('[id^="inv-stone-"]').forEach(function(row) {
+    var id = row.id.replace('inv-stone-', '');
+    var amt = parseFloat(document.getElementById('invs-amt-'+id)?.value) || 0;
+    total += amt;
+  });
+  var el = document.getElementById('inv-stone-total');
+  if (el) el.textContent = total > 0 ? 'Total: $' + total.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
 }
 
 function getInvStones() {
@@ -9201,7 +9244,8 @@ function getInvStones() {
     var antique = document.getElementById('invs-antique-'+id)?.value || '';
     var notes = (document.getElementById('invs-notes-'+id)?.value || '').trim();
     var returned = document.getElementById('invs-returned-'+id)?.value || '';
-    if (ct || cut) stones.push({ ct, cut, qty, color, clarity, mm, antique, notes, returned });
+    var amount = parseFloat(document.getElementById('invs-amt-'+id)?.value) || 0;
+    if (ct || cut) stones.push({ ct, cut, qty, color, clarity, mm, antique, notes, returned, amount });
   });
   return stones;
 }
@@ -9217,13 +9261,23 @@ function saveInvoice(){
   if(vendorSel==='__new__'&&vendor)addVendor(vendor);
   var invType=document.getElementById('inv-type')?document.getElementById('inv-type').value:'other';
   var lineItems=[];
-  document.querySelectorAll('#inv-line-items > div[id^="inv-li-"]').forEach(function(div){
-    var liId=div.id.replace('inv-li-','');
-    var descEl=document.getElementById('inv-li-desc-'+liId);var amtEl=document.getElementById('inv-li-amt-'+liId);
-    var desc=descEl?descEl.value.trim():'';var amt=amtEl?(parseFloat(amtEl.value)||0):0;
-    if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:invType,amount:amt,pushed:false,pushedTo:null,pushedField:null});
-  });
-  if(!lineItems.length){showToast('Add at least one line item');return;}
+  if(invType==='dealer'){
+    // For dealer invoices, each stone row generates its own line item
+    var dealerStones=getInvStones();
+    if(!dealerStones.length){showToast('Add at least one stone');return;}
+    dealerStones.forEach(function(st){
+      var label=[st.ct?st.ct+'ct':'',st.cut,st.color,st.clarity,st.qty>1?'x'+st.qty:''].filter(Boolean).join(' ');
+      lineItems.push({id:Date.now()+Math.random(),description:label||'Stone',category:'dealer',amount:st.amount||0,pushed:false,pushedTo:null,pushedField:null});
+    });
+  } else {
+    document.querySelectorAll('#inv-line-items > div[id^="inv-li-"]').forEach(function(div){
+      var liId=div.id.replace('inv-li-','');
+      var descEl=document.getElementById('inv-li-desc-'+liId);var amtEl=document.getElementById('inv-li-amt-'+liId);
+      var desc=descEl?descEl.value.trim():'';var amt=amtEl?(parseFloat(amtEl.value)||0):0;
+      if(desc||amt)lineItems.push({id:Date.now()+Math.random(),description:desc,category:invType,amount:amt,pushed:false,pushedTo:null,pushedField:null});
+    });
+    if(!lineItems.length){showToast('Add at least one line item');return;}
+  }
   var invStatus=(document.getElementById('inv-status-paid')&&document.getElementById('inv-status-paid').classList.contains('active'))?'paid':'outstanding';
   var invoices=getInvoices();
   if(_editingInvoiceId){var inv=invoices.find(function(i){return i.id===_editingInvoiceId;});if(inv){inv.invoiceNumber=num;inv.date=date;inv.vendor=vendor;inv.type=invType;inv.status=invStatus;inv.lineItems=lineItems;inv.stones=getInvStones();}}
@@ -9237,9 +9291,12 @@ function pushLineItemToProject(invoiceId,lineItemId){
   var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===invoiceId;});if(!inv)return;
   var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;});if(!li)return;
 
-  // If dealer invoice with multiple stones, route to per-stone push UI
-  if(inv.type==='dealer' && inv.stones && inv.stones.length > 1){
-    pushStonesToProjects(inv, li, invoices);
+  // If dealer invoice, find the matching stone by index and push just that one
+  if(inv.type==='dealer' && inv.stones && inv.stones.length){
+    // Match line item to stone by position (line items are generated 1:1 from stones)
+    var liIndex = (inv.lineItems||[]).findIndex(function(l){return l.id===li.id;});
+    var matchedStone = liIndex >= 0 ? inv.stones[liIndex] : inv.stones[0];
+    pushSingleStoneToProject(inv, li, matchedStone, invoices);
     return;
   }
 
@@ -9360,6 +9417,94 @@ function pushLineItemToProject(invoiceId,lineItemId){
   overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
 
+// Push a single matched stone to a project or production spec
+function pushSingleStoneToProject(inv, li, stone, invoices) {
+  var quotes = getSavedQuotes();
+  var projects = quotes.filter(function(q){ return q.status==='project'||q.status==='collection'||q.status==='completed'||q.status==='collection-quote'||q.status==='quote'; }).sort(function(a,b){ return b.id-a.id; });
+  var production = getProduction();
+  var isMemo = stone && (stone.returned === 'memo' || stone.returned === 'traded');
+  var stoneLabel = stone ? [stone.ct?stone.ct+'ct':'', stone.cut, stone.color, stone.clarity, stone.qty>1?'x'+stone.qty:''].filter(Boolean).join(' ') : (li.description||'Stone');
+  var cost = isMemo ? 0 : (stone && stone.amount != null ? stone.amount : li.amount || 0);
+
+  var ms='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:0;cursor:pointer;border:1px solid';
+
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:400px';
+
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';
+  title.textContent = 'Push stone to project';
+  modal.appendChild(title);
+
+  var desc = document.createElement('div');
+  desc.style.cssText = 'font-size:14px;color:var(--text);margin-bottom:14px';
+  desc.textContent = stoneLabel + (cost ? ' · $' + cost.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '') + (isMemo ? ' · memo/traded' : '');
+  modal.appendChild(desc);
+
+  // Destination picker
+  var destLabel = document.createElement('div');
+  destLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';
+  destLabel.textContent = 'Destination';
+  var destSel = document.createElement('select');
+  destSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
+  var destHtml = '<option value="">-- Select destination</option><optgroup label="Saved Projects">';
+  projects.forEach(function(q){ destHtml += '<option value="quote:'+q.id+'">'+q.client+'</option>'; });
+  destHtml += '</optgroup>';
+  if(production.length){ destHtml += '<optgroup label="Production Specs">'; production.forEach(function(s){ destHtml += '<option value="prod:'+s.id+'">'+s.name+'</option>'; }); destHtml += '</optgroup>'; }
+  destSel.innerHTML = destHtml;
+  modal.appendChild(destLabel);
+  modal.appendChild(destSel);
+
+  // Add/replace toggle
+  var modeWrap = document.createElement('div'); modeWrap.style.cssText = 'display:flex;gap:6px;margin-bottom:14px';
+  var modeAdd = document.createElement('button'); modeAdd.textContent = 'Add to existing'; modeAdd.style.cssText = ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
+  var modeRepl = document.createElement('button'); modeRepl.textContent = 'Replace'; modeRepl.style.cssText = ms+' var(--border);background:none;color:var(--text-dim)';
+  var addMode = 'add';
+  modeAdd.addEventListener('click',function(){ addMode='add'; modeAdd.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7'; modeRepl.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)'; });
+  modeRepl.addEventListener('click',function(){ addMode='replace'; modeRepl.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7'; modeAdd.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)'; });
+  modeWrap.appendChild(modeAdd); modeWrap.appendChild(modeRepl); modal.appendChild(modeWrap);
+
+  var btnRow = document.createElement('div'); btnRow.style.cssText = 'display:flex;gap:8px';
+  var pushBtn = document.createElement('button'); pushBtn.textContent = 'Push';
+  pushBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer';
+  pushBtn.addEventListener('click', function(){
+    var selVal = destSel.value;
+    if(!selVal){ showToast('Select a destination'); return; }
+    var isProd = selVal.startsWith('prod:');
+    var destId = parseInt(selVal.split(':')[1]);
+    var dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+    if(isProd){
+      var prod = getProduction(); var spec = prod.find(function(s){return s.id===destId;}); if(!spec)return;
+      spec.stoneCost = addMode==='replace' ? cost : (parseFloat(spec.stoneCost)||0) + cost;
+      if(!spec.invoiceStones) spec.invoiceStones=[];
+      if(stone) spec.invoiceStones.push({ct:stone.ct,cut:stone.cut,qty:stone.qty,color:stone.color,clarity:stone.clarity,mm:stone.mm,antique:stone.antique,notes:stone.notes,cost:cost,vendor:inv.vendor,date:dateStr});
+      window._production=prod; persistProduction();
+      li.pushed=true; li.pushType='cost'; li.pushedTo=spec.name; li.pushedProjectId=spec.id;
+      window._invoices=invoices; persistInvoices(); overlay.remove(); renderInvoices(); showToast('Pushed to '+spec.name);
+    } else {
+      var updatedQuotes = getSavedQuotes();
+      var q = updatedQuotes.find(function(q){return q.id===destId;}); if(!q)return;
+      q.actualStoneCost = addMode==='replace' ? cost : (q.actualStoneCost||0) + cost;
+      if(!q.costPushes) q.costPushes=[];
+      q.costPushes.unshift({id:Date.now(),amount:cost,field:'actualStoneCost',description:stoneLabel||'Stone',mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr});
+      if(!q.invoiceLinks) q.invoiceLinks=[];
+      q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:stoneLabel||'Stone',amount:cost,field:'actualStoneCost',date:dateStr});
+      recalcAndSaveActualTotal(q);
+      window._savedQuotes=updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
+      li.pushed=true; li.pushType='cost'; li.pushedTo=q.client; li.pushedProjectId=q.id;
+      window._invoices=invoices; persistInvoices(); overlay.remove(); renderInvoices(); showToast('Pushed to '+q.client);
+    }
+  });
+  var cancelBtn = document.createElement('button'); cancelBtn.textContent='Cancel';
+  cancelBtn.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';
+  cancelBtn.addEventListener('click',function(){overlay.remove();});
+  btnRow.appendChild(pushBtn); btnRow.appendChild(cancelBtn); modal.appendChild(btnRow);
+  overlay.appendChild(modal); overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); document.body.appendChild(overlay);
+}
+
 // Per-stone push UI for dealer invoices with multiple stones
 function pushStonesToProjects(inv, li, invoices) {
   var quotes = getSavedQuotes();
@@ -9367,8 +9512,6 @@ function pushStonesToProjects(inv, li, invoices) {
   var production = getProduction();
   var stones = inv.stones;
 
-  // Cost per stone (split line item total by total stone qty)
-  var totalQty = stones.reduce(function(s,st){ return s + (parseInt(st.qty)||1); }, 0);
   var totalAmt = (inv.lineItems||[]).reduce(function(s,l){ return s+(l.amount||0); }, 0);
 
   var overlay = document.createElement('div');
@@ -9403,9 +9546,8 @@ function pushStonesToProjects(inv, li, invoices) {
   var stoneRows = []; // { stone, destSel, costInput }
 
   stones.forEach(function(st, idx) {
-    var qty = parseInt(st.qty) || 1;
-    var costPerStone = totalQty > 0 ? (totalAmt / totalQty) * qty : 0;
     var isMemo = st.returned === 'memo' || st.returned === 'traded';
+    var costPerStone = isMemo ? 0 : (st.amount != null ? st.amount : 0);
 
     var card = document.createElement('div');
     card.style.cssText = 'background:var(--bg);border:1px solid var(--border);padding:12px;margin-bottom:10px';
