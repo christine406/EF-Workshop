@@ -9242,13 +9242,22 @@ function pushLineItemToProject(invoiceId,lineItemId){
   var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
   var modal=document.createElement('div');modal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:400px';
 
-  var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Connect to project';modal.appendChild(t);
+  var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Connect to project or production spec';modal.appendChild(t);
   var d=document.createElement('div');d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';d.textContent=(li.description||li.category)+(li.amount?' · '+fmt(li.amount):'');modal.appendChild(d);
 
   // Project picker
   var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
-  projSel.innerHTML='<option value="">-- Select project</option>';
-  projects.forEach(function(q){var o=document.createElement('option');o.value=q.id;o.textContent=q.client;projSel.appendChild(o);});
+  projSel.innerHTML='<option value="">-- Select destination</option>';
+  // Saved projects group
+  var projGroup = document.createElement('optgroup');
+  projGroup.label = 'Saved Projects';
+  projects.forEach(function(q){var o=document.createElement('option');o.value='quote:'+q.id;o.textContent=q.client;projGroup.appendChild(o);});
+  projSel.appendChild(projGroup);
+  // Production specs group
+  var prodGroup = document.createElement('optgroup');
+  prodGroup.label = 'Production Specs';
+  getProduction().forEach(function(spec){var o=document.createElement('option');o.value='prod:'+spec.id;o.textContent=spec.name;prodGroup.appendChild(o);});
+  projSel.appendChild(prodGroup);
   modal.appendChild(projSel);
 
   // Mode: Note only vs Add cost
@@ -9294,8 +9303,42 @@ function pushLineItemToProject(invoiceId,lineItemId){
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
   var pushBtn=document.createElement('button');pushBtn.textContent='Connect';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer';
   pushBtn.addEventListener('click',function(){
-    var projId=parseInt(projSel.value);if(!projId){showToast('Select a project');return;}
-    var q=quotes.find(function(q){return q.id===projId;});if(!q)return;
+    var selVal = projSel.value;
+    if (!selVal) { showToast('Select a destination'); return; }
+    var isProd = selVal.startsWith('prod:');
+    var destId = parseInt(selVal.split(':')[1]);
+
+    // Handle production spec push
+    if (isProd) {
+      var prod = getProduction();
+      var spec = prod.find(function(s){ return s.id === destId; });
+      if (!spec) return;
+      var field = fieldSel.value;
+      // Map field to production cost fields
+      var prodFieldMap = {
+        actualStoneCost: 'stoneCost', actualMeleeCost: 'meleeCost',
+        actualMetalCost: 'metalCost', actualLabor: 'laborCost',
+        actualChainCost: 'findingsCost', actualDesignFee: 'designFee'
+      };
+      var prodField = prodFieldMap[field] || 'laborCost';
+      var existing = parseFloat(spec[prodField]) || 0;
+      spec[prodField] = addMode === 'replace' ? li.amount : (existing + li.amount);
+      window._production = prod;
+      persistProduction();
+      li.pushed = true;
+      li.pushType = 'cost';
+      li.pushedTo = spec.name;
+      li.pushedProjectId = spec.id;
+      window._invoices = invoices;
+      persistInvoices();
+      overlay.remove();
+      renderInvoices();
+      showToast('Pushed to ' + spec.name);
+      return;
+    }
+
+    var projId = destId;
+    var q = quotes.find(function(q){ return q.id === projId; }); if (!q) return;
 
     if(pushMode==='add'){
       var field=fieldSel.value;
