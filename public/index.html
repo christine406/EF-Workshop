@@ -3812,23 +3812,29 @@ function calcExtraPiece(id) {
   if (!p) return;
   const stoneRetail = (p.stoneCost||0) * stoneMarkupProject(p.stoneCost||0);
   const metalMarkup = Math.round((p.metalCost||0) * 1.05 * 1.35);
-  const laborRetail = (p.laborCost||0) * 1.4;
-  const rest = metalMarkup + Math.round(laborRetail) + Math.round((p.meleeCost||0) * 1.75) + (p.designFee||0);
+  const laborRetail = Math.round((p.laborCost||0) * 1.4);
+  const meleeRetail = Math.round((p.meleeCost||0) * 1.75);
+  const rest = metalMarkup + laborRetail + meleeRetail + (p.designFee||0);
   const rawTotal = stoneRetail + rest * 1.13;
   const total = Math.round(rawTotal / 50) * 50;
   p._total = total;
+  const hasAny = (p.stoneCost||0) || (p.metalCost||0) || (p.laborCost||0) || (p.meleeCost||0) || (p.designFee||0);
   const el = document.getElementById('extra-result-' + id);
   const totalEl = document.getElementById('extra-total-' + id);
   if (el && totalEl) {
-    el.style.display = total ? 'block' : 'none';
+    el.style.display = hasAny ? 'block' : 'none';
     totalEl.textContent = total ? '$' + total.toLocaleString() : '—';
     const breakdownEl = document.getElementById('extra-breakdown-' + id);
     if (breakdownEl) {
       const stoneR = Math.round(stoneRetail);
-      const overhead = Math.round(rest * 1.13);
-      breakdownEl.textContent = (stoneR ? 'stones $' + stoneR.toLocaleString() : '') 
-        + (stoneR && overhead ? ' + ' : '') 
-        + (overhead ? 'overhead $' + overhead.toLocaleString() : '');
+      const parts = [];
+      if (stoneR) parts.push('stones $' + stoneR.toLocaleString());
+      if (metalMarkup) parts.push('metal $' + metalMarkup.toLocaleString());
+      if (laborRetail) parts.push('labor $' + laborRetail.toLocaleString());
+      if (meleeRetail) parts.push('melee $' + meleeRetail.toLocaleString());
+      const overhead = Math.round(rest * 0.13);
+      if (overhead) parts.push('overhead $' + overhead.toLocaleString());
+      breakdownEl.textContent = parts.join(' + ');
     }
   }
 }
