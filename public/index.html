@@ -8759,29 +8759,9 @@ function reconcileFieldEntry(id) {
       showToast('Pushed ✓');
     };
 
-    if (q.isMultiPiece && q.pieces && q.pieces.length > 1) {
-      // Show piece picker
-      const pieceOverlay = document.createElement('div');
-      pieceOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
-      const pieceModal = document.createElement('div');
-      pieceModal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
-      const pt = document.createElement('div'); pt.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px'; pt.textContent = 'Which piece?'; pieceModal.appendChild(pt);
-      q.pieces.forEach((pc, idx) => {
-        const pb = document.createElement('button');
-        pb.style.cssText = 'width:100%;text-align:left;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
-        pb.textContent = pc.name || pc.pieceType || ('Piece ' + (idx + 1));
-        pb.addEventListener('click', () => { pieceOverlay.remove(); doFinalize(pc, pb.textContent); });
-        pieceModal.appendChild(pb);
-      });
-      const cancelPiece = document.createElement('button');
-      cancelPiece.textContent = 'Cancel'; cancelPiece.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';
-      cancelPiece.addEventListener('click', () => pieceOverlay.remove());
-      pieceModal.appendChild(cancelPiece);
-      pieceOverlay.appendChild(pieceModal);
-      document.body.appendChild(pieceOverlay);
-    } else {
-      doFinalize(q, null);
-    }
+    _withPiecePicker(q, (dest, pieceName) => {
+      doFinalize(dest, pieceName);
+    });
   });
 
   const cancelBtn = document.createElement('button');
@@ -9525,9 +9505,36 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
   stoneTypeSection.appendChild(stoneTypeLabel); stoneTypeSection.appendChild(stoneTypeWrap);
   modal.appendChild(stoneTypeSection);
 
-  // Hide stone type toggle for production spec destinations
+  // Piece picker (shown when destination is a multi-piece project)
+  var piecePicker = document.createElement('div');
+  piecePicker.style.cssText = 'display:none;margin-bottom:14px';
+  var piecePickerLabel = document.createElement('div');
+  piecePickerLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';
+  piecePickerLabel.textContent = 'Which piece';
+  var pieceSel = document.createElement('select');
+  pieceSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none';
+  piecePicker.appendChild(piecePickerLabel);
+  piecePicker.appendChild(pieceSel);
+  modal.insertBefore(piecePicker, stoneTypeSection);
+
+  // Hide stone type toggle for production spec destinations, show piece picker for multi-piece
   destSel.addEventListener('change', function(){
-    stoneTypeSection.style.display = destSel.value.startsWith('prod:') ? 'none' : 'block';
+    var isProdDest = destSel.value.startsWith('prod:');
+    stoneTypeSection.style.display = isProdDest ? 'none' : 'block';
+    if (!isProdDest && destSel.value) {
+      var destIdCheck = parseInt(destSel.value.split(':')[1]);
+      var destQ = getSavedQuotes().find(function(q){ return q.id === destIdCheck; });
+      if (destQ && destQ.isMultiPiece && destQ.pieces && destQ.pieces.length) {
+        pieceSel.innerHTML = destQ.pieces.map(function(p, i){
+          return '<option value="'+i+'">'+(p.name || ('Piece ' + (i+1)))+'</option>';
+        }).join('');
+        piecePicker.style.display = 'block';
+      } else {
+        piecePicker.style.display = 'none';
+      }
+    } else {
+      piecePicker.style.display = 'none';
+    }
   });
 
   // Add/replace toggle
@@ -9560,14 +9567,27 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
     } else {
       var updatedQuotes = getSavedQuotes();
       var q = updatedQuotes.find(function(q){return q.id===destId;}); if(!q)return;
-      // Route to actualStoneCost (main) or actualMeleeCost (melee)
       var costField = stoneType === 'melee' ? 'actualMeleeCost' : 'actualStoneCost';
       var fieldLabel = stoneType === 'melee' ? 'Melee / materials' : 'Stone cost';
-      q[costField] = addMode==='replace' ? cost : (q[costField]||0) + cost;
-      if(!q.costPushes) q.costPushes=[];
-      q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr});
-      if(!q.invoiceLinks) q.invoiceLinks=[];
-      q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:(stoneLabel||'Stone')+' ('+fieldLabel+')',amount:cost,field:costField,date:dateStr});
+      // For multi-piece sets, push to the selected piece
+      if (q.isMultiPiece && q.pieces && q.pieces.length && piecePicker.style.display !== 'none') {
+        var pieceIdx = parseInt(pieceSel.value) || 0;
+        var piece = q.pieces[pieceIdx];
+        if (piece) {
+          piece[costField] = addMode==='replace' ? cost : (piece[costField]||0) + cost;
+          var pieceName = piece.name || ('Piece ' + (pieceIdx+1));
+          if(!q.costPushes) q.costPushes=[];
+          q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:(stoneLabel||'Stone')+' → '+pieceName,mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr,pieceIdx:pieceIdx});
+          if(!q.invoiceLinks) q.invoiceLinks=[];
+          q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:(stoneLabel||'Stone')+' → '+pieceName+' ('+fieldLabel+')',amount:cost,field:costField,date:dateStr,pieceIdx:pieceIdx});
+        }
+      } else {
+        q[costField] = addMode==='replace' ? cost : (q[costField]||0) + cost;
+        if(!q.costPushes) q.costPushes=[];
+        q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr});
+        if(!q.invoiceLinks) q.invoiceLinks=[];
+        q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:(stoneLabel||'Stone')+' ('+fieldLabel+')',amount:cost,field:costField,date:dateStr});
+      }
       recalcAndSaveActualTotal(q);
       window._savedQuotes=updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
       li.pushed=true; li.pushType='cost'; li.pushedTo=q.client; li.pushedProjectId=q.id;
@@ -9579,6 +9599,38 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
   cancelBtn.addEventListener('click',function(){overlay.remove();});
   btnRow.appendChild(pushBtn); btnRow.appendChild(cancelBtn); modal.appendChild(btnRow);
   overlay.appendChild(modal); overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();}); document.body.appendChild(overlay);
+}
+
+// ── Shared piece picker for multi-piece projects ──
+// Calls cb(piece, pieceName) with the selected piece, or cb(null, null) for single-piece projects
+function _withPiecePicker(q, cb) {
+  if (!q.isMultiPiece || !q.pieces || q.pieces.length <= 1) {
+    cb(q, null);
+    return;
+  }
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px';
+  title.textContent = 'Which piece?';
+  modal.appendChild(title);
+  q.pieces.forEach(function(pc, idx) {
+    var btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;text-align:left;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
+    btn.textContent = pc.name || pc.pieceType || ('Piece ' + (idx + 1));
+    btn.addEventListener('click', function() { overlay.remove(); cb(pc, btn.textContent); });
+    modal.appendChild(btn);
+  });
+  var cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer';
+  cancelBtn.addEventListener('click', function() { overlay.remove(); });
+  modal.appendChild(cancelBtn);
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
 }
 
 // ── Push inventory stone to a project ──
@@ -9668,11 +9720,18 @@ function pushInventoryStoneToProject(stoneId) {
       q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',mode:addMode,source:'inventory',date:dateStr});
       recalcAndSaveActualTotal(q);
       stone.status = 'in-use'; stone.usedInProjectId = destId; stone.usedInProjectClient = q.client;
-      // Also write stone details to the project so the edit form pre-fills
-      q.stoneDetail = { gia: stone.gia||'', carat: stone.carat||'', color: stone.color||'', clarity: stone.clarity||'', cut: stone.cut||'', dealer: stone.dealer||'', antique: stone.antique||false };
-      window._inventory = inv; persistInventory();
-      window._savedQuotes = updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
-      overlay.remove(); renderStoneInventory(); showToast('Pushed to ' + q.client);
+      var doInvPush = function(target, pieceName) {
+        var costField2 = stoneType === 'melee' ? 'actualMeleeCost' : 'actualStoneCost';
+        target[costField2] = addMode==='replace' ? cost : (target[costField2]||0) + cost;
+        if (!q.costPushes) q.costPushes = [];
+        q.costPushes.unshift({id:Date.now(),amount:cost,field:costField2,description:(stoneLabel||'Stone')+(pieceName?' → '+pieceName:''),mode:addMode,source:'inventory',date:dateStr});
+        // Write stone details to project so edit form pre-fills
+        q.stoneDetail = { gia: stone.gia||'', carat: stone.carat||'', color: stone.color||'', clarity: stone.clarity||'', cut: stone.cut||'', dealer: stone.dealer||'', antique: stone.antique||false };
+        window._inventory = inv; persistInventory();
+        window._savedQuotes = updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
+        overlay.remove(); renderStoneInventory(); showToast('Pushed to ' + (pieceName ? pieceName + ' · ' : '') + q.client);
+      };
+      _withPiecePicker(q, doInvPush);
     }
   });
   var cancelBtn = document.createElement('button'); cancelBtn.textContent = 'Cancel';
@@ -9769,11 +9828,17 @@ function pullInventoryStoneToProject(projectId) {
       target.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:lbl||'Stone',mode:addMode,source:'inventory',date:dateStr});
       recalcAndSaveActualTotal(target);
       stone.status = 'in-use'; stone.usedInProjectId = projectId; stone.usedInProjectClient = target.client;
-      // Write stone details to the project so the edit form pre-fills
-      target.stoneDetail = { gia: stone.gia||'', carat: stone.carat||'', color: stone.color||'', clarity: stone.clarity||'', cut: stone.cut||'', dealer: stone.dealer||'', antique: stone.antique||false };
-      window._inventory = allInv; persistInventory();
-      window._savedQuotes = updatedQuotes; persistQuotes(); refreshCardInPlace(projectId);
-      overlay.remove(); showToast('Stone pulled into ' + target.client);
+      var doPullPush = function(dest, pieceName) {
+        var costField3 = stoneType === 'melee' ? 'actualMeleeCost' : 'actualStoneCost';
+        dest[costField3] = addMode==='replace' ? cost : (dest[costField3]||0) + cost;
+        if (!target.costPushes) target.costPushes = [];
+        target.costPushes.unshift({id:Date.now(),amount:cost,field:costField3,description:(lbl||'Stone')+(pieceName?' → '+pieceName:''),mode:addMode,source:'inventory',date:dateStr});
+        target.stoneDetail = { gia: stone.gia||'', carat: stone.carat||'', color: stone.color||'', clarity: stone.clarity||'', cut: stone.cut||'', dealer: stone.dealer||'', antique: stone.antique||false };
+        window._inventory = allInv; persistInventory();
+        window._savedQuotes = updatedQuotes; persistQuotes(); refreshCardInPlace(projectId);
+        overlay.remove(); showToast('Stone pulled into ' + (pieceName ? pieceName + ' · ' : '') + target.client);
+      };
+      _withPiecePicker(target, doPullPush);
     });
     var cancelBtn = document.createElement('button'); cancelBtn.textContent = 'Cancel';
     cancelBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';
