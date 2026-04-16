@@ -3569,10 +3569,12 @@ function stagePiece() {
 
   _stagedPieces.push(piece);
   const projectTitle = document.getElementById('clientName').value;
+  const _savedMetalMode = _metalMode; // remember mode across pieces
   clearQuote();
-  // Restore project title and multi mode after clear
+  // Restore project title, multi mode, and metal mode after clear
   document.getElementById('clientName').value = projectTitle;
   setQuoteMode('multi', null);
+  if (_savedMetalMode === 'direct') setMetalMode('direct');
   renderPieceStaging();
   // Clear piece name field and update piece label
   const pieceNameEl = document.getElementById('pieceClientName');
