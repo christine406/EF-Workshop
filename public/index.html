@@ -9236,6 +9236,13 @@ function deleteInvoice(id){if(!confirm('Delete this invoice?'))return;window._in
 function pushLineItemToProject(invoiceId,lineItemId){
   var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===invoiceId;});if(!inv)return;
   var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;});if(!li)return;
+
+  // If dealer invoice with multiple stones, route to per-stone push UI
+  if(inv.type==='dealer' && inv.stones && inv.stones.length > 1){
+    pushStonesToProjects(inv, li, invoices);
+    return;
+  }
+
   var quotes=getSavedQuotes();var projects=quotes.filter(function(q){return q.status==='project'||q.status==='collection'||q.status==='completed'||q.status==='collection-quote'||q.status==='quote';}).sort(function(a,b){return b.id-a.id;});
   if(!projects.length){showToast('No active projects');return;}
 
@@ -9245,22 +9252,16 @@ function pushLineItemToProject(invoiceId,lineItemId){
   var t=document.createElement('div');t.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px';t.textContent='Connect to project or production spec';modal.appendChild(t);
   var d=document.createElement('div');d.style.cssText='font-size:14px;color:var(--text);margin-bottom:14px';d.textContent=(li.description||li.category)+(li.amount?' · '+fmt(li.amount):'');modal.appendChild(d);
 
-  // Project picker
   var projSel=document.createElement('select');projSel.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:14px';
   projSel.innerHTML='<option value="">-- Select destination</option>';
-  // Saved projects group
-  var projGroup = document.createElement('optgroup');
-  projGroup.label = 'Saved Projects';
+  var projGroup=document.createElement('optgroup');projGroup.label='Saved Projects';
   projects.forEach(function(q){var o=document.createElement('option');o.value='quote:'+q.id;o.textContent=q.client;projGroup.appendChild(o);});
   projSel.appendChild(projGroup);
-  // Production specs group
-  var prodGroup = document.createElement('optgroup');
-  prodGroup.label = 'Production Specs';
+  var prodGroup=document.createElement('optgroup');prodGroup.label='Production Specs';
   getProduction().forEach(function(spec){var o=document.createElement('option');o.value='prod:'+spec.id;o.textContent=spec.name;prodGroup.appendChild(o);});
   projSel.appendChild(prodGroup);
   modal.appendChild(projSel);
 
-  // Mode: Note only vs Add cost
   var modeLabel=document.createElement('div');modeLabel.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase';modeLabel.textContent='Connect as';modal.appendChild(modeLabel);
   var modeWrap=document.createElement('div');modeWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
   var ms='flex:1;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:0;cursor:pointer;border:1px solid';
@@ -9269,21 +9270,10 @@ function pushLineItemToProject(invoiceId,lineItemId){
   var pushMode='note';
   var costSection=document.createElement('div');costSection.style.display='none';
 
-  modeNote.addEventListener('click',function(){
-    pushMode='note';
-    modeNote.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
-    modeCost.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';
-    costSection.style.display='none';
-  });
-  modeCost.addEventListener('click',function(){
-    pushMode='add';
-    modeCost.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';
-    modeNote.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';
-    costSection.style.display='block';
-  });
+  modeNote.addEventListener('click',function(){pushMode='note';modeNote.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';modeCost.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';costSection.style.display='none';});
+  modeCost.addEventListener('click',function(){pushMode='add';modeCost.style.cssText=ms+' var(--teal-dim);background:var(--teal-dim);color:#fafaf7';modeNote.style.cssText=ms+' var(--border);background:none;color:var(--text-dim)';costSection.style.display='block';});
   modeWrap.appendChild(modeNote);modeWrap.appendChild(modeCost);modal.appendChild(modeWrap);
 
-  // Cost section (hidden by default)
   var catToField={casting:'actualMetalCost',setting:'actualLabor',findings:'actualChainCost',dealer:'actualStoneCost','main-stone':'actualStoneCost',melee:'actualMeleeCost',cad:'actualLabor',other:'actualLabor'};
   var fl=document.createElement('div');fl.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:4px;letter-spacing:0.08em;text-transform:uppercase';fl.textContent='Cost field';
   var fieldSel=document.createElement('select');fieldSel.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;margin-bottom:10px';
@@ -9299,52 +9289,33 @@ function pushLineItemToProject(invoiceId,lineItemId){
   costSection.appendChild(fl);costSection.appendChild(fieldSel);costSection.appendChild(addReplWrap);
   modal.appendChild(costSection);
 
-  // Buttons
   var btnRow=document.createElement('div');btnRow.style.cssText='display:flex;gap:8px';
   var pushBtn=document.createElement('button');pushBtn.textContent='Connect';pushBtn.style.cssText='flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer';
   pushBtn.addEventListener('click',function(){
-    var selVal = projSel.value;
-    if (!selVal) { showToast('Select a destination'); return; }
-    var isProd = selVal.startsWith('prod:');
-    var destId = parseInt(selVal.split(':')[1]);
+    var selVal=projSel.value;
+    if(!selVal){showToast('Select a destination');return;}
+    var isProd=selVal.startsWith('prod:');
+    var destId=parseInt(selVal.split(':')[1]);
 
-    // Handle production spec push
-    if (isProd) {
-      var prod = getProduction();
-      var spec = prod.find(function(s){ return s.id === destId; });
-      if (!spec) return;
-      var field = fieldSel.value;
-      // Map field to production cost fields
-      var prodFieldMap = {
-        actualStoneCost: 'stoneCost', actualMeleeCost: 'meleeCost',
-        actualMetalCost: 'metalCost', actualLabor: 'laborCost',
-        actualChainCost: 'findingsCost', actualDesignFee: 'designFee'
-      };
-      var prodField = prodFieldMap[field] || 'laborCost';
-      var existing = parseFloat(spec[prodField]) || 0;
-      spec[prodField] = addMode === 'replace' ? li.amount : (existing + li.amount);
-      window._production = prod;
-      persistProduction();
-      li.pushed = true;
-      li.pushType = 'cost';
-      li.pushedTo = spec.name;
-      li.pushedProjectId = spec.id;
-      window._invoices = invoices;
-      persistInvoices();
-      overlay.remove();
-      renderInvoices();
-      showToast('Pushed to ' + spec.name);
+    if(isProd){
+      var prod=getProduction();var spec=prod.find(function(s){return s.id===destId;});if(!spec)return;
+      var field=fieldSel.value;
+      var prodFieldMap={actualStoneCost:'stoneCost',actualMeleeCost:'meleeCost',actualMetalCost:'metalCost',actualLabor:'laborCost',actualChainCost:'findingsCost',actualDesignFee:'designFee'};
+      var prodField=prodFieldMap[field]||'laborCost';
+      var existing=parseFloat(spec[prodField])||0;
+      spec[prodField]=addMode==='replace'?li.amount:(existing+li.amount);
+      window._production=prod;persistProduction();
+      li.pushed=true;li.pushType='cost';li.pushedTo=spec.name;li.pushedProjectId=spec.id;
+      window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();showToast('Pushed to '+spec.name);
       return;
     }
 
-    var projId = destId;
-    var q = quotes.find(function(q){ return q.id === projId; }); if (!q) return;
+    var projId=destId;
+    var q=quotes.find(function(q){return q.id===projId;});if(!q)return;
 
     if(pushMode==='add'){
       var field=fieldSel.value;
-      // For multi-piece sets, apply cost to the piece level
-      if(q.isMultiPiece && q.pieces && q.pieces.length > 1){
-        // Show piece picker
+      if(q.isMultiPiece&&q.pieces&&q.pieces.length>1){
         var pieceOverlay=document.createElement('div');pieceOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
         var pieceModal=document.createElement('div');pieceModal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
         var pt=document.createElement('div');pt.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px';pt.textContent='Which piece?';pieceModal.appendChild(pt);
@@ -9365,9 +9336,8 @@ function pushLineItemToProject(invoiceId,lineItemId){
         });
         var cancelPiece=document.createElement('button');cancelPiece.textContent='Cancel';cancelPiece.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';cancelPiece.addEventListener('click',function(){pieceOverlay.remove();});
         pieceModal.appendChild(cancelPiece);pieceOverlay.appendChild(pieceModal);document.body.appendChild(pieceOverlay);
-        return; // exit push handler — piece picker takes over
+        return;
       }
-      // Single piece project
       q[field]=addMode==='replace'?li.amount:(q[field]||0)+li.amount;
       if(!q.costPushes)q.costPushes=[];
       q.costPushes.unshift({id:Date.now(),amount:li.amount,field:field,description:li.description||li.category,mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
@@ -9376,9 +9346,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
       recalcAndSaveActualTotal(q);window._savedQuotes=quotes;persistQuotes();refreshCardInPlace(projId);
       li.pushed=true;li.pushType='cost';
     } else {
-      // Note only — just link, no cost pushed
       li.pushed=true;li.pushType='note';
-      // Also write a lightweight note to the project so it shows on the card
       if(!q.invoiceLinks)q.invoiceLinks=[];
       q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:li.description||li.category,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
       recalcAndSaveActualTotal(q);window._savedQuotes=quotes;persistQuotes();refreshCardInPlace(projId);
@@ -9391,6 +9359,184 @@ function pushLineItemToProject(invoiceId,lineItemId){
   btnRow.appendChild(pushBtn);btnRow.appendChild(cancelBtn);modal.appendChild(btnRow);
   overlay.appendChild(modal);overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.remove();});document.body.appendChild(overlay);
 }
+
+// Per-stone push UI for dealer invoices with multiple stones
+function pushStonesToProjects(inv, li, invoices) {
+  var quotes = getSavedQuotes();
+  var projects = quotes.filter(function(q){ return q.status==='project'||q.status==='collection'||q.status==='completed'||q.status==='collection-quote'||q.status==='quote'; }).sort(function(a,b){ return b.id-a.id; });
+  var production = getProduction();
+  var stones = inv.stones;
+
+  // Cost per stone (split line item total by total stone qty)
+  var totalQty = stones.reduce(function(s,st){ return s + (parseInt(st.qty)||1); }, 0);
+  var totalAmt = (inv.lineItems||[]).reduce(function(s,l){ return s+(l.amount||0); }, 0);
+
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:480px;margin:auto';
+
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px';
+  title.textContent = 'Push stones to projects';
+  modal.appendChild(title);
+
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:16px';
+  sub.textContent = inv.vendor + (inv.invoiceNumber ? ' · #' + inv.invoiceNumber : '') + ' · ' + fmt(totalAmt) + ' total';
+  modal.appendChild(sub);
+
+  // Build destination option HTML for reuse
+  function buildDestOptions() {
+    var html = '<option value="">— Skip —</option>';
+    html += '<optgroup label="Saved Projects">';
+    projects.forEach(function(q){ html += '<option value="quote:'+q.id+'">'+q.client+'</option>'; });
+    html += '</optgroup>';
+    if (production.length) {
+      html += '<optgroup label="Production Specs">';
+      production.forEach(function(spec){ html += '<option value="prod:'+spec.id+'">'+spec.name+'</option>'; });
+      html += '</optgroup>';
+    }
+    return html;
+  }
+
+  var stoneRows = []; // { stone, destSel, costInput }
+
+  stones.forEach(function(st, idx) {
+    var qty = parseInt(st.qty) || 1;
+    var costPerStone = totalQty > 0 ? (totalAmt / totalQty) * qty : 0;
+    var isMemo = st.returned === 'memo' || st.returned === 'traded';
+
+    var card = document.createElement('div');
+    card.style.cssText = 'background:var(--bg);border:1px solid var(--border);padding:12px;margin-bottom:10px';
+
+    // Stone summary line
+    var stoneLabel = [st.ct ? st.ct+'ct' : '', st.cut, st.color, st.clarity, st.mm, st.qty > 1 ? 'x'+st.qty : ''].filter(Boolean).join(' · ');
+    var labelDiv = document.createElement('div');
+    labelDiv.style.cssText = 'font-size:13px;color:var(--text);margin-bottom:2px';
+    labelDiv.textContent = stoneLabel || ('Stone ' + (idx+1));
+    card.appendChild(labelDiv);
+
+    if (st.notes) {
+      var notesDiv = document.createElement('div');
+      notesDiv.style.cssText = 'font-size:11px;color:var(--text-dim);margin-bottom:6px';
+      notesDiv.textContent = st.notes + (isMemo ? ' · memo/traded' : '');
+      card.appendChild(notesDiv);
+    } else if (isMemo) {
+      var memoDiv = document.createElement('div');
+      memoDiv.style.cssText = 'font-size:11px;color:var(--text-dim);margin-bottom:6px';
+      memoDiv.textContent = 'memo / traded';
+      card.appendChild(memoDiv);
+    }
+
+    // Cost row
+    var costRow = document.createElement('div');
+    costRow.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+    var costLabel = document.createElement('div');
+    costLabel.style.cssText = 'font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap';
+    costLabel.textContent = 'Cost ($)';
+    var costIn = document.createElement('input');
+    costIn.type = 'number';
+    costIn.min = '0';
+    costIn.step = '0.01';
+    costIn.value = isMemo ? '0' : costPerStone.toFixed(2);
+    costIn.style.cssText = 'width:90px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
+    costRow.appendChild(costLabel);
+    costRow.appendChild(costIn);
+    card.appendChild(costRow);
+
+    // Destination picker
+    var destLabel = document.createElement('div');
+    destLabel.style.cssText = 'font-size:11px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px';
+    destLabel.textContent = 'Destination';
+    var destSel = document.createElement('select');
+    destSel.style.cssText = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none';
+    destSel.innerHTML = buildDestOptions();
+    card.appendChild(destLabel);
+    card.appendChild(destSel);
+
+    modal.appendChild(card);
+    stoneRows.push({ stone: st, destSel: destSel, costIn: costIn });
+  });
+
+  // Push all button
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:4px';
+  var pushAllBtn = document.createElement('button');
+  pushAllBtn.textContent = 'Push all';
+  pushAllBtn.style.cssText = 'flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;border-radius:0;cursor:pointer';
+
+  pushAllBtn.addEventListener('click', function() {
+    var pushed = 0;
+    var skipped = 0;
+    var updatedQuotes = getSavedQuotes();
+    var updatedProd = getProduction();
+
+    stoneRows.forEach(function(row) {
+      var selVal = row.destSel.value;
+      if (!selVal) { skipped++; return; }
+      var cost = parseFloat(row.costIn.value) || 0;
+      var st = row.stone;
+      var isProd = selVal.startsWith('prod:');
+      var destId = parseInt(selVal.split(':')[1]);
+      var stoneLabel = [st.ct ? st.ct+'ct' : '', st.cut, st.color, st.clarity].filter(Boolean).join(' ');
+      var dateStr = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+      if (isProd) {
+        var spec = updatedProd.find(function(s){ return s.id===destId; });
+        if (!spec) return;
+        spec.stoneCost = (parseFloat(spec.stoneCost)||0) + cost;
+        // Also log the stone detail to the spec's stones array
+        if (!spec.invoiceStones) spec.invoiceStones = [];
+        spec.invoiceStones.push({ ct: st.ct, cut: st.cut, qty: st.qty, color: st.color, clarity: st.clarity, mm: st.mm, antique: st.antique, notes: st.notes, cost: cost, vendor: inv.vendor, date: dateStr });
+        pushed++;
+      } else {
+        var q = updatedQuotes.find(function(q){ return q.id===destId; });
+        if (!q) return;
+        // Add stone cost to actualStoneCost
+        q.actualStoneCost = (q.actualStoneCost||0) + cost;
+        // Log the push
+        if (!q.costPushes) q.costPushes = [];
+        q.costPushes.unshift({ id: Date.now()+Math.random(), amount: cost, field: 'actualStoneCost', description: stoneLabel || 'Stone', mode: 'add', source: 'invoice', invoiceVendor: inv.vendor, invoiceNumber: inv.invoiceNumber, date: dateStr });
+        if (!q.invoiceLinks) q.invoiceLinks = [];
+        q.invoiceLinks.unshift({ id: Date.now()+Math.random(), vendor: inv.vendor, invoiceNumber: inv.invoiceNumber, description: stoneLabel || 'Stone', amount: cost, field: 'actualStoneCost', date: dateStr });
+        recalcAndSaveActualTotal(q);
+        pushed++;
+      }
+    });
+
+    if (pushed === 0) { showToast('No destinations selected'); return; }
+
+    // Mark line item pushed
+    li.pushed = true;
+    li.pushType = 'cost';
+    li.pushedTo = pushed + ' destination' + (pushed > 1 ? 's' : '');
+    li.pushedProjectId = null;
+
+    window._savedQuotes = updatedQuotes;
+    window._production = updatedProd;
+    window._invoices = invoices;
+    persistQuotes();
+    persistProduction();
+    persistInvoices();
+    renderInvoices();
+    overlay.remove();
+    showToast('Pushed ' + pushed + ' stone' + (pushed > 1 ? 's' : '') + (skipped ? ', skipped ' + skipped : ''));
+  });
+
+  var cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:10px 16px;border-radius:0;cursor:pointer';
+  cancelBtn.addEventListener('click', function(){ overlay.remove(); });
+
+  btnRow.appendChild(pushAllBtn);
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 
 function renderOutstandingTally() {
   var tally = document.getElementById('inv-outstanding-tally');
