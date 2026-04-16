@@ -10851,6 +10851,7 @@ function startProdOrder(specId) {
   };
   quotes.unshift(newProject);
   window._savedQuotes = quotes;
+  console.log('[startProdOrder] saving quoteType:', newProject.quoteType, 'id:', newProject.id);
   persistQuotes();
   showScreen('saved');
   setTimeout(function() {
