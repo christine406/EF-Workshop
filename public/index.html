@@ -7708,6 +7708,43 @@ function calcLoose() {
   }
 }
 
+
+// =================== SECTION NAV FOOTER ===================
+const _SECTION_NAV = [
+  { name: 'quote',      label: 'Quote' },
+  { name: 'saved',      label: 'Projects' },
+  { name: 'stones',     label: 'Stones' },
+  { name: 'invoices',   label: 'Invoices' },
+  { name: 'production', label: 'Production' },
+  { name: 'field',      label: 'Field Log' },
+  { name: 'chains',     label: 'Findings' },
+  { name: 'loose',      label: 'Loose Sale' },
+  { name: 'data',       label: 'Data' },
+  { name: 'inquiries',  label: 'Inquiries' },
+];
+
+function injectSectionNavFooters() {
+  document.querySelectorAll('.screen').forEach(function(screen) {
+    var currentName = screen.id.replace('screen-', '');
+    var existing = screen.querySelector('.section-nav-footer');
+    if (existing) existing.remove();
+    var footer = document.createElement('div');
+    footer.className = 'section-nav-footer';
+    footer.style.cssText = 'padding:16px;border-top:1px solid var(--border);margin-top:24px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center';
+    _SECTION_NAV.forEach(function(s) {
+      if (s.name === currentName) return;
+      var btn = document.createElement('button');
+      btn.textContent = s.label;
+      btn.style.cssText = 'font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;border-radius:0;cursor:pointer;background:none;border:1px solid var(--border);color:var(--text-dim)';
+      btn.addEventListener('click', function(){ showScreen(s.name); window.scrollTo(0,0); });
+      btn.addEventListener('mouseenter', function(){ this.style.borderColor = 'var(--teal-dim)'; this.style.color = 'var(--teal-dim)'; });
+      btn.addEventListener('mouseleave', function(){ this.style.borderColor = 'var(--border)'; this.style.color = 'var(--text-dim)'; });
+      footer.appendChild(btn);
+    });
+    screen.appendChild(footer);
+  });
+}
+
 // =================== NAV ===================
 function showScreen(name) {
   // Hide command center, show section
@@ -7732,6 +7769,7 @@ function showScreen(name) {
     }
   });
   document.getElementById('goldBar').style.display = name === 'quote' ? 'flex' : 'none';
+  injectSectionNavFooters();
   if (name === 'data' && typeof renderDataScreen === 'function') renderDataScreen();
   if (name === 'invoices' && typeof renderInvoices === 'function') { renderInvoices(); refreshAllVendorDropdowns(); }
   if (name === 'field' && typeof renderFieldLog === 'function') renderFieldLog();
