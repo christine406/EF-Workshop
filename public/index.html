@@ -4386,7 +4386,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   form.addEventListener('click', e => e.stopPropagation());
   overlay.appendChild(form);
   // Pre-compute stone details from stoneDetail or linked inventory stone
-  const _linkedInv = getInventory().find(i => i.usedInProjectId === id || i.usedInQuoteId === id);
+  const _linkedInv = getInventory().find(i => String(i.usedInProjectId) === String(id) || String(i.usedInQuoteId) === String(id));
   // Normalize stones array in case Firebase returned it as an object
   const _stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
   const _firstStone = _stonesArr.length ? _stonesArr[0] : null;
@@ -4662,7 +4662,7 @@ function saveQuoteEdit(id) {
   // If name changed, update linked stone's notes
   if (newClientName !== oldClientName) {
     const inv = getInventory();
-    const linkedStone = inv.find(s => s.usedInProjectId === id);
+    const linkedStone = inv.find(s => String(s.usedInProjectId) === String(id));
     if (linkedStone) {
       linkedStone.notes = 'Added from project: ' + newClientName;
       window._inventory = inv;
@@ -4735,7 +4735,7 @@ function saveQuoteEdit(id) {
     q.stoneDetail = stoneDetail;
     // Write to inventory only if explicitly flagged and not already there
     const inv = getInventory();
-    const alreadyIn = inv.find(i => i.usedInProjectId === id || (stoneDetail.gia && i.gia === stoneDetail.gia));
+    const alreadyIn = inv.find(i => String(i.usedInProjectId) === String(id) || (stoneDetail.gia && i.gia === stoneDetail.gia));
     if (!alreadyIn && epAddToInv) {
       inv.push({
         id: Date.now() + Math.random(),
@@ -4816,7 +4816,7 @@ function markProjectStatus(id, newStatus, e) {
 
     // Handle linked stone based on new status
     const inv = getInventory();
-    const linkedStone = inv.find(s => s.usedInProjectId === id);
+    const linkedStone = inv.find(s => String(s.usedInProjectId) === String(id));
     if (linkedStone) {
       const now = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
       if (newStatus === 'completed') {
@@ -5974,7 +5974,7 @@ function deleteItem(id, e) {
     });
     // Also release any stones where usedInProjectId or usedInQuoteId matches this quote
     inv.forEach(s => {
-      if (s.usedInProjectId === id) {
+      if (String(s.usedInProjectId) === String(id)) {
         s.status = 'available';
         s.usedInProjectId = null;
         invChanged = true;
@@ -9621,6 +9621,8 @@ function pushInventoryStoneToProject(stoneId) {
       q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',mode:addMode,source:'inventory',date:dateStr});
       recalcAndSaveActualTotal(q);
       stone.status = 'in-use'; stone.usedInProjectId = destId; stone.usedInProjectClient = q.client;
+      // Also write stone details to the project so the edit form pre-fills
+      q.stoneDetail = { gia: stone.gia||'', carat: stone.carat||'', color: stone.color||'', clarity: stone.clarity||'', cut: stone.cut||'', dealer: stone.dealer||'', antique: stone.antique||false };
       window._inventory = inv; persistInventory();
       window._savedQuotes = updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
       overlay.remove(); renderStoneInventory(); showToast('Pushed to ' + q.client);
@@ -9720,6 +9722,8 @@ function pullInventoryStoneToProject(projectId) {
       target.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:lbl||'Stone',mode:addMode,source:'inventory',date:dateStr});
       recalcAndSaveActualTotal(target);
       stone.status = 'in-use'; stone.usedInProjectId = projectId; stone.usedInProjectClient = target.client;
+      // Write stone details to the project so the edit form pre-fills
+      target.stoneDetail = { gia: stone.gia||'', carat: stone.carat||'', color: stone.color||'', clarity: stone.clarity||'', cut: stone.cut||'', dealer: stone.dealer||'', antique: stone.antique||false };
       window._inventory = allInv; persistInventory();
       window._savedQuotes = updatedQuotes; persistQuotes(); refreshCardInPlace(projectId);
       overlay.remove(); showToast('Stone pulled into ' + target.client);
