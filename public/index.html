@@ -8350,8 +8350,9 @@ function renderDataScreen() {
   html += '</div>';
 
   // ── Cost / ct by dealer ──
+  html += '<div style="background:#fafaf7;padding:12px;margin-bottom:20px">';
   html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">Cost per carat by dealer</div>';
-  html += '<div style="margin-bottom:20px">';
+  html += '<div>';
   const sortedDealers = Object.entries(byDealer).sort((a,b) => b[1].length - a[1].length);
   sortedDealers.forEach(([dealer, cpcts]) => {
     const avg = cpcts.reduce((s,x) => s + x, 0) / cpcts.length;
@@ -8362,6 +8363,7 @@ function renderDataScreen() {
       + '</div>';
   });
   html += '</div>';
+  html += '</div>'; // close off-white dealer wrapper
 
   // ── All stones table ──
   html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:10px">All stones</div>';
