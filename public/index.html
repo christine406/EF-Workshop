@@ -3308,8 +3308,9 @@ function calculate() {
   const rawMetalCost = grams * gpg;
   const metalWithCasting = getMetalCost(grams, purity);
   const isOverride = document.getElementById('metalOverrideToggle')?.checked && parseFloat(document.getElementById('metalOverride')?.value);
-  document.getElementById('metalCostDisplay').textContent = (grams || isOverride) ? '$' + Math.round(metalWithCasting).toLocaleString() : '—';
-  document.getElementById('metalSub').textContent = isOverride ? 'manual estimate' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.25 casting ×1.05 sprue ×1.35` : '—';
+  const isDirectMode = _metalMode === 'direct' && parseFloat(document.getElementById('metalOverride')?.value);
+  document.getElementById('metalCostDisplay').textContent = (grams || isOverride || isDirectMode) ? '$' + Math.round(metalWithCasting).toLocaleString() : '—';
+  document.getElementById('metalSub').textContent = isDirectMode ? 'casting bill + 5% sprue + ×1.35' : isOverride ? 'manual estimate' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.25 casting ×1.05 sprue ×1.35` : '—';
   // Update the estimate box too
   updateMetalEstimate();
 
@@ -3353,11 +3354,11 @@ function calculate() {
   const chainMarkup = Math.round(chainWholesaleCost * 1.35);
   const overhead = Math.round((metalMarkup + chainMarkup + laborRetail + designFee) * 0.13);
   document.getElementById('overheadDisplay').textContent = overhead ? '$' + overhead.toLocaleString() : '—';
-  document.getElementById('metalCostDisplay').textContent = (grams || isOverride) ? '$' + metalMarkup.toLocaleString() : '—';
-  document.getElementById('metalSub').textContent = isOverride ? 'casting bill + 5% sprue + ×1.35' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.25 casting ×1.05 sprue ×1.35` : '—';
+  document.getElementById('metalCostDisplay').textContent = (grams || isOverride || isDirectMode) ? '$' + metalMarkup.toLocaleString() : '—';
+  document.getElementById('metalSub').textContent = (isDirectMode || isOverride) ? 'casting bill + 5% sprue + ×1.35' : grams ? `${grams}g · $${gpg.toFixed(2)}/g · ×1.25 casting ×1.05 sprue ×1.35` : '—';
 
   // Total = stone_markup + metal×1.35 + chain×1.35 + labor×1.4 + design_fee, rounded to $50
-  const hasAny = grams || stones.length || labor;
+  const hasAny = grams || stones.length || labor || isDirectMode || isOverride;
   if (hasAny) {
     const rawTotal = Math.round(stoneRetailTotal) + (metalMarkup + chainMarkup + laborRetail + designFee) * 1.13;
     const total = Math.round(rawTotal / 50) * 50;
