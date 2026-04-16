@@ -10834,7 +10834,7 @@ function startProdOrder(specId) {
     client: clientName,
     pieceType: spec.name,
     status: 'project',
-    quoteType: 'bespoke',
+    quoteType: 'semi-custom',
     date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     purity: spec.molds && spec.molds[0] ? spec.molds[0].purity + ' yellow' : '18k yellow',
     fromSpecId: specId,
