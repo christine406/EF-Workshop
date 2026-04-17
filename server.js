@@ -116,6 +116,20 @@ app.post('/api/jotform-webhook', (req, res) => {
 
       console.log('JotForm data keys:', Object.keys(data).slice(0, 30));
 
+      // ─── DEBUG LOGGING: dump every field name + value pair ─────────────────
+      console.log('========== JOTFORM DEBUG DUMP START (' + formType + ') ==========');
+      Object.keys(data).forEach(k => {
+        let v = data[k];
+        if (typeof v === 'object') {
+          try { v = JSON.stringify(v); } catch(e) { v = '[object]'; }
+        }
+        const strVal = String(v);
+        // truncate very long values (like jsExecutionTracker) so logs stay readable
+        const display = strVal.length > 300 ? strVal.slice(0, 300) + '...[truncated]' : strVal;
+        console.log('  FIELD [' + k + '] = ' + display);
+      });
+      console.log('========== JOTFORM DEBUG DUMP END ==========');
+
       const get = (keys) => {
         for (const k of keys) {
           const fullKey = Object.keys(data).find(rk => rk.toLowerCase().includes(k.toLowerCase()));
