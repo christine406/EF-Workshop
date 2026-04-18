@@ -203,6 +203,28 @@ app.post('/api/jotform-webhook', (req, res) => {
     const design      = designNotes;
     const submissionId = raw.submissionID || Date.now().toString();
 
+    // Inspiration images (bespoke form only — from the file upload field)
+    // JotForm sends these as a stringified JSON array of URLs
+    let inspirationImages = [];
+    const uploadRaw = data['pleaseUpload'] || data['q41_pleaseUpload'];
+    if (uploadRaw) {
+      if (Array.isArray(uploadRaw)) {
+        inspirationImages = uploadRaw.filter(u => typeof u === 'string' && u.startsWith('http'));
+      } else if (typeof uploadRaw === 'string') {
+        try {
+          const parsed = JSON.parse(uploadRaw);
+          if (Array.isArray(parsed)) {
+            inspirationImages = parsed.filter(u => typeof u === 'string' && u.startsWith('http'));
+          } else if (typeof parsed === 'string' && parsed.startsWith('http')) {
+            inspirationImages = [parsed];
+          }
+        } catch(e) {
+          // If it's not JSON but is a URL, keep it
+          if (uploadRaw.startsWith('http')) inspirationImages = [uploadRaw];
+        }
+      }
+    }
+
     const inquiry = {
       id: Date.now(),
       submissionId,
@@ -225,6 +247,7 @@ app.post('/api/jotform-webhook', (req, res) => {
       designNotes,
       wearerInvolved,
       notes,
+      inspirationImages,
     };
 
     // Save to Firebase REST API

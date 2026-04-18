@@ -8035,9 +8035,18 @@ function renderInquiries() {
       inq.notes ? ['Additional notes', inq.notes] : null,
     ].filter(Boolean);
 
+    var imagesLinkHtml = '';
+    if (inq.inspirationImages && inq.inspirationImages.length > 0) {
+      var links = inq.inspirationImages.map(function(url, i) {
+        var filename = url.split('/').pop() || ('Image ' + (i+1));
+        return '<a href="' + url + '" target="_blank" rel="noopener" style="color:var(--teal-dim);text-decoration:underline;display:block;margin-bottom:3px;word-break:break-all">' + filename + '</a>';
+      }).join('');
+      imagesLinkHtml = '<div class="inq-field"><div class="inq-field-label">Inspiration images</div><div class="inq-field-value">' + links + '</div></div>';
+    }
+
     var fieldsHtml = fields.map(function(f) {
       return '<div class="inq-field"><div class="inq-field-label">' + f[0] + '</div><div class="inq-field-value">' + f[1] + '</div></div>';
-    }).join('');
+    }).join('') + imagesLinkHtml;
 
     var reviewBtn = (inq.status !== 'reviewed' && inq.status !== 'converted')
       ? '<button class="inq-action-btn" data-action="review" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 14px;cursor:pointer">Mark reviewed</button>'
