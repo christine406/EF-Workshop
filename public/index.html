@@ -3380,21 +3380,23 @@ function calculate() {
     // Client price override
     const clientPriceInput = 0;
 
-    // Actual cost basis — your real out-of-pocket, no markup
+    // Actual cost basis — your real out-of-pocket, no markup, no sprue
     const overrideVal = parseFloat(document.getElementById('metalOverride')?.value) || 0;
     let rawMetalOutOfPocket = 0;
     if (_metalMode === 'direct' && overrideVal) {
-      rawMetalOutOfPocket = overrideVal * 1.05; // casting bill + 5% sprue
+      rawMetalOutOfPocket = overrideVal; // casting bill as-is
     } else if (isOverride && overrideVal) {
       rawMetalOutOfPocket = overrideVal; // manual estimate — use as-is
     } else {
-      rawMetalOutOfPocket = grams * goldPerGram(purity) * 1.25 * 1.05; // raw × casting × sprue
+      rawMetalOutOfPocket = grams * goldPerGram(purity) * 1.25; // raw gold × casting
     }
+    const meleeCostRaw = parseFloat(document.getElementById('meleeCost')?.value) || 0;
     const actualCost = stones.reduce((s, st) => s + (st.cost || 0), 0)
       + rawMetalOutOfPocket
       + chainWholesaleCost
       + labor
-      + designFee;
+      + designFee
+      + meleeCostRaw;
 
     const profitBefore = total - Math.round(actualCost);
     const profitAfterDiscount = discountedTotal - Math.round(actualCost);
