@@ -9644,7 +9644,77 @@ function saveInvoice(){
   window._invoices=invoices;persistInvoices();closeInvoiceForm();renderInvoices();showToast('Invoice saved');
 }
 function toggleInvoiceStatus(id){var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===id;});if(!inv)return;inv.status=inv.status==='paid'?'outstanding':'paid';window._invoices=invoices;persistInvoices();renderInvoices();}
-function deleteInvoice(id){if(!confirm('Delete this invoice?'))return;window._invoices=getInvoices().filter(function(i){return i.id!==id;});persistInvoices();renderInvoices();}
+function deleteProdInvoiceLink(specId, linkId){
+  var prod = getProduction();
+  var spec = prod.find(function(s){return s.id===specId;});
+  if(!spec||!spec.invoiceLinks) return;
+  var link = spec.invoiceLinks.find(function(l){return l.id===linkId;});
+  if(!link) return;
+  if(!confirm('Remove this invoice link and subtract '+(link.amount?'$'+link.amount.toLocaleString():'')+' from '+(link.field||'cost')+'?')) return;
+  // Subtract the amount from the cost field
+  if(link.field && link.amount){
+    var current = parseFloat(spec[link.field])||0;
+    spec[link.field] = Math.max(0, current - link.amount);
+  }
+  spec.invoiceLinks = spec.invoiceLinks.filter(function(l){return l.id!==linkId;});
+  window._production = prod;
+  persistProduction();
+  renderProduction();
+  showToast('Link removed');
+}
+
+function deleteInvoice(id){
+  var inv = getInvoices().find(function(i){return i.id===id;});
+  if(!inv) return;
+  // Count linked pushes on projects and production specs
+  var quotes = getSavedQuotes();
+  var prod = getProduction();
+  var invoiceNumber = inv.invoiceNumber;
+  var vendor = inv.vendor;
+  var linkedQuotes = quotes.filter(function(q){
+    return (q.invoiceLinks||[]).some(function(l){ return l.invoiceNumber===invoiceNumber && l.vendor===vendor; });
+  });
+  var linkedSpecs = prod.filter(function(s){
+    return (s.invoiceLinks||[]).some(function(l){ return l.invoiceNumber===invoiceNumber && l.vendor===vendor; });
+  });
+  var totalLinks = linkedQuotes.length + linkedSpecs.length;
+  var msg = 'Delete this invoice?';
+  if(totalLinks > 0){
+    var names = linkedQuotes.map(function(q){return q.client;}).concat(linkedSpecs.map(function(s){return s.name;}));
+    msg = 'This invoice has pushed costs to '+totalLinks+' place(s): '+names.join(', ')+'.\n\nClick OK to delete the invoice AND reverse those cost pushes. Click Cancel to keep the invoice.';
+  }
+  if(!confirm(msg)) return;
+  // Reverse pushes on quotes
+  linkedQuotes.forEach(function(q){
+    (q.invoiceLinks||[]).forEach(function(l){
+      if(l.invoiceNumber===invoiceNumber && l.vendor===vendor && l.field && l.amount){
+        var current = parseFloat(q[l.field])||0;
+        q[l.field] = Math.max(0, current - l.amount);
+      }
+    });
+    q.invoiceLinks = (q.invoiceLinks||[]).filter(function(l){ return !(l.invoiceNumber===invoiceNumber && l.vendor===vendor); });
+    q.costPushes = (q.costPushes||[]).filter(function(p){ return !(p.invoiceNumber===invoiceNumber && p.invoiceVendor===vendor); });
+    recalcAndSaveActualTotal(q);
+  });
+  window._savedQuotes = quotes; persistQuotes();
+  // Reverse pushes on production specs
+  linkedSpecs.forEach(function(s){
+    (s.invoiceLinks||[]).forEach(function(l){
+      if(l.invoiceNumber===invoiceNumber && l.vendor===vendor && l.field && l.amount){
+        var current = parseFloat(s[l.field])||0;
+        s[l.field] = Math.max(0, current - l.amount);
+      }
+    });
+    s.invoiceLinks = (s.invoiceLinks||[]).filter(function(l){ return !(l.invoiceNumber===invoiceNumber && l.vendor===vendor); });
+  });
+  window._production = prod; persistProduction();
+  // Delete invoice
+  window._invoices = getInvoices().filter(function(i){return i.id!==id;});
+  persistInvoices();
+  renderInvoices();
+  if(totalLinks>0) showToast('Invoice deleted, '+totalLinks+' cost push(es) reversed');
+  else showToast('Invoice deleted');
+}
 
 function pushLineItemToProject(invoiceId,lineItemId){
   var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===invoiceId;});if(!inv)return;
@@ -10752,15 +10822,18 @@ function renderProduction(){
       body.appendChild(costsDiv);
     }
 
-    // Invoice links — source-of-cost indicator
+    // Invoice links — source-of-cost indicator, removable
     if(spec.invoiceLinks&&spec.invoiceLinks.length){
       var fieldShortLabels={stoneCost:'Stone',meleeCost:'Melee',metalCost:'Metal',laborCost:'Labor',findingsCost:'Findings',designFee:'Design'};
       var linkSection=document.createElement('div');linkSection.style.cssText='padding:8px 10px;background:#fafaf7;border-left:2px solid var(--teal-dim);margin-bottom:10px';
       var lh=document.createElement('div');lh.style.cssText='font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px';lh.textContent='From invoices';linkSection.appendChild(lh);
       spec.invoiceLinks.forEach(function(lnk){
-        var row=document.createElement('div');row.style.cssText='font-size:11px;color:var(--text-dim);padding:2px 0';
+        var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-dim);padding:2px 0';
         var fieldLbl=fieldShortLabels[lnk.field]||lnk.field||'';
-        row.textContent=(lnk.vendor||'')+(lnk.invoiceNumber?' #'+lnk.invoiceNumber:'')+' · '+fieldLbl+(lnk.amount?' '+fmt(lnk.amount):'')+' · '+(lnk.date||'');
+        var txt=document.createElement('span');txt.textContent=(lnk.vendor||'')+(lnk.invoiceNumber?' #'+lnk.invoiceNumber:'')+' · '+fieldLbl+(lnk.amount?' '+fmt(lnk.amount):'')+' · '+(lnk.date||'');
+        var rem=document.createElement('span');rem.textContent='✕';rem.style.cssText='cursor:pointer;padding:0 4px;color:var(--text-dim);flex-shrink:0;margin-left:8px';
+        (function(specId,linkId){rem.addEventListener('click',function(e){e.stopPropagation();deleteProdInvoiceLink(specId,linkId);});})(spec.id,lnk.id);
+        row.appendChild(txt);row.appendChild(rem);
         linkSection.appendChild(row);
       });
       body.appendChild(linkSection);
