@@ -9720,6 +9720,8 @@ function pushLineItemToProject(invoiceId,lineItemId){
       var prodField=prodFieldMap[field]||'laborCost';
       var existing=parseFloat(spec[prodField])||0;
       spec[prodField]=addMode==='replace'?li.amount:(existing+li.amount);
+      if(!spec.invoiceLinks)spec.invoiceLinks=[];
+      spec.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:li.description||li.category,amount:li.amount,field:prodField,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
       window._production=prod;persistProduction();
       li.pushed=true;li.pushType='cost';li.pushedTo=spec.name;li.pushedProjectId=spec.id;
       window._invoices=invoices;persistInvoices();overlay.remove();renderInvoices();showToast('Pushed to '+spec.name);
@@ -9860,6 +9862,8 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
       spec.stoneCost = addMode==='replace' ? cost : (parseFloat(spec.stoneCost)||0) + cost;
       if(!spec.invoiceStones) spec.invoiceStones=[];
       if(stone) spec.invoiceStones.push({ct:stone.ct,cut:stone.cut,qty:stone.qty,color:stone.color,clarity:stone.clarity,mm:stone.mm,antique:stone.antique,notes:stone.notes,cost:cost,vendor:inv.vendor,date:dateStr});
+      if(!spec.invoiceLinks) spec.invoiceLinks=[];
+      spec.invoiceLinks.unshift({id:Date.now()+Math.random(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:stoneLabel||'Stone',amount:cost,field:'stoneCost',date:dateStr});
       window._production=prod; persistProduction();
       li.pushed=true; li.pushType='cost'; li.pushedTo=spec.name; li.pushedProjectId=spec.id;
       window._invoices=invoices; persistInvoices(); overlay.remove(); renderInvoices(); showToast('Pushed to '+spec.name);
@@ -10746,6 +10750,20 @@ function renderProduction(){
       var pairs=[['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost]];
       pairs.forEach(function(p){if(!p[1])return;var span=document.createElement('span');span.style.color='var(--text-dim)';span.textContent=p[0]+' '+fmt(p[1]);costsDiv.appendChild(span);});
       body.appendChild(costsDiv);
+    }
+
+    // Invoice links — source-of-cost indicator
+    if(spec.invoiceLinks&&spec.invoiceLinks.length){
+      var fieldShortLabels={stoneCost:'Stone',meleeCost:'Melee',metalCost:'Metal',laborCost:'Labor',findingsCost:'Findings',designFee:'Design'};
+      var linkSection=document.createElement('div');linkSection.style.cssText='padding:8px 10px;background:#fafaf7;border-left:2px solid var(--teal-dim);margin-bottom:10px';
+      var lh=document.createElement('div');lh.style.cssText='font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px';lh.textContent='From invoices';linkSection.appendChild(lh);
+      spec.invoiceLinks.forEach(function(lnk){
+        var row=document.createElement('div');row.style.cssText='font-size:11px;color:var(--text-dim);padding:2px 0';
+        var fieldLbl=fieldShortLabels[lnk.field]||lnk.field||'';
+        row.textContent=(lnk.vendor||'')+(lnk.invoiceNumber?' #'+lnk.invoiceNumber:'')+' · '+fieldLbl+(lnk.amount?' '+fmt(lnk.amount):'')+' · '+(lnk.date||'');
+        linkSection.appendChild(row);
+      });
+      body.appendChild(linkSection);
     }
 
     // Molds — distinct background block
