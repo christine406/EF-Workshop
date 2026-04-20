@@ -6156,7 +6156,7 @@ function updateCosts(id, e, pieceIdx) {
     <div id="af-live-${id}" style="background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:10px;margin-bottom:10px;display:none"></div>
     <div style="margin-bottom:12px">
       <div class="field-label">Client price ($) — what you're actually charging</div>
-      <input type="number" id="af-client-${id}" value="${q.clientPrice || ''}" min="0" placeholder="leave blank to use retail" oninput="calcCostsLive(${id})"
+      <input type="number" id="af-client-${id}" value="${(pieceIdx !== undefined ? (src.clientPrice || '') : (q.clientPrice || ''))}" min="0" placeholder="leave blank to use retail" oninput="calcCostsLive(${id})"
         style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--gold);font-family:var(--font-mono);font-size:13px;font-weight:500;padding:7px 8px;border-radius:0;outline:none">
     </div>
     <div style="display:flex;gap:8px">
