@@ -7367,10 +7367,10 @@ function renderStoneInventory() {
 
   list.innerHTML = '';
 
-  // All stones flat table
+  // All stones flat table — uses the same filtered `stones` array so search/filters apply
   const allStonesKey = 'all-stones';
   const allStonesExpanded = window._stoneSecExpanded?.[allStonesKey] ?? false;
-  const allStones = getInventory().filter(s => !archivedStatuses.includes(s.status));
+  const allStones = stones.filter(s => !archivedStatuses.includes(s.status));
 
   const allHeader = document.createElement('div');
   allHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;cursor:pointer;user-select:none';
