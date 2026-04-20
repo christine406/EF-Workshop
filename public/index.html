@@ -1802,7 +1802,16 @@
         <div id="inv-stone-section" style="display:none;margin-bottom:10px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">Stones <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">(each stone is a line item)</span></div>
-            <button onclick="addInvStoneRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add stone</button>
+            <div style="display:flex;gap:6px">
+              <button onclick="toggleInvoiceInventoryPicker()" id="invInvoicePickerBtn" style="background:#fafaf7;border:1px solid var(--gold);color:var(--gold);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">🗂️ From inventory</button>
+              <button onclick="addInvStoneRow()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 8px;border-radius:0;cursor:pointer">+ Add stone</button>
+            </div>
+          </div>
+          <div id="invInvoiceInventoryPicker" style="display:none;border:1px solid var(--border);border-radius:0;margin-bottom:8px;overflow:hidden">
+            <div style="padding:8px 10px;background:#fafaf7;border-bottom:1px solid var(--border)">
+              <input type="text" id="invInvoicePickerSearch" placeholder="Type carat, GIA, color, clarity..." oninput="renderInvoiceInventoryPicker()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;box-sizing:border-box">
+            </div>
+            <div id="invInvoicePickerList" style="max-height:220px;overflow-y:auto"></div>
           </div>
           <div id="inv-stones-list"></div>
           <div id="inv-stone-total" style="text-align:right;font-family:var(--font-mono);font-size:13px;color:var(--text);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)"></div>
@@ -9410,7 +9419,7 @@ function openInvoiceForm(editId){
   }
   form.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function closeInvoiceForm(){var form=document.getElementById('invoiceForm');if(form)form.style.display='none';_editingInvoiceId=null;}
+function closeInvoiceForm(){var form=document.getElementById('invoiceForm');if(form)form.style.display='none';_editingInvoiceId=null;var picker=document.getElementById('invInvoiceInventoryPicker');if(picker)picker.style.display='none';var pickerBtn=document.getElementById('invInvoicePickerBtn');if(pickerBtn)pickerBtn.textContent='🗂️ From inventory';var pickerSearch=document.getElementById('invInvoicePickerSearch');if(pickerSearch)pickerSearch.value='';}
 
 function addInvoiceLineItem(prefill){
   var id=++_invoiceLineCounter;
@@ -9475,6 +9484,65 @@ function toggleInvStoneSection(type) {
 }
 
 var _invStoneCounter = 0;
+
+function toggleInvoiceInventoryPicker() {
+  const picker = document.getElementById('invInvoiceInventoryPicker');
+  const btn = document.getElementById('invInvoicePickerBtn');
+  if (!picker) return;
+  if (picker.style.display === 'none') {
+    picker.style.display = 'block';
+    btn.textContent = '✕ Close inventory';
+    renderInvoiceInventoryPicker();
+  } else {
+    picker.style.display = 'none';
+    btn.textContent = '🗂️ From inventory';
+  }
+}
+
+function renderInvoiceInventoryPicker() {
+  const list = document.getElementById('invInvoicePickerList');
+  if (!list) return;
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  const searchQuery = document.getElementById('invInvoicePickerSearch')?.value || '';
+  const available = getInventory().filter(s =>
+    !archivedStatuses.includes(s.status) &&
+    s.category !== 'owned-reserved' &&
+    stoneMatchesSearch(s, searchQuery)
+  );
+  if (!available.length) {
+    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">No stones match</div>';
+    return;
+  }
+  list.innerHTML = '';
+  available.forEach(s => {
+    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center';
+    row.innerHTML = '<div><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (s.dealer||'') + (s.gia ? ' · GIA ' + s.gia : '') + '</div></div>'
+      + (s.cost ? '<div style="font-size:13px;color:var(--gold);flex-shrink:0;margin-left:10px">$' + s.cost.toLocaleString() + '</div>' : '');
+    row.addEventListener('click', () => { addInvStoneRowFromInventory(s); });
+    row.addEventListener('mouseenter', () => row.style.background = 'var(--surface2)');
+    row.addEventListener('mouseleave', () => row.style.background = '');
+    list.appendChild(row);
+  });
+}
+
+function addInvStoneRowFromInventory(s) {
+  const prefill = {
+    ct: s.carat || '',
+    cut: s.cut || '',
+    qty: 1,
+    color: s.color || '',
+    clarity: s.clarity || '',
+    mm: s.dimensions || '',
+    antique: s.antique ? 'yes' : 'no',
+    notes: s.gia ? 'GIA ' + s.gia : (s.notes || ''),
+    amount: s.cost || '',
+  };
+  addInvStoneRow(prefill);
+  showToast('Added ' + [s.carat ? parseFloat(s.carat).toFixed(2) + 'ct' : '', s.cut].filter(Boolean).join(' '));
+}
+
 function addInvStoneRow(prefill) {
   var id = ++_invStoneCounter;
   var list = document.getElementById('inv-stones-list');
