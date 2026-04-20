@@ -1554,17 +1554,6 @@
           <div class="field-label">Cut / shape</div>
           <select id="stoneFilterCut" onchange="renderStoneInventory()">
             <option value="">All cuts</option>
-            <option>Old Mine Cut</option>
-            <option>Old European Cut</option>
-            <option>Round Brilliant</option>
-            <option>Oval</option>
-            <option>Emerald Cut</option>
-            <option>Cushion</option>
-            <option>Pear</option>
-            <option>Marquise</option>
-            <option>Asscher</option>
-            <option>Princess</option>
-            <option>Other</option>
           </select>
         </div>
         <div class="field">
@@ -1644,16 +1633,7 @@
           <div class="field">
             <div class="field-label">Cut / shape</div>
             <select id="si-cut" onchange="document.getElementById('si-cut-other').style.display=this.value==='Other'?'block':'none'">
-              <option>Old Mine Cut</option>
-              <option>Old European Cut</option>
-              <option>Round Brilliant</option>
-              <option>Oval</option>
-              <option>Emerald Cut</option>
-              <option>Cushion</option>
-              <option>Pear</option>
-              <option>Marquise</option>
-              <option>Asscher</option>
-              <option>Princess</option>
+              <option value="">— select</option>
               <option>Other</option>
             </select>
             <input type="text" id="si-cut-other" placeholder="Describe cut" style="display:none;margin-top:6px;width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
@@ -2059,9 +2039,6 @@
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
           <select id="looseFilterCut" onchange="renderLoosePickerList()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option value="">All cuts</option>
-            <option>Old Mine Cut</option><option>Old European Cut</option><option>Round Brilliant</option>
-            <option>Oval</option><option>Emerald Cut</option><option>Cushion</option><option>Pear</option>
-            <option>Marquise</option><option>Asscher</option><option>Princess</option><option>Other</option>
           </select>
           <select id="looseFilterDealer" onchange="renderLoosePickerList()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option value="">All dealers</option>
@@ -3088,7 +3065,7 @@ function renderStones() {
     const card = document.createElement('div');
     card.className = 'stone-card';
 
-    const cutOptions = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
+    const cutOptions = getCutOptions();
     const dealerOptions = ['American Gem Corp','Virat','Galapo','Julius Klein','Other'];
 
     card.innerHTML = `
@@ -3275,6 +3252,27 @@ function stoneMarkupProject(cost) {
   if (cost <= 15000) return 1.6;
   if (cost <= 25000) return 1.55;
   return 1.5;
+}
+
+// Returns cut dropdown options — unique cuts from current inventory, sorted alphabetically, plus "Other"
+function getCutOptions() {
+  const inv = getInventory();
+  const unique = [...new Set(inv.map(s => s.cut).filter(c => c && c !== 'Other'))].sort();
+  return [...unique, 'Other'];
+}
+
+// Renders <option> tags for cut dropdowns — optionally marks selected + includes blank placeholder
+function buildCutOptions(selectedValue, includeBlank) {
+  const opts = getCutOptions();
+  // If selectedValue isn't in the list (legacy or just-typed), add it so it shows as selected
+  if (selectedValue && !opts.includes(selectedValue)) opts.unshift(selectedValue);
+  let html = '';
+  if (includeBlank) html += '<option value="">— select</option>';
+  opts.forEach(c => {
+    const sel = c === selectedValue ? ' selected' : '';
+    html += '<option value="' + c + '"' + sel + '>' + c + '</option>';
+  });
+  return html;
 }
 
 // Fuzzy search across stone attributes — matches on carat, GIA, color, clarity, cut, dealer, notes
@@ -3530,8 +3528,20 @@ async function _scanGIAAndFill(input, fields) {
     if (parsed.clarity && document.getElementById(fields.clarity)) document.getElementById(fields.clarity).value = parsed.clarity;
     if (parsed.cut && document.getElementById(fields.cut)) {
       const sel = document.getElementById(fields.cut);
-      const match = Array.from(sel.options).find(o => o.value.toLowerCase().includes(parsed.cut.toLowerCase()) || parsed.cut.toLowerCase().includes(o.value.toLowerCase()));
-      if (match) sel.value = match.value;
+      const exact = Array.from(sel.options).find(o => o.value === parsed.cut);
+      if (exact) {
+        sel.value = parsed.cut;
+      } else {
+        // Add the GIA cut verbatim as a new option and select it
+        const opt = document.createElement('option');
+        opt.value = parsed.cut;
+        opt.textContent = parsed.cut;
+        opt.selected = true;
+        const otherOpt = Array.from(sel.options).find(o => o.value === 'Other');
+        if (otherOpt) sel.insertBefore(opt, otherOpt);
+        else sel.appendChild(opt);
+        sel.value = parsed.cut;
+      }
     }
     const filled = [parsed.gia, parsed.carat, parsed.color, parsed.clarity, parsed.cut].filter(Boolean);
     if (statusEl) { statusEl.textContent = '✓ Found: ' + filled.join(' · '); statusEl.style.color = 'var(--green-bright)'; }
@@ -3768,7 +3778,7 @@ function renderExtraPieces() {
     div.id = 'extra-piece-' + p.id;
     div.style.cssText = 'border-top:2px solid var(--gold);margin:0;padding:16px;position:relative';
 
-    const cutOptions = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
+    const cutOptions = getCutOptions();
     const purityOpts = [['18k','18k Yellow'],['18kw','18k White'],['14k','14k Yellow'],['14kw','14k White'],['plat','Platinum']];
     const pieceOpts = [['','— select'],['ring','Ring'],['engagement-ring','Engagement ring'],['band','Band'],['wedding-band','Wedding band'],['pendant','Pendant'],['earrings','Earrings'],['necklace','Necklace'],['bracelet','Bracelet'],['other','Other']];
 
@@ -4492,7 +4502,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
           <div><div class="field-label">Cut / shape</div>
             <select id="ep-cut-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
               <option value="">— select</option>
-              ${['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(c=>`<option value="${c}" ${_epCut===c?'selected':''}>${c}</option>`).join('')}
+              ${buildCutOptions(_epCut, false)}
             </select>
           </div>
           <div><div class="field-label">Dealer</div>
@@ -4630,7 +4640,7 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
           <div><div class="field-label">Cut / shape</div>
             <select id="ep-cut-${id}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;appearance:none">
               <option value="">— select</option>
-              ${['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(c=>`<option value="${c}" ${_epCut===c?'selected':''}>${c}</option>`).join('')}
+              ${buildCutOptions(_epCut, false)}
             </select>
           </div>
           <div><div class="field-label">Dealer</div>
@@ -6886,33 +6896,24 @@ function fillStoneFormFromGIA(data) {
   if (data.clarity) document.getElementById('si-clarity').value = data.clarity;
   if (data.cut) {
     const cutSel = document.getElementById('si-cut');
-    const raw = data.cut.toLowerCase();
-    // Try exact match first, then partial
-    const matchingOpt = Array.from(cutSel.options).find(o => o.value.toLowerCase() === raw)
-      || Array.from(cutSel.options).find(o => o.value.toLowerCase().includes(raw) || raw.includes(o.value.toLowerCase()))
-      // Fallback keyword mapping
-      || (() => {
-        if (raw.includes('mine') || raw.includes('omc')) return Array.from(cutSel.options).find(o => o.value === 'Old Mine Cut');
-        if (raw.includes('european') || raw.includes('oec')) return Array.from(cutSel.options).find(o => o.value === 'Old European Cut');
-        if (raw.includes('round') || raw.includes('brilliant')) return Array.from(cutSel.options).find(o => o.value === 'Round Brilliant');
-        if (raw.includes('oval')) return Array.from(cutSel.options).find(o => o.value === 'Oval');
-        if (raw.includes('emerald')) return Array.from(cutSel.options).find(o => o.value === 'Emerald Cut');
-        if (raw.includes('cushion')) return Array.from(cutSel.options).find(o => o.value === 'Cushion');
-        if (raw.includes('pear')) return Array.from(cutSel.options).find(o => o.value === 'Pear');
-        if (raw.includes('marquise')) return Array.from(cutSel.options).find(o => o.value === 'Marquise');
-        if (raw.includes('asscher')) return Array.from(cutSel.options).find(o => o.value === 'Asscher');
-        if (raw.includes('princess')) return Array.from(cutSel.options).find(o => o.value === 'Princess');
-        return null;
-      })();
-    if (matchingOpt) {
-      cutSel.value = matchingOpt.value;
+    const exact = Array.from(cutSel.options).find(o => o.value === data.cut);
+    if (exact) {
+      cutSel.value = data.cut;
       const otherInput = document.getElementById('si-cut-other');
       if (otherInput) otherInput.style.display = 'none';
     } else {
-      // No match — put it in the Other text field
-      cutSel.value = 'Other';
+      // Add the GIA cut verbatim as a new option and select it
+      const opt = document.createElement('option');
+      opt.value = data.cut;
+      opt.textContent = data.cut;
+      opt.selected = true;
+      // Insert before "Other" if it exists, otherwise append
+      const otherOpt = Array.from(cutSel.options).find(o => o.value === 'Other');
+      if (otherOpt) cutSel.insertBefore(opt, otherOpt);
+      else cutSel.appendChild(opt);
+      cutSel.value = data.cut;
       const otherInput = document.getElementById('si-cut-other');
-      if (otherInput) { otherInput.style.display = 'block'; otherInput.value = data.cut; }
+      if (otherInput) otherInput.style.display = 'none';
     }
   }
   if (data.fluorescence) {
@@ -6985,7 +6986,15 @@ async function scanGIAPhoto(input) {
   input.value = '';
 }
 
+function populateAddStoneCutDropdown(selectedValue) {
+  const sel = document.getElementById('si-cut');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— select</option>' + buildCutOptions(selectedValue || '', false);
+  if (selectedValue) sel.value = selectedValue;
+}
+
 function openAddStoneForm() {
+  populateAddStoneCutDropdown();
   document.getElementById('addStoneForm').style.display = 'block';
   document.getElementById('addStoneBtnLabel').textContent = '− Cancel add';
 }
@@ -7026,12 +7035,10 @@ function editInventoryStone(id) {
 
   // Pre-fill all fields
   document.getElementById('si-category').value = s.category || 'owned-available';
-  const stdCuts = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
-  const stoneCutVal = s.cut || 'Old Mine Cut';
-  const cutIsStd = stdCuts.includes(stoneCutVal);
-  document.getElementById('si-cut').value = cutIsStd ? stoneCutVal : 'Other';
+  const stoneCutVal = s.cut || '';
+  populateAddStoneCutDropdown(stoneCutVal);
   const siCutOther = document.getElementById('si-cut-other');
-  if (siCutOther) { siCutOther.style.display = cutIsStd ? 'none' : 'block'; siCutOther.value = cutIsStd ? '' : stoneCutVal; }
+  if (siCutOther) { siCutOther.style.display = 'none'; siCutOther.value = ''; }
   document.getElementById('si-carat').value = s.carat || '';
   document.getElementById('si-color').value = s.color || '';
   document.getElementById('si-clarity').value = s.clarity || '';
@@ -7276,12 +7283,13 @@ function renderStoneInventory() {
   const list = document.getElementById('inventoryList');
   if (!list) return;
 
-  // Populate filter cut dropdown with any custom cuts from inventory
+  // Populate filter cut dropdown dynamically from inventory
   const cutFilterSel = document.getElementById('stoneFilterCut');
   if (cutFilterSel) {
-    const stdCuts2 = ['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'];
-    const allCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))].filter(c => !stdCuts2.includes(c));
-    allCuts.forEach(c => { if (!Array.from(cutFilterSel.options).find(o => o.value === c)) { const o = document.createElement('option'); o.value = c; o.textContent = c; cutFilterSel.appendChild(o); } });
+    const currentVal = cutFilterSel.value;
+    const uniqueCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))].sort();
+    cutFilterSel.innerHTML = '<option value="">All cuts</option>' +
+      uniqueCuts.map(c => '<option value="' + c + '"' + (c === currentVal ? ' selected' : '') + '>' + c + '</option>').join('');
   }
   // Populate dealer filter dynamically from inventory
   const dealerFilterSel = document.getElementById('stoneFilterDealer');
@@ -7629,6 +7637,14 @@ function toggleLoosePicker() {
 function renderLoosePickerList() {
   const list = document.getElementById('loosePickerList');
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  // Populate cut filter dynamically
+  const cutSel = document.getElementById('looseFilterCut');
+  if (cutSel) {
+    const currentVal = cutSel.value;
+    const uniqueCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))].sort();
+    cutSel.innerHTML = '<option value="">All cuts</option>' +
+      uniqueCuts.map(c => '<option value="' + c + '"' + (c === currentVal ? ' selected' : '') + '>' + c + '</option>').join('');
+  }
   const cut = document.getElementById('looseFilterCut')?.value || '';
   const dealer = document.getElementById('looseFilterDealer')?.value || '';
   const sortBy = document.getElementById('looseFilterSort')?.value || 'ct-asc';
@@ -9314,7 +9330,7 @@ function addInvStoneRow(prefill) {
   row.style.cssText = 'background:#fafaf7;border:1px solid var(--border);padding:10px;margin-bottom:8px;position:relative';
   row.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">'
     + '<div><div class="field-label">Carats (each)</div><input type="number" id="invs-ct-'+id+'" step="0.01" placeholder="e.g. 1.52" value="'+(prefill&&prefill.ct||'')+'" style="'+s+'"></div>'
-    + '<div><div class="field-label">Shape / Cut</div><select id="invs-cut-'+id+'" style="'+s+'"><option value="">— select</option>'+['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(function(c){return '<option value="'+c+'"'+(prefill&&prefill.cut===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'
+    + '<div><div class="field-label">Shape / Cut</div><select id="invs-cut-'+id+'" style="'+s+'">'+buildCutOptions(prefill&&prefill.cut||'', true)+'</select></div>'
     + '<div><div class="field-label">Qty</div><input type="number" id="invs-qty-'+id+'" min="1" placeholder="1" value="'+(prefill&&prefill.qty||1)+'" style="'+s+'"></div>'
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:6px">'
@@ -10212,7 +10228,7 @@ function addProdStoneRow(prefill){
   var id=++_prodStoneCounter;var container=document.getElementById('prod-stones');if(!container)return;
   var wrapper=document.createElement('div');wrapper.id='prod-stone-wrap-'+id;wrapper.style.cssText='background:#fafaf7;border-radius:0;padding:8px;margin-bottom:6px';
   var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center';
-  var shapeIn=document.createElement('select');shapeIn.id='ps-shape-'+id;shapeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';shapeIn.innerHTML='<option value="">— cut</option>'+['Old Mine Cut','Old European Cut','Round Brilliant','Oval','Emerald Cut','Cushion','Pear','Marquise','Asscher','Princess','Other'].map(function(c){return '<option value="'+c+'"'+(prefill&&prefill.shape===c?' selected':'')+'>'+c+'</option>';}).join('');
+  var shapeIn=document.createElement('select');shapeIn.id='ps-shape-'+id;shapeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';shapeIn.innerHTML='<option value="">— cut</option>'+buildCutOptions(prefill&&prefill.shape||'', false);
   var sizeIn=document.createElement('input');sizeIn.type='text';sizeIn.id='ps-size-'+id;sizeIn.value=prefill&&prefill.size||'';sizeIn.placeholder='2.5mm';sizeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
   var qtyIn=document.createElement('input');qtyIn.type='number';qtyIn.id='ps-qty-'+id;qtyIn.value=prefill&&prefill.qty||'';qtyIn.placeholder='Qty';qtyIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
   var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtn.addEventListener('click',function(){wrapper.remove();});
