@@ -7251,6 +7251,27 @@ function deleteInventoryStone(id) {
   showToast('Stone deleted');
 }
 
+function jumpToStone(stoneId) {
+  const inv = getInventory();
+  const s = inv.find(x => x.id === stoneId);
+  if (!s) return;
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project'];
+  const cat = archivedStatuses.includes(s.status) ? 'archived-stone' : (s.category || 'owned-available');
+  window._stoneSecExpanded = window._stoneSecExpanded || {};
+  window._stoneSecExpanded[cat] = true;
+  renderStoneInventory();
+  setTimeout(() => {
+    const card = document.getElementById('stone-card-' + stoneId);
+    if (card) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const origBg = card.style.background;
+      card.style.transition = 'background 0.6s';
+      card.style.background = '#fff2c4';
+      setTimeout(() => { card.style.background = origBg; }, 1200);
+    }
+  }, 80);
+}
+
 function renderStoneInventory() {
   const list = document.getElementById('inventoryList');
   if (!list) return;
@@ -7381,7 +7402,7 @@ function renderStoneInventory() {
       const stLabel = isArch ? 'archived' : s.status === 'in-use' ? 'in use' : s.status === 'unavailable' ? 'reserved' : s.status || 'available';
       const stColor = s.status === 'in-use' ? 'var(--teal-dim)' : isArch ? 'var(--text-dim)' : s.status === 'available' ? 'var(--green-bright)' : 'var(--text-dim)';
       const linkedProj = s.usedInProjectId ? getSavedQuotes().find(q => q.id === s.usedInProjectId) : null;
-      thtml += '<tr style="border-bottom:1px solid var(--border);opacity:' + (isArch ? '0.45' : '1') + '">'
+      thtml += '<tr onclick="jumpToStone(' + s.id + ')" style="border-bottom:1px solid var(--border);opacity:' + (isArch ? '0.45' : '1') + ';cursor:pointer" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'">'
         + '<td style="padding:7px 4px;color:var(--text);white-space:nowrap">' + (s.cut || '—') + (s.antique ? ' <span style="font-size:9px;color:#741435">🌹</span>' : '') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.carat ? parseFloat(s.carat).toFixed(2) : '—') + '</td>'
         + '<td style="padding:7px 4px;text-align:center;color:var(--text)">' + (s.color || '—') + '</td>'
@@ -7433,6 +7454,7 @@ function renderStoneInventory() {
     const hasPending = pendingInquiries.length > 0;
 
     const div = document.createElement('div');
+    div.id = 'stone-card-' + s.id;
     const isUnavailable = s.status === 'in-use' || s.status === 'unavailable' || s.status === 'sold-by-dealer';
     const isInQuote = s.usedInQuoteId && !s.usedInProjectId;
     const cardBg = isUnavailable ? '#f9eaea' : isInQuote ? 'rgba(160,124,197,0.08)' : 'var(--surface)';
