@@ -1883,6 +1883,16 @@
           <input type="hidden" id="prod-findings-cost">
           <!-- Component cost summary -->
           <div id="prod-cost-summary" style="font-size:12px;color:var(--text-dim);margin-bottom:10px"></div>
+          <!-- Orphan costs: costs stored on spec but not linked to components (e.g. from invoice pushes) -->
+          <div id="prod-orphan-costs" style="display:none;padding:8px 10px;background:#fafaf7;border-left:2px solid var(--gold);margin-bottom:10px">
+            <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:8px">Unassigned costs <span style="color:var(--text-dim);text-transform:none;letter-spacing:0;font-size:10px">(e.g. pushed from invoices)</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div id="prod-orphan-metal-wrap" style="display:none"><div class="field-label">Metal / casting</div><input type="number" id="prod-orphan-metal" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fff;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>
+              <div id="prod-orphan-stone-wrap" style="display:none"><div class="field-label">Stone</div><input type="number" id="prod-orphan-stone" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fff;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>
+              <div id="prod-orphan-melee-wrap" style="display:none"><div class="field-label">Melee</div><input type="number" id="prod-orphan-melee" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fff;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>
+              <div id="prod-orphan-findings-wrap" style="display:none"><div class="field-label">Findings</div><input type="number" id="prod-orphan-findings" placeholder="0" oninput="recalcProdFromComponents()" style="width:100%;background:#fff;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box"></div>
+            </div>
+          </div>
           <!-- Manual overrides: labor + design fee -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
             <div>
@@ -10673,7 +10683,9 @@ function openProductionForm(editId){
   if(document.getElementById('prod-group'))document.getElementById('prod-group').value='';
   if(document.getElementById('prod-caster-new'))document.getElementById('prod-caster-new').style.display='none';
   document.getElementById('prod-notes').value='';document.getElementById('prod-molds').innerHTML='';document.getElementById('prod-stones').innerHTML='';document.getElementById('prod-findings').innerHTML='';
-  ['prod-stone-cost','prod-melee-cost','prod-metal-cost','prod-labor-cost','prod-findings-cost','prod-design-fee','prod-retail-price'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['prod-stone-cost','prod-melee-cost','prod-metal-cost','prod-labor-cost','prod-findings-cost','prod-design-fee','prod-retail-price','prod-orphan-metal','prod-orphan-stone','prod-orphan-melee','prod-orphan-findings'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  // Hide orphan section + individual wraps on reset
+  ['prod-orphan-costs','prod-orphan-metal-wrap','prod-orphan-stone-wrap','prod-orphan-melee-wrap','prod-orphan-findings-wrap'].forEach(function(id){var el=document.getElementById(id);if(el)el.style.display='none';});
   var bd=document.getElementById('prod-calc-breakdown');if(bd)bd.style.display='none';
   var pieceSel=document.getElementById('prod-piece-sel');
   pieceSel.innerHTML='<option value="">-- Select existing collection piece...</option>';
@@ -10698,7 +10710,27 @@ function openProductionForm(editId){
       }
       if(document.getElementById('prod-design-fee'))document.getElementById('prod-design-fee').value=spec.designFee||'';
       if(document.getElementById('prod-retail-price'))document.getElementById('prod-retail-price').value=spec.retailPrice||'';
-      (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});setTimeout(recalcProdFromComponents,50);
+      (spec.molds||[]).forEach(function(m){addProdMoldRow(m);});(spec.stones||[]).forEach(function(r){addProdStoneRow(r);});(spec.findings||[]).forEach(function(r){addProdFindingRow(r);});
+
+      // Detect orphan costs — costs on the spec without matching component rows
+      setTimeout(function(){
+        var moldSum = (spec.molds||[]).reduce(function(s,m){return s+(parseFloat(m.cost)||0);},0);
+        var stoneSum = (spec.stones||[]).filter(function(r){return !r.isMelee;}).reduce(function(s,r){return s+(parseFloat(r.cost)||0);},0);
+        var meleeSum = (spec.stones||[]).filter(function(r){return r.isMelee;}).reduce(function(s,r){return s+(parseFloat(r.cost)||0);},0);
+        var findSum = (spec.findings||[]).reduce(function(s,r){return s+(parseFloat(r.cost)||parseFloat(r.chainWholesale)||0);},0);
+        var orphMetal = Math.max(0, (parseFloat(spec.metalCost)||0) - moldSum);
+        var orphStone = Math.max(0, (parseFloat(spec.stoneCost)||0) - stoneSum);
+        var orphMelee = Math.max(0, (parseFloat(spec.meleeCost)||0) - meleeSum);
+        var orphFindings = Math.max(0, (parseFloat(spec.findingsCost)||0) - findSum);
+        var orphWrap = document.getElementById('prod-orphan-costs');
+        var anyOrphan = orphMetal||orphStone||orphMelee||orphFindings;
+        if (orphWrap) orphWrap.style.display = anyOrphan ? 'block' : 'none';
+        if (orphMetal) { document.getElementById('prod-orphan-metal').value = orphMetal; document.getElementById('prod-orphan-metal-wrap').style.display='block'; }
+        if (orphStone) { document.getElementById('prod-orphan-stone').value = orphStone; document.getElementById('prod-orphan-stone-wrap').style.display='block'; }
+        if (orphMelee) { document.getElementById('prod-orphan-melee').value = orphMelee; document.getElementById('prod-orphan-melee-wrap').style.display='block'; }
+        if (orphFindings) { document.getElementById('prod-orphan-findings').value = orphFindings; document.getElementById('prod-orphan-findings-wrap').style.display='block'; }
+        recalcProdFromComponents();
+      }, 50);
     }
   }else{addProdMoldRow();addProdStoneRow();addProdFindingRow();}
   form.scrollIntoView({behavior:'smooth',block:'start'});
@@ -11102,30 +11134,39 @@ function recalcProdFromComponents() {
     findingsCostSum += parseFloat((el&&el.value)||0) || 0;
   });
 
-  // Feed hidden inputs so calcProdRetail works unchanged
+  // Orphan costs (pushed from invoices, no matching component)
+  var orphanMetal = parseFloat((document.getElementById('prod-orphan-metal')||{}).value)||0;
+  var orphanStone = parseFloat((document.getElementById('prod-orphan-stone')||{}).value)||0;
+  var orphanMelee = parseFloat((document.getElementById('prod-orphan-melee')||{}).value)||0;
+  var orphanFindings = parseFloat((document.getElementById('prod-orphan-findings')||{}).value)||0;
+
+  // Feed hidden inputs so calcProdRetail works unchanged — components + orphans
   var metalEl = document.getElementById('prod-metal-cost');
-  if (metalEl) metalEl.value = moldCost || '';
+  if (metalEl) metalEl.value = (moldCost + orphanMetal) || '';
   var stoneEl = document.getElementById('prod-stone-cost');
-  if (stoneEl) stoneEl.value = stoneCostSum || '';
+  if (stoneEl) stoneEl.value = (stoneCostSum + orphanStone) || '';
   var findEl = document.getElementById('prod-findings-cost');
-  if (findEl) findEl.value = findingsCostSum || '';
-  // melee stays 0 (no component rows for melee yet)
+  if (findEl) findEl.value = (findingsCostSum + orphanFindings) || '';
   var meleeEl = document.getElementById('prod-melee-cost');
-  if (meleeEl) meleeEl.value = meleeCostSum || '';
+  if (meleeEl) meleeEl.value = (meleeCostSum + orphanMelee) || '';
 
   // Build cost summary display
   var summary = document.getElementById('prod-cost-summary');
   if (summary) {
     var lines = [];
-    if (moldCost) lines.push('<span style="color:var(--text-mid)">Molds / CAD</span> <span style="color:var(--gold)">' + fmt(moldCost) + '</span>');
-    if (stoneCostSum) lines.push('<span style="color:var(--text-mid)">Main stones</span> <span style="color:var(--gold)">' + fmt(stoneCostSum) + '</span>');
-    if (meleeCostSum) lines.push('<span style="color:var(--text-mid)">Melee / small stones</span> <span style="color:var(--gold)">' + fmt(meleeCostSum) + '</span>');
-    if (findingsCostSum) lines.push('<span style="color:var(--text-mid)">Findings / chain</span> <span style="color:var(--gold)">' + fmt(findingsCostSum) + '</span>');
+    var totalMetal = moldCost + orphanMetal;
+    var totalStone = stoneCostSum + orphanStone;
+    var totalMelee = meleeCostSum + orphanMelee;
+    var totalFindings = findingsCostSum + orphanFindings;
+    if (totalMetal) lines.push('<span style="color:var(--text-mid)">Molds / CAD / metal</span> <span style="color:var(--gold)">' + fmt(totalMetal) + '</span>');
+    if (totalStone) lines.push('<span style="color:var(--text-mid)">Main stones</span> <span style="color:var(--gold)">' + fmt(totalStone) + '</span>');
+    if (totalMelee) lines.push('<span style="color:var(--text-mid)">Melee / small stones</span> <span style="color:var(--gold)">' + fmt(totalMelee) + '</span>');
+    if (totalFindings) lines.push('<span style="color:var(--text-mid)">Findings / chain</span> <span style="color:var(--gold)">' + fmt(totalFindings) + '</span>');
     var laborVal = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
     var designVal = parseFloat(document.getElementById('prod-design-fee').value) || 0;
     if (laborVal) lines.push('<span style="color:var(--text-mid)">Labor / setting</span> <span style="color:var(--gold)">' + fmt(laborVal) + '</span>');
     if (designVal) lines.push('<span style="color:var(--text-mid)">Design fee</span> <span style="color:var(--gold)">' + fmt(designVal) + '</span>');
-    var totalCost = moldCost + stoneCostSum + findingsCostSum + laborVal + designVal;
+    var totalCost = totalMetal + totalStone + totalMelee + totalFindings + laborVal + designVal;
     if (totalCost) lines.push('<span style="color:var(--text-dim);font-size:11px;border-top:1px solid var(--border);display:block;padding-top:6px;margin-top:4px">Total cost: <strong style="color:var(--text)">' + fmt(totalCost) + '</strong></span>');
     summary.innerHTML = lines.map(function(l,i){return '<div style="display:flex;justify-content:space-between;padding:3px 0' + (i<lines.length-1?';border-bottom:1px solid var(--border)':'') + '">' + l + '</div>';}).join('');
   }
@@ -11133,20 +11174,24 @@ function recalcProdFromComponents() {
   // Run the retail calc
   calcProdRetail(false);
 
-  // Update retail + profit display
+  // Update retail + profit display — include orphans in all totals
   function stoneMarkupFn(c){if(c<=5000)return 2.1;if(c<=10000)return 1.8;if(c<=15000)return 1.6;if(c<=25000)return 1.55;return 1.5;}
   var laborCost2 = parseFloat(document.getElementById('prod-labor-cost').value) || 0;
   var designFee2 = parseFloat(document.getElementById('prod-design-fee').value) || 0;
-  var stoneRetail2 = stoneCostSum * stoneMarkupFn(stoneCostSum);
-  var meleeRetail2 = meleeCostSum * 1.75;
-  var metalRetail2 = moldCost * 1.35;
-  var findingsRetail2 = findingsCostSum * 1.35;
+  var totalStoneAll = stoneCostSum + orphanStone;
+  var totalMeleeAll = meleeCostSum + orphanMelee;
+  var totalMetalAll = moldCost + orphanMetal;
+  var totalFindingsAll = findingsCostSum + orphanFindings;
+  var stoneRetail2 = totalStoneAll * stoneMarkupFn(totalStoneAll);
+  var meleeRetail2 = totalMeleeAll * 1.75;
+  var metalRetail2 = totalMetalAll * 1.35;
+  var findingsRetail2 = totalFindingsAll * 1.35;
   var laborRetail2 = laborCost2 * 1.4;
   var overhead2 = (metalRetail2 + findingsRetail2 + laborRetail2 + meleeRetail2 + designFee2) * 1.13;
   var suggested2 = Math.round((stoneRetail2 + overhead2) / 50) * 50;
   var overridePrice = parseFloat(document.getElementById('prod-retail-price').value) || 0;
   var finalRetail = overridePrice || suggested2;
-  var totalCostAll = moldCost + stoneCostSum + meleeCostSum + findingsCostSum + laborCost2 + designFee2;
+  var totalCostAll = totalMetalAll + totalStoneAll + totalMeleeAll + totalFindingsAll + laborCost2 + designFee2;
   var profit = finalRetail - totalCostAll;
 
   var retailDisp = document.getElementById('prod-retail-display');
