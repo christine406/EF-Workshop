@@ -1315,6 +1315,9 @@
           <span>Your available stones</span>
           <span onclick="toggleInventoryPicker()" style="cursor:pointer;color:var(--text-dim)">✕</span>
         </div>
+        <div style="padding:8px 10px;background:#fafaf7;border-bottom:1px solid var(--border)">
+          <input type="text" id="invPickerSearch" placeholder="Type carat, GIA, color, clarity..." oninput="renderInventoryPicker()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
         <div id="inventoryPickerList" style="max-height:220px;overflow-y:auto"></div>
       </div>
 
@@ -1543,6 +1546,9 @@
     <!-- SEARCH BAR -->
     <div class="section">
       <div class="section-label">🔍 Search stones</div>
+      <div class="field" style="margin-bottom:8px">
+        <input type="text" id="stoneFilterSearch" placeholder="Type carat, GIA, color, clarity..." oninput="renderStoneInventory()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none">
+      </div>
       <div class="field-row">
         <div class="field">
           <div class="field-label">Cut / shape</div>
@@ -2049,6 +2055,7 @@
       <div class="section-label">💎 Loose stone sale</div>
       <button class="add-stone-btn" onclick="toggleLoosePicker()" id="loosePickerToggle" style="margin-bottom:10px">📦 Pick from inventory</button>
       <div id="loosePickerControls" style="display:none;margin-bottom:8px">
+        <input type="text" id="looseFilterSearch" placeholder="Type carat, GIA, color, clarity..." oninput="renderLoosePickerList()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;margin-bottom:6px;box-sizing:border-box">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
           <select id="looseFilterCut" onchange="renderLoosePickerList()" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
             <option value="">All cuts</option>
@@ -3268,6 +3275,24 @@ function stoneMarkupProject(cost) {
   if (cost <= 15000) return 1.6;
   if (cost <= 25000) return 1.55;
   return 1.5;
+}
+
+// Fuzzy search across stone attributes — matches on carat, GIA, color, clarity, cut, dealer, notes
+function stoneMatchesSearch(stone, query) {
+  if (!query) return true;
+  const q = String(query).toLowerCase().trim();
+  if (!q) return true;
+  const caratStr = stone.carat ? parseFloat(stone.carat).toFixed(2) : '';
+  const haystack = [
+    caratStr,
+    stone.gia,
+    stone.color,
+    stone.clarity,
+    stone.cut,
+    stone.dealer,
+    stone.notes,
+  ].filter(Boolean).join(' ').toLowerCase();
+  return haystack.includes(q);
 }
 
 function calcStoneRetail() {
@@ -6647,6 +6672,8 @@ function renderGroupedPicker(list, stones, onSelect) {
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project'];
 
   if (!window._pickerExpanded) window._pickerExpanded = {};
+  // When search is active in the quote builder picker, auto-expand all groups
+  const searchActive = (document.getElementById('invPickerSearch')?.value || '').trim().length > 0;
 
   const grouped = {};
   catOrder.forEach(c => { grouped[c] = []; });
@@ -6670,7 +6697,7 @@ function renderGroupedPicker(list, stones, onSelect) {
     if (!group || !group.length) return;
     hasAny = true;
 
-    const expanded = window._pickerExpanded[cat] !== undefined ? window._pickerExpanded[cat] : false;
+    const expanded = searchActive || (window._pickerExpanded[cat] !== undefined ? window._pickerExpanded[cat] : false);
 
     // Section header
     const header = document.createElement('div');
@@ -6711,12 +6738,14 @@ function renderGroupedPicker(list, stones, onSelect) {
 function renderInventoryPicker() {
   const list = document.getElementById('inventoryPickerList');
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  const searchQuery = document.getElementById('invPickerSearch')?.value || '';
   const available = getInventory().filter(s =>
     !archivedStatuses.includes(s.status) &&
-    s.category !== 'owned-reserved'
+    s.category !== 'owned-reserved' &&
+    stoneMatchesSearch(s, searchQuery)
   );
   if (!available.length) {
-    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">🚫 No available stones in inventory</div>';
+    list.innerHTML = '<div style="padding:16px 12px;text-align:center;font-size:13px;color:var(--text-dim)">🚫 No stones match</div>';
     return;
   }
   renderGroupedPicker(list, available, (s) => addStoneFromInventory(s));
@@ -7244,6 +7273,7 @@ function renderStoneInventory() {
   const dealer = document.getElementById('stoneFilterDealer')?.value || '';
   const minCt = parseFloat(document.getElementById('stoneFilterMinCt')?.value) || 0;
   const maxCt = parseFloat(document.getElementById('stoneFilterMaxCt')?.value) || Infinity;
+  const searchQuery = document.getElementById('stoneFilterSearch')?.value || '';
 
   let stones = getInventory().filter(s => {
     if (stoneInventoryFilter !== 'all' && s.category !== stoneInventoryFilter) return false;
@@ -7251,6 +7281,7 @@ function renderStoneInventory() {
     if (dealer && s.dealer !== dealer) return false;
     if (s.carat && s.carat < minCt) return false;
     if (s.carat && s.carat > maxCt) return false;
+    if (!stoneMatchesSearch(s, searchQuery)) return false;
     return true;
   });
 
@@ -7579,11 +7610,13 @@ function renderLoosePickerList() {
   const cut = document.getElementById('looseFilterCut')?.value || '';
   const dealer = document.getElementById('looseFilterDealer')?.value || '';
   const sortBy = document.getElementById('looseFilterSort')?.value || 'ct-asc';
+  const searchQuery = document.getElementById('looseFilterSearch')?.value || '';
   let available = getInventory().filter(s =>
     !archivedStatuses.includes(s.status) &&
     s.category !== 'owned-reserved' &&
     (!cut || s.cut === cut) &&
-    (!dealer || s.dealer === dealer)
+    (!dealer || s.dealer === dealer) &&
+    stoneMatchesSearch(s, searchQuery)
   );
   available.sort((a, b) => {
     if (sortBy === 'ct-asc') return (parseFloat(a.carat)||0) - (parseFloat(b.carat)||0);
