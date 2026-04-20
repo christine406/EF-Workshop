@@ -7647,6 +7647,7 @@ function renderStoneInventory() {
     html += `<button class="convert-btn" style="border-color:#ccc07a;color:#ccc07a" onclick="toggleInquiryForm(${s.id})">+ Inquiry</button>`;
     if (!['sold-by-dealer','sold-by-ef','archived-with-project'].includes(s.status) && s.status !== 'in-use') {
       html += `<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="pushInventoryStoneToProject(${s.id})">Push to project</button>`;
+      html += `<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="sendToLooseSale(${s.id})">→ Loose sale</button>`;
     }
     if (s.status !== 'sold-by-dealer') {
       html += `<button class="convert-btn" onclick="markStoneSoldByDealer(${s.id})" style="border-color:var(--red);color:var(--red)">Sold by dealer</button>`;
@@ -7813,6 +7814,26 @@ function renderLoosePickerList() {
     row.addEventListener('mouseleave', () => row.style.background = '');
     list.appendChild(row);
   });
+}
+
+function sendToLooseSale(stoneId) {
+  const inv = getInventory();
+  const s = inv.find(x => x.id === stoneId);
+  if (!s) { showToast('Stone not found'); return; }
+  showScreen('loose');
+  // Give the screen time to render, then pre-populate
+  setTimeout(() => {
+    // Make sure the picker is in its open state so the "From inventory" card displays correctly
+    const pickerList = document.getElementById('loosePickerList');
+    const pickerControls = document.getElementById('loosePickerControls');
+    const toggleBtn = document.getElementById('loosePickerToggle');
+    if (pickerList) pickerList.style.display = 'none';
+    if (pickerControls) pickerControls.style.display = 'none';
+    if (toggleBtn) toggleBtn.textContent = '📦 Pick from inventory';
+    selectLooseStone(s);
+    // Scroll the loose sale screen to the top so the selected stone is visible
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 50);
 }
 
 function selectLooseStone(s) {
