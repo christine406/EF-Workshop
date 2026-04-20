@@ -5232,7 +5232,7 @@ function buildMultiPieceCard(q) {
       + '<button onclick="deletePieceFromSet(' + q.id + ',' + i + ',event)" style="background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;padding:2px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Delete</button>'
       + '</div></div>'
       + '<div id="' + costsId + '" style="display:none;margin-top:8px;background:#fafaf7;border-radius:0;padding:8px 10px">'
-      + (hasActuals ? '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px;color:var(--text-dim)">Actual costs</div>' : '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Estimated costs</div>')
+      + '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Costs</div>'
       + costLines.map(l => '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text);margin-bottom:3px"><span>' + l.split(':')[0] + '</span><span>' + l.split(':')[1] + '</span></div>').join('')
       + '<div style="display:flex;justify-content:space-between;font-size:12px;border-top:1px solid var(--border);margin-top:4px;padding-top:4px"><span style="color:var(--text-dim)">Total cost</span><span style="color:var(--text)">$' + totalCost.toLocaleString() + '</span></div>'
       + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-top:2px"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (profit >= 0 ? 'var(--green-bright)' : 'var(--red)') + '">$' + profit.toLocaleString() + '</span></div>'
@@ -5462,13 +5462,12 @@ function buildQuoteCard(q) {
   const totalCosts = showStoneCost + showMetalCost + showLaborCost + showMeleeCost + showChainCost;
   if (totalCosts > 0 || showDesignFee != null) {
     html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:8px 10px">';
-    html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">'
-      + (hasActuals ? 'Actual costs' : 'Est. costs') + '</div>';
+    html += '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Costs</div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;font-size:12px">';
-    if (showStoneCost) html += '<span style="color:var(--text-dim)">Stone</span><span style="color:#fff">$' + showStoneCost.toLocaleString() + '</span>';
-    if (showMetalCost) html += '<span style="color:var(--text-dim)">Metal</span><span style="color:#fff">$' + showMetalCost.toLocaleString() + '</span>';
-    if (showLaborCost) html += '<span style="color:var(--text-dim)">Labor</span><span style="color:#fff">$' + showLaborCost.toLocaleString() + '</span>';
-    if (showMeleeCost) html += '<span style="color:var(--text-dim)">Materials</span><span style="color:#fff">$' + showMeleeCost.toLocaleString() + '</span>';
+    if (showStoneCost) html += '<span style="color:var(--text-dim)">Stone</span><span style="color:var(--text)">$' + showStoneCost.toLocaleString() + '</span>';
+    if (showMetalCost) html += '<span style="color:var(--text-dim)">Metal</span><span style="color:var(--text)">$' + showMetalCost.toLocaleString() + '</span>';
+    if (showLaborCost) html += '<span style="color:var(--text-dim)">Labor</span><span style="color:var(--text)">$' + showLaborCost.toLocaleString() + '</span>';
+    if (showMeleeCost) html += '<span style="color:var(--text-dim)">Materials</span><span style="color:var(--text)">$' + showMeleeCost.toLocaleString() + '</span>';
     if (showChainCost) html += '<span style="color:var(--text-dim)">Chain</span><span style="color:var(--text)">$' + showChainCost.toLocaleString() + '</span>';
     html += '<span style="color:var(--text-dim)">Design fee</span><span style="color:' + (showDesignFee ? 'var(--text)' : 'var(--text-dim)') + '">' + (showDesignFee ? '$' + showDesignFee.toLocaleString() : '—') + '</span>';
     html += '</div>';
@@ -6092,14 +6091,14 @@ function updateCosts(id, e, pieceIdx) {
   modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:480px;margin:auto';
 
   modal.innerHTML = `
-    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">Actual costs${pieceIdx !== undefined ? ' — piece ' + (pieceIdx+1) : ''}</div>
+    <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">Update costs${pieceIdx !== undefined ? ' — piece ' + (pieceIdx+1) : ''}</div>
     <div style="background:#fafaf7;border-radius:0;padding:10px;margin-bottom:14px">
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Original quote</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:12px">
-        <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">${(src.stones?.reduce((s,st)=>s+(st.cost||0),0)||src.actualStoneCost||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim)">Stone cost</div><div style="color:var(--text)">$${(src.stones?.reduce((s,st)=>s+(st.cost||0),0)||src.actualStoneCost||0).toLocaleString()}</div>
         <div style="color:var(--text-dim)">Metal / casting</div><div style="color:var(--text)">${src.metalEstimate ? '$' + src.metalEstimate.toLocaleString() : '—'}${src.purity ? ' · ' + src.purity : ''}</div>
-        <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">${(src.laborEst||0).toLocaleString()}</div>
-        <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">${(src.total || q.total || 0).toLocaleString()}</div>
+        <div style="color:var(--text-dim)">Labor est.</div><div style="color:var(--text)">$${(src.laborEst||0).toLocaleString()}</div>
+        <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">$${(src.total || q.total || 0).toLocaleString()}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
