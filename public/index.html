@@ -3257,18 +3257,21 @@ function stoneMarkupProject(cost) {
   return 1.5;
 }
 
-// Returns cut dropdown options — unique cuts from current inventory, sorted alphabetically, plus "Other"
+// Returns cut dropdown options — unique cuts from current inventory, sorted alphabetically, with "Other" always pinned at the bottom
 function getCutOptions() {
   const inv = getInventory();
   const unique = [...new Set(inv.map(s => s.cut).filter(c => c && c !== 'Other'))].sort();
   return [...unique, 'Other'];
 }
 
-// Renders <option> tags for cut dropdowns — optionally marks selected + includes blank placeholder
+// Renders <option> tags for cut dropdowns — keeps Other at the bottom even if selectedValue is a legacy cut not in inventory
 function buildCutOptions(selectedValue, includeBlank) {
   const opts = getCutOptions();
-  // If selectedValue isn't in the list (legacy or just-typed), add it so it shows as selected
-  if (selectedValue && !opts.includes(selectedValue)) opts.unshift(selectedValue);
+  // If selectedValue isn't in the list (legacy or just-typed), insert before "Other" so Other stays last
+  if (selectedValue && !opts.includes(selectedValue)) {
+    const otherIdx = opts.indexOf('Other');
+    opts.splice(otherIdx, 0, selectedValue);
+  }
   let html = '';
   if (includeBlank) html += '<option value="">— select</option>';
   opts.forEach(c => {
@@ -6902,8 +6905,10 @@ async function previewGIACleanup() {
 
   const fields = ['carat', 'color', 'clarity', 'cut', 'fluorescence', 'dimensions'];
   const changes = []; // { stoneId, diffs: [{field, before, after}] }
+  const diagnostics = []; // { stone, rawResponse, note }
   let done = 0;
   let errorCount = 0;
+  let notFoundCount = 0;
 
   for (const s of stonesWithGIA) {
     done++;
@@ -6911,13 +6916,16 @@ async function previewGIACleanup() {
     try {
       const res = await fetch('/api/gia-lookup?report=' + encodeURIComponent(s.gia));
       const data = await res.json();
-      if (!data.found && !data.carat) continue;
+      if (!data.found && !data.carat && !data.cut && !data.color) {
+        notFoundCount++;
+        diagnostics.push({ stone: s, raw: data, note: 'GIA lookup returned no data' });
+        continue;
+      }
       const diffs = [];
       fields.forEach(f => {
         const newVal = data[f];
         const oldVal = s[f];
         if (newVal == null || newVal === '') return;
-        // Normalize for comparison — numeric vs string carat, whitespace, case
         const oldNorm = oldVal != null ? String(oldVal).trim().toLowerCase() : '';
         const newNorm = String(newVal).trim().toLowerCase();
         if (oldNorm !== newNorm) {
@@ -6925,15 +6933,29 @@ async function previewGIACleanup() {
         }
       });
       if (diffs.length) changes.push({ stoneId: s.id, stone: s, diffs });
+      else diagnostics.push({ stone: s, raw: data, note: 'No differences detected' });
     } catch(e) {
       errorCount++;
+      diagnostics.push({ stone: s, raw: null, note: 'Lookup error: ' + e.message });
     }
-    // Small delay to be polite to the API
     await new Promise(r => setTimeout(r, 200));
   }
 
   if (!changes.length) {
-    statusEl.textContent = 'All stones match their GIA reports. Nothing to update.' + (errorCount ? ' (' + errorCount + ' lookup error' + (errorCount > 1 ? 's' : '') + ')' : '');
+    statusEl.innerHTML = '<div style="color:var(--red);margin-bottom:8px">No changes detected. Diagnostic info below — this usually means the GIA lookup isn\'t returning complete data.</div>'
+      + '<div style="font-size:11px;color:var(--text-dim)">Checked: ' + stonesWithGIA.length + ' · Not found: ' + notFoundCount + ' · Errors: ' + errorCount + '</div>';
+    // Show diagnostic rows
+    let html = '';
+    diagnostics.slice(0, 10).forEach(d => {
+      const desc = [d.stone.carat ? parseFloat(d.stone.carat).toFixed(2) + ' ct' : '', d.stone.cut, d.stone.color, d.stone.clarity].filter(Boolean).join(' · ');
+      html += '<div style="padding:6px 10px;border-bottom:1px solid var(--border);background:#fff">'
+        + '<div style="color:var(--text)">' + (desc || 'Stone') + ' <span style="color:var(--text-dim);font-size:11px">· GIA ' + d.stone.gia + '</span></div>'
+        + '<div style="color:var(--text-dim);font-size:11px;margin-top:2px">' + d.note + '</div>'
+        + (d.raw ? '<div style="color:var(--text-dim);font-size:10px;margin-top:2px;word-break:break-all">returned: ' + JSON.stringify(d.raw) + '</div>' : '')
+        + '</div>';
+    });
+    if (diagnostics.length > 10) html += '<div style="padding:6px 10px;font-size:11px;color:var(--text-dim)">... and ' + (diagnostics.length - 10) + ' more</div>';
+    resultsEl.innerHTML = html;
     return;
   }
 
@@ -7389,11 +7411,14 @@ function renderStoneInventory() {
   const list = document.getElementById('inventoryList');
   if (!list) return;
 
-  // Populate filter cut dropdown dynamically from inventory
+  // Populate filter cut dropdown dynamically from inventory — "Other" always last
   const cutFilterSel = document.getElementById('stoneFilterCut');
   if (cutFilterSel) {
     const currentVal = cutFilterSel.value;
-    const uniqueCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))].sort();
+    const allCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))];
+    const hasOther = allCuts.includes('Other');
+    const uniqueCuts = allCuts.filter(c => c !== 'Other').sort();
+    if (hasOther) uniqueCuts.push('Other');
     cutFilterSel.innerHTML = '<option value="">All cuts</option>' +
       uniqueCuts.map(c => '<option value="' + c + '"' + (c === currentVal ? ' selected' : '') + '>' + c + '</option>').join('');
   }
@@ -7743,11 +7768,14 @@ function toggleLoosePicker() {
 function renderLoosePickerList() {
   const list = document.getElementById('loosePickerList');
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
-  // Populate cut filter dynamically
+  // Populate cut filter dynamically — "Other" always last
   const cutSel = document.getElementById('looseFilterCut');
   if (cutSel) {
     const currentVal = cutSel.value;
-    const uniqueCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))].sort();
+    const allCuts = [...new Set(getInventory().map(s => s.cut).filter(Boolean))];
+    const hasOther = allCuts.includes('Other');
+    const uniqueCuts = allCuts.filter(c => c !== 'Other').sort();
+    if (hasOther) uniqueCuts.push('Other');
     cutSel.innerHTML = '<option value="">All cuts</option>' +
       uniqueCuts.map(c => '<option value="' + c + '"' + (c === currentVal ? ' selected' : '') + '>' + c + '</option>').join('');
   }
@@ -11443,6 +11471,24 @@ function startProdOrder(specId) {
     });
     if (changed) persistInventory();
   }
+
+// =================== SCROLL TO TOP ===================
+(function setupScrollTop() {
+  const btn = document.createElement('button');
+  btn.id = 'scrollTopBtn';
+  btn.setAttribute('aria-label', 'Scroll to top');
+  btn.innerHTML = '↑';
+  btn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:42px;height:42px;background:#741435;color:#fafaf7;border:none;border-radius:50%;font-size:20px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.25);opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:9000;font-family:inherit;display:flex;align-items:center;justify-content:center;padding:0';
+  btn.onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.body.appendChild(btn);
+  const toggleBtn = () => {
+    const show = window.scrollY > 300;
+    btn.style.opacity = show ? '1' : '0';
+    btn.style.pointerEvents = show ? 'auto' : 'none';
+  };
+  window.addEventListener('scroll', toggleBtn, { passive: true });
+  toggleBtn();
+})();
 
 </script>
 </body>
