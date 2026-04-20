@@ -3380,9 +3380,18 @@ function calculate() {
     // Client price override
     const clientPriceInput = 0;
 
-    // Actual cost basis
+    // Actual cost basis — your real out-of-pocket, no markup
+    const overrideVal = parseFloat(document.getElementById('metalOverride')?.value) || 0;
+    let rawMetalOutOfPocket = 0;
+    if (_metalMode === 'direct' && overrideVal) {
+      rawMetalOutOfPocket = overrideVal * 1.05; // casting bill + 5% sprue
+    } else if (isOverride && overrideVal) {
+      rawMetalOutOfPocket = overrideVal; // manual estimate — use as-is
+    } else {
+      rawMetalOutOfPocket = grams * goldPerGram(purity) * 1.25 * 1.05; // raw × casting × sprue
+    }
     const actualCost = stones.reduce((s, st) => s + (st.cost || 0), 0)
-      + (grams * goldPerGram(purity) * 1.35)
+      + rawMetalOutOfPocket
       + chainWholesaleCost
       + labor
       + designFee;
