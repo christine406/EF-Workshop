@@ -9955,6 +9955,39 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
       // Route to actualStoneCost (main) or actualMeleeCost (melee)
       var costField = stoneType === 'melee' ? 'actualMeleeCost' : 'actualStoneCost';
       var fieldLabel = stoneType === 'melee' ? 'Melee / materials' : 'Stone cost';
+      var dateNow = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+      // Multi-piece: ask which piece
+      if (q.isMultiPiece && q.pieces && q.pieces.length > 1) {
+        var pOverlay = document.createElement('div'); pOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
+        var pModal = document.createElement('div'); pModal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
+        var pt = document.createElement('div'); pt.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px'; pt.textContent='Which piece?'; pModal.appendChild(pt);
+        q.pieces.forEach(function(pc, idx){
+          var pb = document.createElement('button');
+          pb.style.cssText='width:100%;text-align:left;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px;border-radius:0;cursor:pointer;margin-bottom:6px';
+          pb.textContent = (pc.name||pc.pieceType||('Piece '+(idx+1)));
+          pb.addEventListener('click', function(){
+            pc[costField] = addMode==='replace' ? cost : (pc[costField]||0) + cost;
+            if(!q.costPushes) q.costPushes=[];
+            q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',piece:pc.name||pc.pieceType||('Piece '+(idx+1)),mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateNow});
+            if(!q.invoiceLinks) q.invoiceLinks=[];
+            q.invoiceLinks.unshift({id:Date.now(),vendor:inv.vendor,invoiceNumber:inv.invoiceNumber,description:(stoneLabel||'Stone')+' ('+fieldLabel+')',amount:cost,field:costField,piece:pc.name||pc.pieceType||('Piece '+(idx+1)),date:dateNow});
+            recalcAndSaveActualTotal(q);
+            window._savedQuotes=updatedQuotes; persistQuotes(); refreshCardInPlace(destId);
+            li.pushed=true; li.pushType='cost'; li.pushedTo=q.client; li.pushedProjectId=q.id;
+            window._invoices=invoices; persistInvoices(); pOverlay.remove(); overlay.remove(); renderInvoices();
+            showToast('Pushed to '+q.client+' — '+(pc.name||'piece '+(idx+1)));
+          });
+          pModal.appendChild(pb);
+        });
+        var cp = document.createElement('button'); cp.textContent='Cancel'; cp.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:13px;padding:8px 16px;border-radius:0;cursor:pointer;width:100%';
+        cp.addEventListener('click', function(){ pOverlay.remove(); });
+        pModal.appendChild(cp);
+        pOverlay.appendChild(pModal); document.body.appendChild(pOverlay);
+        return;
+      }
+
+      // Single-piece project: write to set-level
       q[costField] = addMode==='replace' ? cost : (q[costField]||0) + cost;
       if(!q.costPushes) q.costPushes=[];
       q.costPushes.unshift({id:Date.now(),amount:cost,field:costField,description:stoneLabel||'Stone',mode:addMode,source:'invoice',invoiceVendor:inv.vendor,invoiceNumber:inv.invoiceNumber,date:dateStr});
