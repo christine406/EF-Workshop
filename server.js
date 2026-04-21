@@ -1,11 +1,119 @@
 const express = require('express');
 const path = require('path');
 const https = require('https');
+const webpush = require('web-push');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
+
+// ─── Web Push (home screen badge) ─────────────────────────────────────────────
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:christine@elviefine.com';
+
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  console.log('Web Push configured');
+} else {
+  console.warn('Web Push NOT configured — set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT env vars');
+}
+
+// Expose public key so the client can subscribe
+app.get('/api/push/public-key', (req, res) => {
+  res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+// Save a push subscription to Firebase
+app.post('/api/push/subscribe', async (req, res) => {
+  try {
+    const sub = req.body;
+    if (!sub || !sub.endpoint) return res.status(400).json({ error: 'invalid subscription' });
+    // Use a sanitized version of the endpoint as the Firebase key
+    const key = Buffer.from(sub.endpoint).toString('base64').replace(/[^a-zA-Z0-9]/g,'').slice(-40);
+    await firebasePut('/pushSubscriptions/' + key, sub);
+    console.log('Push subscription saved:', key);
+    res.json({ ok: true, key });
+  } catch (e) {
+    console.error('Push subscribe error:', e);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
+// Remove a subscription (when user disables notifications)
+app.post('/api/push/unsubscribe', async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ error: 'missing endpoint' });
+    const key = Buffer.from(endpoint).toString('base64').replace(/[^a-zA-Z0-9]/g,'').slice(-40);
+    await firebasePut('/pushSubscriptions/' + key, null);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('Push unsubscribe error:', e);
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
+// Count unread (new) inquiries from Firebase
+async function getUnreadInquiryCount() {
+  try {
+    const inquiries = await firebaseGet('/inquiries');
+    if (!inquiries || typeof inquiries !== 'object') return 0;
+    const list = Array.isArray(inquiries) ? inquiries : Object.values(inquiries);
+    return list.filter(i => i && i.status === 'new').length;
+  } catch (e) {
+    console.error('Unread count error:', e);
+    return 0;
+  }
+}
+
+// Push to every subscribed device — delivers a badge update + minimal banner
+async function pushBadgeToAll(title, body) {
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    console.log('Skipping push — VAPID not configured');
+    return;
+  }
+  try {
+    const subs = await firebaseGet('/pushSubscriptions');
+    if (!subs || typeof subs !== 'object') return;
+    const count = await getUnreadInquiryCount();
+    const payload = JSON.stringify({
+      title: title || 'EF Workshop',
+      body: body || 'New inquiry',
+      badge: count
+    });
+    const entries = Object.entries(subs);
+    console.log(`Pushing to ${entries.length} device(s), badge=${count}`);
+    for (const [key, sub] of entries) {
+      if (!sub || !sub.endpoint) continue;
+      try {
+        await webpush.sendNotification(sub, payload);
+      } catch (e) {
+        // 410 Gone = subscription expired; 404 = not found. Clean those up.
+        if (e.statusCode === 410 || e.statusCode === 404) {
+          await firebasePut('/pushSubscriptions/' + key, null);
+          console.log('Removed expired subscription:', key);
+        } else {
+          console.error('Push send error:', e.statusCode, e.body || e.message);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('pushBadgeToAll error:', e);
+  }
+}
+
+// Endpoint for the app to refresh the badge when inquiries are marked read
+app.post('/api/push/refresh-badge', async (req, res) => {
+  try {
+    await pushBadgeToAll('EF Workshop', 'Badge updated');
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: 'failed' });
+  }
+});
+
 
 // ─── Cookie-based password protection ────────────────────────────────────────
 const COOKIE_NAME = 'ef_auth';
@@ -263,6 +371,8 @@ app.post('/api/jotform-webhook', (req, res) => {
     };
     const fireReq = https.request(options, (fireRes) => {
       console.log('JotForm inquiry saved to Firebase:', inquiry.name, formType);
+      // Fire-and-forget push notification (don't block webhook response)
+      pushBadgeToAll('💌 New inquiry', inquiry.name ? 'From ' + inquiry.name : 'New inquiry').catch(e => console.error('push after inquiry failed:', e));
     });
       fireReq.on('error', (e) => console.error('Firebase write error:', e));
       fireReq.write(payload);
@@ -278,7 +388,7 @@ app.post('/api/jotform-webhook', (req, res) => {
 
 // Auth middleware
 app.use((req, res, next) => {
-  const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png', '/api/jotform-webhook'];
+  const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png', '/api/jotform-webhook', '/api/push/public-key', '/api/push/subscribe', '/api/push/unsubscribe', '/api/push/refresh-badge', '/sw.js'];
   if (skipPaths.includes(req.path)) return next();
 
   const password = process.env.APP_PASSWORD;
