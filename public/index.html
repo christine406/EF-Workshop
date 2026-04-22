@@ -3,10 +3,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="EF Workshop">
-<meta name="version" content="2026-04-02-v3">
+<meta name="version" content="2026-04-21-auth-v2">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -1033,6 +1036,7 @@
     Sign in with Google
   </button>
   <div id="auth-gate-msg" style="margin-top:18px;font-size:12px;color:var(--red);font-family:var(--font-mono);text-align:center;max-width:320px"></div>
+  <div style="margin-top:20px;font-size:9px;letter-spacing:0.12em;color:#ccc;font-family:var(--font-mono)">build: redirect-v2</div>
 </div>
 
 <div class="header" id="appHeader">
@@ -11624,7 +11628,7 @@ function startProdOrder(specId) {
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
