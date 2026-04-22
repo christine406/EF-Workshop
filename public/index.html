@@ -4748,6 +4748,41 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
           </label>
         </div>
         <div id="ep-ocr-status-${id}" style="display:none;padding:8px;background:var(--bg);border-radius:0;margin-bottom:8px;font-size:12px;color:var(--teal-dim);text-align:center">Reading...</div>
+        ${_stonesArr.length ? `
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">Stones on this quote</div>
+          <div id="ep-stones-list-${id}" style="display:flex;flex-direction:column;gap:8px">
+            ${_stonesArr.map((st, si) => `
+              <div style="background:var(--bg);border:1px solid var(--border);padding:8px" data-ep-stone-idx="${si}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Stone ${si + 1}</div>
+                  <button type="button" onclick="removeEditStone(${id},${si})" style="background:transparent;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>
+                </div>
+                <div style="margin-bottom:6px">
+                  <div class="field-label">Description</div>
+                  <input type="text" id="ep-stone-desc-${id}-${si}" value="${(st.desc || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}" placeholder="e.g. 2.1ct OMC K/VS2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none;box-sizing:border-box">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <div>
+                    <div class="field-label">Cost ($)</div>
+                    <input type="number" id="ep-stone-cost-${id}-${si}" value="${st.cost || ''}" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none;box-sizing:border-box">
+                  </div>
+                  <div>
+                    <div class="field-label">Melee?</div>
+                    <select id="ep-stone-small-${id}-${si}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
+                      <option value="false" ${!st.isSmall ? 'selected' : ''}>No — tiered</option>
+                      <option value="true" ${st.isSmall ? 'selected' : ''}>Yes — ×1.75</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">GIA record (main stone)</div>
+        </div>
+        ` : ''}
         ${_linkedLabel}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
@@ -4790,11 +4825,45 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-overlay').remove()">Cancel</button>
     </div>`;
   document.body.appendChild(overlay);
-  // Auto-expand stone details if linked
-  if (_linkedInv || q.stoneDetail?.gia || q.stoneDetail?.carat) {
+  // Auto-expand stone details if there are any stones, a linked inventory stone, or a saved stoneDetail
+  if (_stonesArr.length || _linkedInv || q.stoneDetail?.gia || q.stoneDetail?.carat) {
     const stoneDiv = document.getElementById('ep-stone-details-' + id);
     if (stoneDiv) stoneDiv.style.display = 'block';
   }
+}
+
+// Remove a stone from the edit form. Recreates the edit form with one fewer stone.
+function removeEditStone(quoteId, stoneIdx) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === quoteId);
+  if (!q) return;
+  const stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+  if (!stonesArr[stoneIdx]) return;
+  // Capture current edits before rebuilding, so user doesn't lose typed changes
+  captureEditStoneEdits(q, quoteId);
+  q.stones = stonesArr.filter((_, i) => i !== stoneIdx);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  // Re-open the edit form fresh
+  const overlay = document.querySelector('.inline-edit-overlay');
+  const pieceIdx = overlay?.dataset?.pieceIdx;
+  if (overlay) overlay.remove();
+  const fakeEvent = { stopPropagation: function(){} };
+  editQuoteCard(quoteId, fakeEvent, undefined, pieceIdx !== undefined && pieceIdx !== '' ? parseInt(pieceIdx) : undefined);
+}
+
+// Pull current stone input values off the edit form into q.stones so re-rendering doesn't lose them.
+function captureEditStoneEdits(q, quoteId) {
+  const stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+  stonesArr.forEach(function(st, si) {
+    const descEl = document.getElementById('ep-stone-desc-' + quoteId + '-' + si);
+    const costEl = document.getElementById('ep-stone-cost-' + quoteId + '-' + si);
+    const smallEl = document.getElementById('ep-stone-small-' + quoteId + '-' + si);
+    if (descEl) st.desc = descEl.value;
+    if (costEl) st.cost = parseFloat(costEl.value) || 0;
+    if (smallEl) st.isSmall = smallEl.value === 'true';
+  });
+  q.stones = stonesArr;
 }
 
 function setCollectionType(id, type) {
@@ -4884,6 +4953,39 @@ function saveQuoteEdit(id) {
       else if (q.status === 'project' && newType === 'collection') q.status = 'collection';
       else if (q.status === 'collection' && (newType === 'client' || newType === 'bespoke' || newType === 'semi-custom')) q.status = 'project';
     }
+  }
+
+  // Persist per-stone edits (desc, cost, melee toggle) back to q.stones[].
+  // Then recompute stoneCost and meleeCost so the saved card retail math stays accurate.
+  const existingStones = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+  if (existingStones.length) {
+    // Calculate the non-stone portion of the original meleeCost (i.e. user-entered melee input),
+    // so we can preserve it after we recompute based on edited stone values.
+    const priorSmallSum = existingStones.reduce(function(s, st){ return s + (st.isSmall ? (st.cost || 0) : 0); }, 0);
+    const priorMeleeInput = Math.max(0, (q.meleeCost || 0) - priorSmallSum);
+
+    existingStones.forEach(function(st, si) {
+      const descEl = document.getElementById('ep-stone-desc-' + id + '-' + si);
+      const costEl = document.getElementById('ep-stone-cost-' + id + '-' + si);
+      const smallEl = document.getElementById('ep-stone-small-' + id + '-' + si);
+      if (descEl) st.desc = descEl.value;
+      if (costEl) st.cost = parseFloat(costEl.value) || 0;
+      if (smallEl) st.isSmall = smallEl.value === 'true';
+    });
+    q.stones = existingStones;
+
+    // Recompute main vs small totals from edited stones, then re-add preserved melee input.
+    let mainSum = 0, smallSum = 0;
+    existingStones.forEach(function(st) {
+      if (st.isSmall) smallSum += (st.cost || 0);
+      else mainSum += (st.cost || 0);
+    });
+    q.stoneCost = mainSum;
+    q.meleeCost = smallSum + priorMeleeInput;
+    // If this is a project with actual-cost tracking, keep those in sync with the new values,
+    // but only when the user hadn't already overridden them manually (actuals === undefined or matched old total).
+    if (q.actualStoneCost == null) q.actualStoneCost = mainSum;
+    if (q.actualMeleeCost == null) q.actualMeleeCost = smallSum + priorMeleeInput;
   }
 
   // Save stone details
