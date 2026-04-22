@@ -3308,11 +3308,39 @@ function stoneMarkupProject(cost) {
 // Uses the same formula as the quote builder and the live calc panel.
 function calcSuggestedRetail(src) {
   if (!src) return 0;
-  const stoneCost = (src.actualStoneCost != null ? src.actualStoneCost : (src.stoneCost || 0)) || 0;
-  const metalCost = (src.actualMetalCost != null ? src.actualMetalCost : (src.metalEstimate || src.metalCost || 0)) || 0;
+  // Stone cost: prefer actualStoneCost (project actuals), then stoneCost (saved main-stone total).
+  // For legacy quotes saved before stoneCost was written, derive main vs small from stones[] using the isSmall flag.
+  let stoneCost = 0;
+  let inferredSmallCost = 0;
+  if (src.actualStoneCost != null) {
+    stoneCost = src.actualStoneCost;
+  } else if (src.stoneCost != null) {
+    stoneCost = src.stoneCost;
+  } else if (Array.isArray(src.stones) && src.stones.length) {
+    (src.stones || []).forEach(function(st){
+      if (st && st.isSmall) inferredSmallCost += (st.cost || 0);
+      else stoneCost += (st.cost || 0);
+    });
+  }
+  stoneCost = stoneCost || 0;
+  // metalEstimate in saved quotes stores the retail-marked-up number (×1.35 already baked in by getMetalCost).
+  // metalCost on pieces stores the raw pre-markup cost. Prefer actualMetalCost → metalCost → (metalEstimate/1.35).
+  let metalCost;
+  if (src.actualMetalCost != null) {
+    metalCost = src.actualMetalCost;
+  } else if (src.metalCost != null) {
+    metalCost = src.metalCost;
+  } else if (src.metalEstimate) {
+    metalCost = src.metalEstimate / 1.35;
+  } else {
+    metalCost = 0;
+  }
+  metalCost = metalCost || 0;
   const laborCost = (src.actualLabor != null ? src.actualLabor : (src.laborEst || 0)) || 0;
   const designFee = (src.actualDesignFee != null ? src.actualDesignFee : (src.designFee || 0)) || 0;
-  const meleeCost = (src.actualMeleeCost != null ? src.actualMeleeCost : (src.meleeCost || 0)) || 0;
+  // Melee: use actualMeleeCost or meleeCost, plus any small-stone cost inferred from legacy stones[].
+  const meleeBase = (src.actualMeleeCost != null ? src.actualMeleeCost : (src.meleeCost || 0)) || 0;
+  const meleeCost = meleeBase + inferredSmallCost;
   const chainCost = (src.actualChainCost != null ? src.actualChainCost : (src.chainCost || 0)) || 0;
   if (!stoneCost && !metalCost && !laborCost && !designFee && !meleeCost && !chainCost) return 0;
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
@@ -4234,6 +4262,12 @@ function saveQuote(quoteType = 'client') {
   const total = Math.round(rawTotal / 50) * 50;
 
   const isProject = quoteType === 'bespoke' || quoteType === 'semi-custom';
+  // Break stones into main vs small so calcSuggestedRetail (used on the saved card)
+  // applies the same markup the builder uses: main → tiered stoneMarkupProject, small/melee → ×1.75.
+  const meleeInput = parseFloat(document.getElementById('meleeCost')?.value) || 0;
+  const mainStoneCost = stoneCalc.mainCost || 0;
+  const smallStoneCost = stoneCalc.smallCost || 0;
+  const savedMeleeCost = smallStoneCost + meleeInput;
   const quote = {
     id: Date.now(),
     client,
@@ -4244,7 +4278,8 @@ function saveQuote(quoteType = 'client') {
     grams,
     laborEst: labor,
     stones: [...stones],
-    meleeCost: parseFloat(document.getElementById('meleeCost')?.value) || 0,
+    stoneCost: mainStoneCost,
+    meleeCost: savedMeleeCost,
     chainName,
     chainCost: chainWholesaleCost,
     designFee,
@@ -4260,11 +4295,12 @@ function saveQuote(quoteType = 'client') {
     actualStones: null,
   };
 
-  // If saving directly as a project, pre-fill costs from quoted costs
+  // If saving directly as a project, pre-fill costs from quoted costs.
+  // Mirrors the main/small split above so actualStoneCost (tiered markup) and actualMeleeCost (×1.75)
+  // stay consistent with how calcSuggestedRetail sees them.
   if (isProject) {
-    const quotedStoneCost = (stones||[]).reduce((s,st) => s+(st.cost||0), 0);
-    quote.actualStoneCost = quotedStoneCost || 0;
-    quote.actualMeleeCost = quote.meleeCost || 0;
+    quote.actualStoneCost = mainStoneCost || 0;
+    quote.actualMeleeCost = savedMeleeCost || 0;
     quote.actualMetalCost = quote.metalEstimate ? Math.round(quote.metalEstimate / 1.35) : 0;
     quote.actualLabor = labor || 0;
     quote.actualDesignFee = designFee || 0;
