@@ -387,21 +387,9 @@ app.post('/api/jotform-webhook', (req, res) => {
 });
 
 // Auth middleware
-app.use((req, res, next) => {
-  const skipPaths = ['/login', '/manifest.json', '/icon.png', '/icon-192.png', '/api/jotform-webhook', '/api/push/public-key', '/api/push/subscribe', '/api/push/unsubscribe', '/api/push/refresh-badge', '/sw.js'];
-  if (skipPaths.includes(req.path)) return next();
-
-  const password = process.env.APP_PASSWORD;
-  if (!password) return next();
-
-  const cookies = parseCookies(req);
-  const cookieVal = cookies[COOKIE_NAME];
-  const decoded = cookieVal ? Buffer.from(cookieVal, 'base64').toString() : '';
-
-  if (decoded === password) return next();
-
-  res.redirect('/login');
-});
+// Railway password gate — DISABLED. Google Sign-In (in the client) now handles auth.
+// The old cookie-based password is no longer used. Webhook and push endpoints were always public.
+app.use((req, res, next) => next());
 
 // Serve static files
 
