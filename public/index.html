@@ -1036,7 +1036,7 @@
     Sign in with Google
   </button>
   <div id="auth-gate-msg" style="margin-top:18px;font-size:12px;color:var(--red);font-family:var(--font-mono);text-align:center;max-width:320px"></div>
-  <div style="margin-top:20px;font-size:9px;letter-spacing:0.12em;color:#ccc;font-family:var(--font-mono)">build: redirect-v2</div>
+  <div style="margin-top:20px;font-size:9px;letter-spacing:0.12em;color:#ccc;font-family:var(--font-mono)">build: redirect-v3-diag</div>
 </div>
 
 <div class="header" id="appHeader">
@@ -11668,7 +11668,16 @@ function startProdOrder(specId) {
   };
 
   // Handle redirect result on app load (for iOS PWA flow)
-  getRedirectResult(auth).catch(e => console.error('Redirect result error:', e));
+  console.log('[AUTH] Checking for redirect result...');
+  getRedirectResult(auth)
+    .then(result => {
+      if (result) {
+        console.log('[AUTH] Redirect result user:', result.user?.email);
+      } else {
+        console.log('[AUTH] No redirect result (either not a return from redirect, or already consumed)');
+      }
+    })
+    .catch(e => console.error('[AUTH] Redirect result error:', e.code, e.message));
 
   let _fbInitialized = false;
 
@@ -11686,17 +11695,18 @@ function startProdOrder(specId) {
   }
 
   onAuthStateChanged(auth, (user) => {
+    console.log('[AUTH] State changed. User:', user ? user.email : 'null');
     if (!user) {
       showSignInScreen('');
       return;
     }
     if (user.email !== ALLOWED_EMAIL) {
-      // Someone signed in with a non-allowed account — boot them
+      console.warn('[AUTH] User email does not match allowed:', user.email, 'vs', ALLOWED_EMAIL);
       showSignInScreen('Sorry, ' + user.email + ' is not authorized to access this app.');
       signOut(auth);
       return;
     }
-    // Authorized — initialize Firebase data wiring once
+    console.log('[AUTH] Authorized, initializing Firebase data');
     hideSignInScreen();
     if (_fbInitialized) return;
     _fbInitialized = true;
