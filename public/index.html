@@ -1036,7 +1036,7 @@
     Sign in with Google
   </button>
   <div id="auth-gate-msg" style="margin-top:18px;font-size:12px;color:var(--red);font-family:var(--font-mono);text-align:center;max-width:320px"></div>
-  <div style="margin-top:20px;font-size:9px;letter-spacing:0.12em;color:#ccc;font-family:var(--font-mono)">build: redirect-v3-diag</div>
+  <div style="margin-top:20px;font-size:9px;letter-spacing:0.12em;color:#ccc;font-family:var(--font-mono)">build: popup-fallback-v4</div>
 </div>
 
 <div class="header" id="appHeader">
@@ -11628,7 +11628,7 @@ function startProdOrder(specId) {
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
@@ -11652,13 +11652,26 @@ function startProdOrder(specId) {
   // Expose sign-in / sign-out for the UI
   window._auth = {
     signIn: async function() {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      console.log('[AUTH] Attempting sign-in via popup...');
       try {
-        const provider = new GoogleAuthProvider();
-        // Always use redirect — popup is blocked by Cross-Origin-Opener-Policy on modern browsers
-        await signInWithRedirect(auth, provider);
+        const result = await signInWithPopup(auth, provider);
+        console.log('[AUTH] Popup sign-in succeeded:', result.user?.email);
       } catch (e) {
-        console.error('Sign in error:', e);
-        alert('Sign in failed: ' + (e.message || 'Unknown error'));
+        console.error('[AUTH] Popup failed:', e.code, e.message);
+        // If popup was blocked or COOP interfered, fall back to redirect
+        if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request' || (e.message && e.message.includes('popup'))) {
+          console.log('[AUTH] Falling back to redirect...');
+          try {
+            await signInWithRedirect(auth, provider);
+          } catch (e2) {
+            console.error('[AUTH] Redirect also failed:', e2.code, e2.message);
+            alert('Sign in failed: ' + (e2.message || 'Unknown error'));
+          }
+        } else {
+          alert('Sign in failed: ' + (e.message || 'Unknown error'));
+        }
       }
     },
     signOut: async function() {
