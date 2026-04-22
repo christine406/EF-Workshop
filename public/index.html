@@ -1024,6 +1024,17 @@
 </head>
 <body>
 
+<!-- Sign-in gate — shown until user is authenticated -->
+<div id="auth-gate" style="display:flex;position:fixed;inset:0;z-index:20000;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;padding:24px;font-family:var(--font-sans)">
+  <div style="font-family:var(--font-serif);font-size:32px;color:var(--maroon);margin-bottom:6px;letter-spacing:0.02em">EF Workshop</div>
+  <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:32px">sign in to continue</div>
+  <button onclick="window._auth && window._auth.signIn()" style="background:#fff;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;letter-spacing:0.08em;padding:12px 24px;border-radius:0;cursor:pointer;display:flex;align-items:center;gap:10px">
+    <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2c-2 1.5-4.5 2.4-7.2 2.4-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.5l6.2 5.2c-.4.4 6.6-4.8 6.6-14.7 0-1.3-.1-2.6-.4-3.9z"/></svg>
+    Sign in with Google
+  </button>
+  <div id="auth-gate-msg" style="margin-top:18px;font-size:12px;color:var(--red);font-family:var(--font-mono);text-align:center;max-width:320px"></div>
+</div>
+
 <div class="header" id="appHeader">
   <button class="header-back" id="headerBack" onclick="goHome()">
     <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -1097,11 +1108,12 @@
     </button>
   </div>
 
-  <!-- Home screen badge toggle -->
-  <div style="margin:8px 16px 0;text-align:center">
+  <!-- Home screen badge toggle + sign out -->
+  <div style="margin:8px 16px 0;text-align:center;display:flex;gap:14px;justify-content:center;align-items:center">
     <button id="push-toggle-btn" onclick="togglePushSubscription()" style="background:none;border:none;color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">
       <span id="push-toggle-label">🔔 Enable home screen badge</span>
     </button>
+    <button onclick="window._auth && window._auth.signOut()" style="background:none;border:none;color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Sign out</button>
   </div>
 
   <!-- DD CHECKLIST -->
@@ -11612,6 +11624,7 @@ function startProdOrder(specId) {
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
   import { getDatabase, ref, set, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBcnQpVltGpZ--Ic7iBKvHq5Dz2PqihYdk",
@@ -11623,26 +11636,90 @@ function startProdOrder(specId) {
     appId: "1:624210833780:web:31492a409e36607d30fc21"
   };
 
+  const ALLOWED_EMAIL = 'christine@elviefine.com';
+
   const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
   const db = getDatabase(app);
 
-  window._fb = {
-    saveQuotes: (data) => set(ref(db, 'quotes'), data),
-    saveInventory: (data) => set(ref(db, 'inventory'), data),
-    saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
-    saveCustomChains: (data) => set(ref(db, 'customChains'), data),
-    saveRemovedChains: (data) => set(ref(db, 'removedChains'), data),
-    saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
-    saveVendors: (data) => set(ref(db, 'vendors'), data),
-    saveInvoices: (data) => set(ref(db, 'invoices'), data),
-    saveProduction: (data) => set(ref(db, 'production'), data),
-    saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
-    saveDevNotes: (data) => set(ref(db, 'devNotes'), data),
-    saveInquiries: (data) => set(ref(db, 'inquiries'), data),
-    saveVendors: (data) => set(ref(db, 'vendors'), data),
-    saveInvoices: (data) => set(ref(db, 'invoices'), data),
+  // Persist sign-in across refreshes / app restarts
+  setPersistence(auth, browserLocalPersistence).catch(e => console.error('Persistence error:', e));
+
+  // Expose sign-in / sign-out for the UI
+  window._auth = {
+    signIn: async function() {
+      try {
+        const provider = new GoogleAuthProvider();
+        // On iOS PWA, popup is unreliable. Use redirect for standalone mode.
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+        if (isStandalone) {
+          await signInWithRedirect(auth, provider);
+        } else {
+          await signInWithPopup(auth, provider);
+        }
+      } catch (e) {
+        console.error('Sign in error:', e);
+        alert('Sign in failed: ' + (e.message || 'Unknown error'));
+      }
+    },
+    signOut: async function() {
+      try { await signOut(auth); location.reload(); }
+      catch (e) { console.error(e); }
+    }
   };
-  window._chainPhotos = {};
+
+  // Handle redirect result on app load (for iOS PWA flow)
+  getRedirectResult(auth).catch(e => console.error('Redirect result error:', e));
+
+  let _fbInitialized = false;
+
+  function showSignInScreen(reason) {
+    const gate = document.getElementById('auth-gate');
+    if (!gate) return;
+    gate.style.display = 'flex';
+    const msg = document.getElementById('auth-gate-msg');
+    if (msg) msg.textContent = reason || '';
+  }
+
+  function hideSignInScreen() {
+    const gate = document.getElementById('auth-gate');
+    if (gate) gate.style.display = 'none';
+  }
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      showSignInScreen('');
+      return;
+    }
+    if (user.email !== ALLOWED_EMAIL) {
+      // Someone signed in with a non-allowed account — boot them
+      showSignInScreen('Sorry, ' + user.email + ' is not authorized to access this app.');
+      signOut(auth);
+      return;
+    }
+    // Authorized — initialize Firebase data wiring once
+    hideSignInScreen();
+    if (_fbInitialized) return;
+    _fbInitialized = true;
+    initFirebaseData();
+  });
+
+  function initFirebaseData() {
+    window._fb = {
+      saveQuotes: (data) => set(ref(db, 'quotes'), data),
+      saveInventory: (data) => set(ref(db, 'inventory'), data),
+      saveChainPhotos: (data) => set(ref(db, 'chainPhotos'), data),
+      saveCustomChains: (data) => set(ref(db, 'customChains'), data),
+      saveRemovedChains: (data) => set(ref(db, 'removedChains'), data),
+      saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
+      saveVendors: (data) => set(ref(db, 'vendors'), data),
+      saveInvoices: (data) => set(ref(db, 'invoices'), data),
+      saveProduction: (data) => set(ref(db, 'production'), data),
+      saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
+      saveDevNotes: (data) => set(ref(db, 'devNotes'), data),
+      saveInquiries: (data) => set(ref(db, 'inquiries'), data),
+    };
+    window._chainPhotos = {};
 
   onValue(ref(db, 'removedChains'), snap => {
     window._removedChains = snap.val() ? Object.values(snap.val()) : [];
@@ -11987,6 +12064,7 @@ function startProdOrder(specId) {
     });
     if (changed) persistInventory();
   }
+  } // end initFirebaseData
 
 // =================== SCROLL TO TOP ===================
 (function setupScrollTop() {
