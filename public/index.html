@@ -11650,13 +11650,8 @@ function startProdOrder(specId) {
     signIn: async function() {
       try {
         const provider = new GoogleAuthProvider();
-        // On iOS PWA, popup is unreliable. Use redirect for standalone mode.
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-        if (isStandalone) {
-          await signInWithRedirect(auth, provider);
-        } else {
-          await signInWithPopup(auth, provider);
-        }
+        // Always use redirect — popup is blocked by Cross-Origin-Opener-Policy on modern browsers
+        await signInWithRedirect(auth, provider);
       } catch (e) {
         console.error('Sign in error:', e);
         alert('Sign in failed: ' + (e.message || 'Unknown error'));
