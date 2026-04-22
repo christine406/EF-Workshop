@@ -1239,6 +1239,7 @@
         <div class="field">
           <div class="field-label">Purity</div>
           <select id="metalPurity" onchange="updateMetalEstimate();calculate()">
+            <option value="">— select</option>
             <option value="18k">18k Yellow</option>
             <option value="18kw">18k White</option>
             <option value="14k">14k Yellow</option>
@@ -1371,8 +1372,9 @@
         <div class="field">
           <div class="field-label">Complexity</div>
           <select id="settingTier" onchange="calculate()">
+            <option value="" selected>— select</option>
             <option value="basic">Basic — single stone, simple setting</option>
-            <option value="mid" selected>Mid-range — multi-stone or some fabrication</option>
+            <option value="mid">Mid-range — multi-stone or some fabrication</option>
             <option value="complex">Highly specialized — pavé, intricate, heavy fab</option>
           </select>
         </div>
@@ -1380,7 +1382,7 @@
       <div class="field-row">
         <div class="field">
           <div class="field-label">Est. labor cost ($)</div>
-          <input type="number" id="laborCost" value="700" min="0" oninput="calculate()">
+          <input type="number" id="laborCost" value="" min="0" placeholder="0" oninput="calculate()">
         </div>
         <div class="field">
           <div class="field-label">Markup</div>
@@ -1391,7 +1393,7 @@
       <div class="field-row">
         <div class="field">
           <div class="field-label">Design fee (optional)</div>
-          <input type="number" id="designFee" value="0" min="0" oninput="calculate()">
+          <input type="number" id="designFee" value="" min="0" placeholder="0" oninput="calculate()">
         </div>
         <div class="field">
           <div class="field-label">Overhead</div>
@@ -2407,7 +2409,11 @@ document.getElementById('weightCategory').addEventListener('change', function() 
 });
 
 document.getElementById('settingTier').addEventListener('change', function() {
-  document.getElementById('laborCost').value = SETTING_DEFAULTS[this.value];
+  if (this.value && SETTING_DEFAULTS[this.value] != null) {
+    document.getElementById('laborCost').value = SETTING_DEFAULTS[this.value];
+  } else {
+    document.getElementById('laborCost').value = '';
+  }
   calculate();
 });
 
@@ -4420,12 +4426,17 @@ function clearQuote() {
   _metalMode = 'estimate';
   setMetalMode('estimate');
   document.getElementById('clientName').value = '';
+  if (document.getElementById('pieceType')) document.getElementById('pieceType').value = '';
+  if (document.getElementById('metalPurity')) document.getElementById('metalPurity').value = '';
+  if (document.getElementById('settingTier')) document.getElementById('settingTier').value = '';
   document.getElementById('metalGrams').value = '';
   document.getElementById('gramHint').textContent = '';
+  if (typeof updateWeightOptions === 'function') updateWeightOptions();
+  if (typeof updateFingerSizeVisibility === 'function') updateFingerSizeVisibility();
   if (document.getElementById('weightCategory')) document.getElementById('weightCategory').value = '';
   document.getElementById('projectOccasion').value = '';
-  document.getElementById('laborCost').value = '700';
-  document.getElementById('designFee').value = '0';
+  document.getElementById('laborCost').value = '';
+  document.getElementById('designFee').value = '';
   document.getElementById('chainSelect').value = '';
   document.getElementById('chainSelectedLabel').textContent = 'None selected';
   document.getElementById('chainSelectedLabel').style.color = 'var(--text-mid)';
