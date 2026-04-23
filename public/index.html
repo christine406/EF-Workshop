@@ -4610,6 +4610,41 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
     ${q.status !== "quote" ? `<div style="margin-bottom:10px">
       <button onclick="document.getElementById('ep-stone-details-${id}').style.display=document.getElementById('ep-stone-details-${id}').style.display==='none'?'block':'none'" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:5px 10px;border-radius:0;cursor:pointer;text-transform:uppercase;width:100%">💎 Stone details / GIA record ${_linkedInv ? "↗" : ""}</button>
       <div id="ep-stone-details-${id}" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:12px;margin-top:6px">
+        ${_stonesArr.length ? `
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">Stones on this piece</div>
+          <div id="ep-stones-list-${id}" style="display:flex;flex-direction:column;gap:8px">
+            ${_stonesArr.map((st, si) => `
+              <div style="background:var(--bg);border:1px solid var(--border);padding:8px" data-ep-stone-idx="${si}">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim)">Stone ${si + 1}</div>
+                  <button type="button" onclick="removeEditStone(${id},${si})" style="background:transparent;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>
+                </div>
+                <div style="margin-bottom:6px">
+                  <div class="field-label">Description</div>
+                  <input type="text" id="ep-stone-desc-${id}-${si}" value="${(st.desc || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}" placeholder="e.g. 2.1ct OMC K/VS2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none;box-sizing:border-box">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                  <div>
+                    <div class="field-label">Cost ($)</div>
+                    <input type="number" id="ep-stone-cost-${id}-${si}" value="${st.cost || ''}" min="0" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none;box-sizing:border-box">
+                  </div>
+                  <div>
+                    <div class="field-label">Melee?</div>
+                    <select id="ep-stone-small-${id}-${si}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none;appearance:none">
+                      <option value="false" ${!st.isSmall ? 'selected' : ''}>No — tiered</option>
+                      <option value="true" ${st.isSmall ? 'selected' : ''}>Yes — ×1.75</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:6px">GIA record (main stone)</div>
+        </div>
+        ` : ''}
         ${_linkedLabel}
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
           <div><div class="field-label">GIA number</div><input type="text" id="ep-gia-${id}" value="${_epGia}" placeholder="optional" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none"></div>
@@ -4832,29 +4867,54 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   }
 }
 
-// Remove a stone from the edit form. Recreates the edit form with one fewer stone.
+// Remove a stone from the edit form. Works for both single-piece quotes and individual pieces in a set.
+// Recreates the edit form with one fewer stone so edits already typed are preserved via captureEditStoneEdits.
 function removeEditStone(quoteId, stoneIdx) {
+  const overlay = document.querySelector('.inline-edit-overlay');
+  const pieceIdx = overlay?.dataset?.pieceIdx;
+  const isPieceEdit = pieceIdx !== undefined && pieceIdx !== '';
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === quoteId);
   if (!q) return;
-  const stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+
+  // Pick the target stones array — the piece's own, or the quote's top-level
+  let stonesArr;
+  if (isPieceEdit) {
+    const pi = parseInt(pieceIdx);
+    const piece = q.pieces && q.pieces[pi];
+    if (!piece) return;
+    stonesArr = Array.isArray(piece.stones) ? piece.stones : (piece.stones ? Object.values(piece.stones) : []);
+  } else {
+    stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+  }
   if (!stonesArr[stoneIdx]) return;
-  // Capture current edits before rebuilding, so user doesn't lose typed changes
-  captureEditStoneEdits(q, quoteId);
-  q.stones = stonesArr.filter((_, i) => i !== stoneIdx);
+
+  // Capture any in-progress edits first so they survive the re-render
+  captureEditStoneEdits(stonesArr, quoteId);
+  const newStones = stonesArr.filter((_, i) => i !== stoneIdx);
+
+  if (isPieceEdit) {
+    const pi = parseInt(pieceIdx);
+    q.pieces[pi].stones = newStones;
+  } else {
+    q.stones = newStones;
+  }
   window._savedQuotes = quotes;
   persistQuotes();
-  // Re-open the edit form fresh
-  const overlay = document.querySelector('.inline-edit-overlay');
-  const pieceIdx = overlay?.dataset?.pieceIdx;
+
+  // Reopen the edit form so the removed stone disappears from UI
   if (overlay) overlay.remove();
   const fakeEvent = { stopPropagation: function(){} };
-  editQuoteCard(quoteId, fakeEvent, undefined, pieceIdx !== undefined && pieceIdx !== '' ? parseInt(pieceIdx) : undefined);
+  if (isPieceEdit) {
+    // Re-enter via the piece edit path so the synthetic quote rebuilds
+    editPieceInSet(quoteId, parseInt(pieceIdx), fakeEvent);
+  } else {
+    editQuoteCard(quoteId, fakeEvent);
+  }
 }
 
-// Pull current stone input values off the edit form into q.stones so re-rendering doesn't lose them.
-function captureEditStoneEdits(q, quoteId) {
-  const stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+// Pull current stone input values off the edit form into the given stones array so re-rendering doesn't lose them.
+function captureEditStoneEdits(stonesArr, quoteId) {
   stonesArr.forEach(function(st, si) {
     const descEl = document.getElementById('ep-stone-desc-' + quoteId + '-' + si);
     const costEl = document.getElementById('ep-stone-cost-' + quoteId + '-' + si);
@@ -4863,7 +4923,6 @@ function captureEditStoneEdits(q, quoteId) {
     if (costEl) st.cost = parseFloat(costEl.value) || 0;
     if (smallEl) st.isSmall = smallEl.value === 'true';
   });
-  q.stones = stonesArr;
 }
 
 function setCollectionType(id, type) {
@@ -5050,7 +5109,12 @@ function saveQuoteEdit(id) {
       p.designFee = q.designFee;
       p.notes = q.notes;
       p.stoneDetail = q.stoneDetail;
+      // Stones and derived cost buckets — mirror single-piece save so piece cards stay accurate
+      if (q.stones !== undefined) p.stones = q.stones;
+      if (q.stoneCost !== undefined) p.stoneCost = q.stoneCost;
+      if (q.meleeCost !== undefined) p.meleeCost = q.meleeCost;
       p.actualStoneCost = q.actualStoneCost;
+      p.actualMeleeCost = q.actualMeleeCost;
       p.actualMetalCost = q.actualMetalCost;
       p.actualLabor = q.actualLabor;
       p.actualDesignFee = q.actualDesignFee;
