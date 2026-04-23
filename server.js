@@ -358,25 +358,15 @@ app.post('/api/jotform-webhook', (req, res) => {
       inspirationImages,
     };
 
-    // Save to Firebase REST API
-    const fbUrl = 'https://ef-workshop-ff6cf-default-rtdb.firebaseio.com';
-    const https = require('https');
-    const payload = JSON.stringify(inquiry);
-    const url = new URL(`${fbUrl}/inquiries.json`);
-    const options = {
-      hostname: url.hostname,
-      path: url.pathname + url.search,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
-    };
-    const fireReq = https.request(options, (fireRes) => {
-      console.log('JotForm inquiry saved to Firebase:', inquiry.name, formType);
-      // Fire-and-forget push notification (don't block webhook response)
-      pushBadgeToAll('💌 New inquiry', inquiry.name ? 'From ' + inquiry.name : 'New inquiry').catch(e => console.error('push after inquiry failed:', e));
-    });
-      fireReq.on('error', (e) => console.error('Firebase write error:', e));
-      fireReq.write(payload);
-      fireReq.end();
+    // Save to Firebase via authenticated helper. The client's security rules
+    // reject unauthenticated writes, so we MUST include ?auth=FIREBASE_SECRET.
+    // Only push the badge notification after the write is confirmed.
+    firebasePost('/inquiries', inquiry)
+      .then(result => {
+        console.log('JotForm inquiry saved to Firebase:', inquiry.name, formType, 'key=', result && result.name);
+        return pushBadgeToAll('💌 New inquiry', inquiry.name ? 'From ' + inquiry.name : 'New inquiry');
+      })
+      .catch(e => console.error('Firebase inquiry write or push failed:', e.message || e));
 
       res.status(200).json({ ok: true });
     } catch (e) {
@@ -457,6 +447,36 @@ function firebasePut(fbPath, body) {
       let data = '';
       res.on('data', c => data += c);
       res.on('end', () => resolve(data));
+    });
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
+// POST appends a child under fbPath using Firebase's auto-generated key.
+// Includes auth secret so Firebase security rules accept the write.
+// Resolves to { name: '-NxyzKey' } on success; rejects on non-2xx or transport error.
+function firebasePost(fbPath, body) {
+  return new Promise((resolve, reject) => {
+    const secret = process.env.FIREBASE_SECRET;
+    const authSuffix = secret ? `?auth=${secret}` : '';
+    const payload = JSON.stringify(body);
+    const req = https.request({
+      hostname: FIREBASE_HOST,
+      path: `${fbPath}.json${authSuffix}`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) }
+    }, (res) => {
+      let data = '';
+      res.on('data', c => data += c);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try { resolve(JSON.parse(data)); } catch(e) { resolve({ raw: data }); }
+        } else {
+          reject(new Error(`Firebase POST ${fbPath} failed: ${res.statusCode} ${data}`));
+        }
+      });
     });
     req.on('error', reject);
     req.write(payload);
