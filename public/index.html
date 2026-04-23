@@ -5613,13 +5613,18 @@ function buildMultiPieceCard(q) {
       html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Move to collection</button>';
     }
     // Costs are updated per-piece via the Edit button on each piece row
-    html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
-    html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
+    // For projects, Completed/Abandoned replace Archive (both remove from active list).
+    // For quotes, Archive is still the only way to hide them.
+    if (q.status === 'project' || q.status === 'collection') {
+      html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
+      html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
+    } else {
+      html += '<button class="convert-btn" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
+    }
   } else {
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;project&quot;,event)">Reopen</button>';
   }
   html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
-  html += '<button class="convert-btn" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
 
   // Invoice connections
@@ -5831,7 +5836,10 @@ function buildQuoteCard(q) {
     html += '<span style="font-size:13px;color:var(--text-dim);padding:4px 0">✕ Abandoned</span>';
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
   }
-  if (!archived.includes(q.status) && q.status !== 'completed' && q.status !== 'abandoned') {
+  // Archive is only shown for quotes (which don't have Completed/Abandoned). For active projects,
+  // Completed/Abandoned already remove the card from the active list, so Archive would be redundant.
+  const isQuoteStatus = q.status === 'quote' || q.status === 'collection-quote';
+  if (isQuoteStatus) {
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
   } else if (archived.includes(q.status)) {
     html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="unarchiveItem(' + q.id + ',event)">Unarchive</button>';
