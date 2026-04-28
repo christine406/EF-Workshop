@@ -7313,7 +7313,7 @@ async function lookupGIAByNumber() {
     const res = await fetch('/api/gia-lookup?report=' + encodeURIComponent(giaNum));
     const data = await res.json();
     if (!data.found && !data.carat) {
-      statusEl.innerHTML = 'Not found automatically — <a href="https://www.gia.edu/report-check?reportno=' + giaNum + '" target="_blank" rel="noopener" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+      statusEl.innerHTML = 'Not found automatically — <a href="https://www.gia.edu/reportno-' + giaNum + '" target="_blank" rel="noopener" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
       statusEl.style.color = '#ccc07a';
       return;
     }
@@ -7322,7 +7322,7 @@ async function lookupGIAByNumber() {
     statusEl.textContent = '✓ ' + filled.join(' · ');
     statusEl.style.color = 'var(--green-bright)';
   } catch(e) {
-    statusEl.innerHTML = 'Lookup failed — <a href="https://www.gia.edu/report-check?reportno=' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+    statusEl.innerHTML = 'Lookup failed — <a href="https://www.gia.edu/reportno-' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
     statusEl.style.color = '#ccc07a';
   }
 }
@@ -7890,7 +7890,7 @@ function renderStoneInventory() {
     // Stone cards in this group
     group.forEach(s => {    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
         const giaLink = s.gia
-      ? `<a href="https://www.gia.edu/report-check?reportno=${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
+      ? `<a href="https://www.gia.edu/reportno-${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
       : '';
     const extraDetails = [
       s.dimensions ? s.dimensions : '',
