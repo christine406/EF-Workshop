@@ -5513,7 +5513,7 @@ function buildMultiPieceCard(q) {
   const setGiaList = [...new Set(_setGiaNums)];
   const setGiaCardLinks = setGiaList.length
     ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:6px">'
-      + setGiaList.map(g => '<a href="https://www.gia.edu/reportno-' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
+      + setGiaList.map(g => '<a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
       + '</div>'
     : '';
 
@@ -5758,7 +5758,7 @@ function buildQuoteCard(q) {
   const giaList = [...new Set(_giaNums)];
   const giaCardLinks = giaList.length
     ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:6px">'
-      + giaList.map(g => '<a href="https://www.gia.edu/reportno-' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
+      + giaList.map(g => '<a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
       + '</div>'
     : '';
 
@@ -7342,7 +7342,7 @@ async function lookupGIAByNumber() {
     const res = await fetch('/api/gia-lookup?report=' + encodeURIComponent(giaNum));
     const data = await res.json();
     if (!data.found && !data.carat) {
-      statusEl.innerHTML = 'Not found automatically — <a href="https://www.gia.edu/reportno-' + giaNum + '" target="_blank" rel="noopener" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+      statusEl.innerHTML = 'Not found automatically — <a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + giaNum + '" target="_blank" rel="noopener" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
       statusEl.style.color = '#ccc07a';
       return;
     }
@@ -7351,7 +7351,7 @@ async function lookupGIAByNumber() {
     statusEl.textContent = '✓ ' + filled.join(' · ');
     statusEl.style.color = 'var(--green-bright)';
   } catch(e) {
-    statusEl.innerHTML = 'Lookup failed — <a href="https://www.gia.edu/reportno-' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+    statusEl.innerHTML = 'Lookup failed — <a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
     statusEl.style.color = '#ccc07a';
   }
 }
@@ -7920,7 +7920,7 @@ function renderStoneInventory() {
     group.forEach(s => {    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
         const _giaUrlNum = String(s.gia || '').replace(/\D/g, '');
         const giaLink = _giaUrlNum
-      ? `<a href="https://www.gia.edu/reportno-${_giaUrlNum}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
+      ? `<a href="https://www.gia.edu/report-check?locale=en_US&reportno=${_giaUrlNum}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
       : '';
     const extraDetails = [
       s.dimensions ? s.dimensions : '',
