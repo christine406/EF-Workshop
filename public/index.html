@@ -11196,12 +11196,99 @@ function updateProdCastEst(){
 function addProdStoneRow(prefill){
   var id=++_prodStoneCounter;var container=document.getElementById('prod-stones');if(!container)return;
   var wrapper=document.createElement('div');wrapper.id='prod-stone-wrap-'+id;wrapper.style.cssText='background:#fafaf7;border-radius:0;padding:8px;margin-bottom:6px';
-  var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr 60px auto;gap:6px;margin-bottom:6px;align-items:center';
+
+  // Toggle: manual entry vs from inventory
+  var toggleRow=document.createElement('div');toggleRow.style.cssText='display:flex;gap:6px;margin-bottom:8px;align-items:center';
+  var manualBtn=document.createElement('button');manualBtn.type='button';manualBtn.textContent='Manual entry';
+  var invBtn=document.createElement('button');invBtn.type='button';invBtn.textContent='From inventory';
+  var btnBase='font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer';
+  var activeStyle=btnBase+';background:var(--teal-dim);color:#fafaf7;border:1px solid var(--teal-dim)';
+  var inactiveStyle=btnBase+';background:#fafaf7;color:var(--text-dim);border:1px solid var(--border)';
+  var useInventory=!!(prefill&&prefill.invStoneId);
+  manualBtn.style.cssText=useInventory?inactiveStyle:activeStyle;
+  invBtn.style.cssText=useInventory?activeStyle:inactiveStyle;
+  var topRemBtn=document.createElement('button');topRemBtn.type='button';topRemBtn.textContent='x';topRemBtn.style.cssText='margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';topRemBtn.addEventListener('click',function(){wrapper.remove();recalcProdFromComponents();});
+  toggleRow.appendChild(manualBtn);toggleRow.appendChild(invBtn);toggleRow.appendChild(topRemBtn);
+  wrapper.appendChild(toggleRow);
+
+  // Hidden field to track which inventory stone is linked (if any)
+  var invIdInput=document.createElement('input');invIdInput.type='hidden';invIdInput.id='ps-invid-'+id;invIdInput.value=prefill&&prefill.invStoneId?prefill.invStoneId:'';
+  wrapper.appendChild(invIdInput);
+
+  // === Inventory picker section ===
+  var invSection=document.createElement('div');invSection.style.display=useInventory?'block':'none';invSection.style.marginBottom='8px';
+  var invLabel=document.createElement('div');invLabel.id='ps-inv-label-'+id;invLabel.style.cssText='font-size:13px;color:var(--gold);font-style:italic;margin-bottom:6px;min-height:20px';
+  // Pre-fill the label if we have a linked stone
+  if(useInventory){
+    var existingStone=getInventory().find(function(s){return String(s.id)===String(prefill.invStoneId);});
+    if(existingStone){
+      var d=[existingStone.carat?parseFloat(existingStone.carat).toFixed(2)+' ct':'',existingStone.cut,existingStone.color,existingStone.clarity].filter(Boolean).join(' · ');
+      invLabel.textContent=d||'Linked stone';
+    } else {
+      invLabel.textContent='Linked stone (no longer in inventory)';
+      invLabel.style.color='var(--text-dim)';
+    }
+  } else {
+    invLabel.textContent='None selected';
+    invLabel.style.color='var(--text-dim)';
+  }
+  var browseInvBtn=document.createElement('button');browseInvBtn.type='button';browseInvBtn.textContent='Browse stones';browseInvBtn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer;margin-bottom:6px';
+  var invPickerBox=document.createElement('div');invPickerBox.id='ps-inv-picker-'+id;invPickerBox.style.cssText='border:1px solid var(--border);border-radius:0;display:none;max-height:240px;overflow-y:auto;background:#fff';
+  browseInvBtn.addEventListener('click',function(){
+    var open=invPickerBox.style.display!=='none';
+    invPickerBox.style.display=open?'none':'block';
+    if(!open){
+      // Build / refresh the picker
+      var archivedStatuses=['sold-by-dealer','sold-by-ef','archived-with-project','in-use','unavailable'];
+      var available=getInventory().filter(function(s){return !archivedStatuses.includes(s.status)&&s.category!=='owned-reserved';});
+      renderGroupedPicker(invPickerBox,available,function(stone){
+        // Apply stone to this row
+        invIdInput.value=stone.id;
+        var d=[stone.carat?parseFloat(stone.carat).toFixed(2)+' ct':'',stone.cut,stone.color,stone.clarity].filter(Boolean).join(' · ');
+        invLabel.textContent=d||'Linked stone';
+        invLabel.style.color='var(--gold)';
+        // Pre-fill the underlying form fields too so spec saves with full info
+        var shapeEl=document.getElementById('ps-shape-'+id);if(shapeEl&&stone.cut){
+          // Add cut to options if missing, then select
+          var hasOpt=Array.from(shapeEl.options).some(function(o){return o.value===stone.cut;});
+          if(!hasOpt){var opt=document.createElement('option');opt.value=stone.cut;opt.textContent=stone.cut;shapeEl.appendChild(opt);}
+          shapeEl.value=stone.cut;
+        }
+        var sizeEl=document.getElementById('ps-size-'+id);if(sizeEl&&!sizeEl.value){
+          if(stone.dimensions)sizeEl.value=stone.dimensions;
+          else if(stone.carat)sizeEl.value=parseFloat(stone.carat).toFixed(2)+' ct';
+        }
+        var qtyEl=document.getElementById('ps-qty-'+id);if(qtyEl&&!qtyEl.value)qtyEl.value='1';
+        var dealerEl=document.getElementById('ps-dealer-'+id);if(dealerEl&&stone.dealer){
+          var hasDealer=Array.from(dealerEl.options).some(function(o){return o.value===stone.dealer;});
+          if(!hasDealer){var dopt=document.createElement('option');dopt.value=stone.dealer;dopt.textContent=stone.dealer;dealerEl.appendChild(dopt);}
+          dealerEl.value=stone.dealer;
+        }
+        var costEl=document.getElementById('ps-cost-'+id);if(costEl&&stone.cost)costEl.value=stone.cost;
+        var notesEl=document.getElementById('ps-notes-'+id);if(notesEl){
+          var noteParts=[];
+          if(stone.gia)noteParts.push('GIA '+stone.gia);
+          if(stone.antique)noteParts.push('antique');
+          if(stone.notes)noteParts.push(stone.notes);
+          var existing=notesEl.value.trim();
+          var generated=noteParts.join(' · ');
+          if(generated&&!existing.includes(generated))notesEl.value=existing?(existing+' · '+generated):generated;
+        }
+        invPickerBox.style.display='none';
+        recalcProdFromComponents();
+      });
+    }
+  });
+  invSection.appendChild(invLabel);invSection.appendChild(browseInvBtn);invSection.appendChild(invPickerBox);
+  wrapper.appendChild(invSection);
+
+  // === Manual / always-visible detail section (also gets filled by inventory picker) ===
+  var manualSection=document.createElement('div');
+  var row1=document.createElement('div');row1.style.cssText='display:grid;grid-template-columns:1fr 1fr 60px;gap:6px;margin-bottom:6px;align-items:center';
   var shapeIn=document.createElement('select');shapeIn.id='ps-shape-'+id;shapeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';shapeIn.innerHTML='<option value="">— cut</option>'+buildCutOptions(prefill&&prefill.shape||'', false);
   var sizeIn=document.createElement('input');sizeIn.type='text';sizeIn.id='ps-size-'+id;sizeIn.value=prefill&&prefill.size||'';sizeIn.placeholder='2.5mm';sizeIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
   var qtyIn=document.createElement('input');qtyIn.type='number';qtyIn.id='ps-qty-'+id;qtyIn.value=prefill&&prefill.qty||'';qtyIn.placeholder='Qty';qtyIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
-  var remBtn=document.createElement('button');remBtn.textContent='x';remBtn.style.cssText='background:none;border:none;color:var(--text-dim);font-size:15px;cursor:pointer;padding:0 4px';remBtn.addEventListener('click',function(){wrapper.remove();});
-  row1.appendChild(shapeIn);row1.appendChild(sizeIn);row1.appendChild(qtyIn);row1.appendChild(remBtn);
+  row1.appendChild(shapeIn);row1.appendChild(sizeIn);row1.appendChild(qtyIn);
   var row2=document.createElement('div');row2.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';
   var dealerSel=document.createElement('select');dealerSel.id='ps-dealer-'+id;dealerSel.innerHTML=buildVendorOptions(prefill&&prefill.dealer||'',true);dealerSel.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none';
   var urlIn=document.createElement('input');urlIn.type='url';urlIn.id='ps-url-'+id;urlIn.value=prefill&&prefill.url||'';urlIn.placeholder='Product URL (optional)';urlIn.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:11px;padding:7px 8px;border-radius:0;outline:none';
@@ -11238,7 +11325,22 @@ function addProdStoneRow(prefill){
   var sCostIn=document.createElement('input');sCostIn.type='number';sCostIn.id='ps-cost-'+id;sCostIn.value=prefill&&prefill.cost||'';sCostIn.placeholder='0';sCostIn.style.cssText='flex:1;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:6px 8px;border-radius:0;outline:none';
   sCostIn.addEventListener('input',recalcProdFromComponents);
   sCostRow.appendChild(sCostLabel);sCostRow.appendChild(sCostIn);
-  wrapper.appendChild(row1);wrapper.appendChild(row2);wrapper.appendChild(dealerNewRow);wrapper.appendChild(notesIn);wrapper.appendChild(typeToggleRow);wrapper.appendChild(sCostRow);container.appendChild(wrapper);
+  manualSection.appendChild(row1);manualSection.appendChild(row2);manualSection.appendChild(dealerNewRow);manualSection.appendChild(notesIn);manualSection.appendChild(typeToggleRow);manualSection.appendChild(sCostRow);
+  wrapper.appendChild(manualSection);
+  container.appendChild(wrapper);
+
+  // Toggle handlers
+  manualBtn.addEventListener('click',function(){
+    useInventory=false;
+    invSection.style.display='none';
+    manualBtn.style.cssText=activeStyle;invBtn.style.cssText=inactiveStyle;
+    invIdInput.value='';
+  });
+  invBtn.addEventListener('click',function(){
+    useInventory=true;
+    invSection.style.display='block';
+    invBtn.style.cssText=activeStyle;manualBtn.style.cssText=inactiveStyle;
+  });
 }
 
 function addProdFindingRow(prefill){
@@ -11405,7 +11507,7 @@ function handleProdPieceSel(){
 }
 function saveProdSpec(){
   var name=document.getElementById('prod-name').value.trim();if(!name){showToast('Add a piece name');return;}
-  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';var sCostEl=document.getElementById('ps-cost-'+i);var stoneCostVal=parseFloat(sCostEl&&sCostEl.value)||0;var isMeleeEl=document.getElementById('ps-ismelee-'+i);var isMeleeVal=!!(isMeleeEl&&isMeleeEl.value==='1');if(shape||size||dealer)stones.push({shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes,cost:stoneCostVal,isMelee:isMeleeVal});});
+  var stones=[];document.querySelectorAll('[id^="prod-stone-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-stone-wrap-','');var shEl=document.getElementById('ps-shape-'+i);var szEl=document.getElementById('ps-size-'+i);var qEl=document.getElementById('ps-qty-'+i);var dEl=document.getElementById('ps-dealer-'+i);var dnEl=document.getElementById('ps-dealer-new-'+i);var uEl=document.getElementById('ps-url-'+i);var nEl=document.getElementById('ps-notes-'+i);var shape=shEl?shEl.value.trim():'';var size=szEl?szEl.value.trim():'';var qty=qEl?qEl.value.trim():'';var dealer=dEl?(dEl.value==='__new__'?(dnEl?dnEl.value.trim():''):dEl.value):'';if(dEl&&dEl.value==='__new__'&&dealer)addVendor(dealer);var url=uEl?uEl.value.trim():'';var notes=nEl?nEl.value.trim():'';var sCostEl=document.getElementById('ps-cost-'+i);var stoneCostVal=parseFloat(sCostEl&&sCostEl.value)||0;var isMeleeEl=document.getElementById('ps-ismelee-'+i);var isMeleeVal=!!(isMeleeEl&&isMeleeEl.value==='1');var invIdEl=document.getElementById('ps-invid-'+i);var invStoneId=invIdEl&&invIdEl.value?invIdEl.value:'';if(shape||size||dealer||invStoneId){var rec={shape:shape,size:size,qty:qty,dealer:dealer,url:url,notes:notes,cost:stoneCostVal,isMelee:isMeleeVal};if(invStoneId)rec.invStoneId=invStoneId;stones.push(rec);}});
   var findings=[];document.querySelectorAll('[id^="prod-finding-wrap-"]').forEach(function(wrap){var i=wrap.id.replace('prod-finding-wrap-','');
     var chainIdxEl=document.getElementById('pf-chain-idx-'+i);
     var chainIdx=chainIdxEl&&chainIdxEl.value!==''?parseInt(chainIdxEl.value):null;
