@@ -11915,9 +11915,10 @@ function calcProdRetail(showBreakdown) {
   var suggested = Math.round((stoneRetail + overhead) / 50) * 50;
   var bd = document.getElementById('prod-calc-breakdown');
   var suggested_rounded = suggested;
-  // Always update the retail price field live
+  // Always update the retail price field live — but never while the user is
+  // actively editing it (would otherwise stomp on their backspaces / typing).
   var retailField = document.getElementById('prod-retail-price');
-  if (retailField && suggested) retailField.value = suggested_rounded;
+  if (retailField && suggested && document.activeElement !== retailField) retailField.value = suggested_rounded;
   if (bd && showBreakdown) {
     var lines = [];
     if (stoneCost) lines.push('Stone ' + fmt(stoneCost) + ' x' + stoneMarkup(stoneCost) + ' = ' + fmt(stoneRetail));
