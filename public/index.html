@@ -5503,6 +5503,20 @@ function buildMultiPieceCard(q) {
   const displayAmount = discAmtHeader > 0 ? (setTotal - discAmtHeader) : setTotal;
   const displayAmountColor = (discAmtHeader > 0) ? 'color:var(--teal-dim)' : 'color:var(--gold)';
 
+  // Collect GIA numbers across all pieces (main stones only, deduped, digits only)
+  const _setGiaNums = [];
+  const _normSetGia = v => String(v || '').replace(/\D/g, '');
+  (q.pieces || []).forEach(p => {
+    (p.stones || []).forEach(s => { if (s && s.gia && !s.isSmall) { const n = _normSetGia(s.gia); if (n) _setGiaNums.push(n); } });
+    if (p.stoneDetail && p.stoneDetail.gia) { const n = _normSetGia(p.stoneDetail.gia); if (n) _setGiaNums.push(n); }
+  });
+  const setGiaList = [...new Set(_setGiaNums)];
+  const setGiaCardLinks = setGiaList.length
+    ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:6px">'
+      + setGiaList.map(g => '<a href="https://www.gia.edu/reportno-' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
+      + '</div>'
+    : '';
+
   let html = '<div class="quote-item-header" style="cursor:pointer;align-items:flex-start" onclick="toggleCard(this)">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + (q.consignment ? '<span style="font-size:10px;background:#7a5c3a;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:0">Consignment' + (q.consignmentDealer ? ' · ' + q.consignmentDealer : '') + '</span>' : '') + '</div>'
@@ -5515,7 +5529,9 @@ function buildMultiPieceCard(q) {
     + '<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:6px">'
     + '<button onclick="editSetHeader(' + q.id + ',event)" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
     + '<div style="font-size:12px;color:var(--text-dim)" class="tap-arrow">▾</div>'
-    + '</div></div></div>';
+    + '</div>'
+    + setGiaCardLinks
+    + '</div></div>';
 
   html += '<div class="card-body" style="display:none;margin-top:10px;background:#f7eae9;border-radius:0;padding:10px;border:1px solid #e8d0ce">';
 
@@ -5734,6 +5750,18 @@ function buildQuoteCard(q) {
     ? '<div style="font-size:11px;color:var(--text-dim);margin-top:3px;font-style:italic">Told client: ' + q.quotedToClient.replace(/</g,'&lt;') + '</div>'
     : '';
 
+  // Collect GIA numbers linked to this project (main stones only, deduped, digits only)
+  const _giaNums = [];
+  const _normGia = v => String(v || '').replace(/\D/g, '');
+  (q.stones || []).forEach(s => { if (s && s.gia && !s.isSmall) { const n = _normGia(s.gia); if (n) _giaNums.push(n); } });
+  if (q.stoneDetail && q.stoneDetail.gia) { const n = _normGia(q.stoneDetail.gia); if (n) _giaNums.push(n); }
+  const giaList = [...new Set(_giaNums)];
+  const giaCardLinks = giaList.length
+    ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:6px">'
+      + giaList.map(g => '<a href="https://www.gia.edu/reportno-' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
+      + '</div>'
+    : '';
+
   // HEADER — always visible, tap to expand
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
@@ -5748,6 +5776,7 @@ function buildQuoteCard(q) {
     + '<button onclick="editQuoteCard(' + q.id + ',event)" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;padding:3px 8px;border-radius:0;cursor:pointer;text-transform:uppercase">Edit</button>'
     + '<div style="font-size:12px;color:var(--text-dim);letter-spacing:0.05em" class="tap-arrow">▾</div>'
     + '</div>'
+    + giaCardLinks
     + '</div>'
     + '</div>';
 
@@ -7889,8 +7918,9 @@ function renderStoneInventory() {
 
     // Stone cards in this group
     group.forEach(s => {    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
-        const giaLink = s.gia
-      ? `<a href="https://www.gia.edu/reportno-${s.gia}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
+        const _giaUrlNum = String(s.gia || '').replace(/\D/g, '');
+        const giaLink = _giaUrlNum
+      ? `<a href="https://www.gia.edu/reportno-${_giaUrlNum}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
       : '';
     const extraDetails = [
       s.dimensions ? s.dimensions : '',
