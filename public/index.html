@@ -4390,9 +4390,12 @@ function saveQuote(quoteType = 'client') {
   const isProject = quoteType === 'bespoke' || quoteType === 'semi-custom';
   // Break stones into main vs small so calcSuggestedRetail (used on the saved card)
   // applies the same markup the builder uses: main → tiered stoneMarkupProject, small/melee → ×1.75.
+  // Note: stoneCalc.smallCost ALREADY INCLUDES the melee materials input (added in calcStoneRetail).
+  // We derive small-stones cost directly from the stones array here so we don't double-count
+  // when adding meleeInput separately into savedMeleeCost.
   const meleeInput = parseFloat(document.getElementById('meleeCost')?.value) || 0;
   const mainStoneCost = stoneCalc.mainCost || 0;
-  const smallStoneCost = stoneCalc.smallCost || 0;
+  const smallStoneCost = stones.reduce(function(sum, s){ return s && s.isSmall ? sum + (s.cost || 0) : sum; }, 0);
   const savedMeleeCost = smallStoneCost + meleeInput;
   const quote = {
     id: Date.now(),
