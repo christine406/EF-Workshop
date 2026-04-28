@@ -2138,10 +2138,9 @@
 
         <div class="field" style="margin-bottom:10px">
           <div class="field-label">Category</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px" id="fl-cat-btns">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px" id="fl-cat-btns">
             <button type="button" onclick="setFieldLogCategory('errand',this)" class="fl-cat-btn" data-cat="errand" style="padding:8px 4px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-radius:0;cursor:pointer;border:1px solid var(--border);background:#fafaf7;color:var(--text)">Errand</button>
             <button type="button" onclick="setFieldLogCategory('reminder',this)" class="fl-cat-btn" data-cat="reminder" style="padding:8px 4px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-radius:0;cursor:pointer;border:1px solid var(--border);background:#fafaf7;color:var(--text)">Reminder</button>
-            <button type="button" onclick="setFieldLogCategory('communication',this)" class="fl-cat-btn" data-cat="communication" style="padding:8px 4px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-radius:0;cursor:pointer;border:1px solid var(--border);background:#fafaf7;color:var(--text)">Comm</button>
             <button type="button" onclick="setFieldLogCategory('note',this)" class="fl-cat-btn" data-cat="note" style="padding:8px 4px;font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;border-radius:0;cursor:pointer;border:1px solid var(--teal-dim);background:var(--teal-dim);color:#fafaf7">Note</button>
           </div>
         </div>
@@ -2171,13 +2170,18 @@
       </div>
 
       <!-- FILTER TABS -->
-      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap" id="fl-filter-tabs">
+      <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap" id="fl-filter-tabs">
         <button onclick="setFieldLogFilter('all',this)" class="fl-filter-btn active">All</button>
         <button onclick="setFieldLogFilter('errand',this)" class="fl-filter-btn">Errand</button>
         <button onclick="setFieldLogFilter('reminder',this)" class="fl-filter-btn">Reminder</button>
-        <button onclick="setFieldLogFilter('communication',this)" class="fl-filter-btn">Comm</button>
         <button onclick="setFieldLogFilter('note',this)" class="fl-filter-btn">Note</button>
         <button onclick="setFieldLogFilter('purchase',this)" class="fl-filter-btn">Purchases</button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center">
+        <select id="fl-filter-project" onchange="setFieldLogProjectFilter(this.value)" style="flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 8px;border-radius:0;outline:none">
+          <option value="">All projects</option>
+        </select>
+        <button id="fl-filter-project-clear" onclick="clearFieldLogProjectFilter()" style="display:none;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 9px;border-radius:0;cursor:pointer">Clear</button>
       </div>
 
       <!-- LOG LIST -->
@@ -9741,21 +9745,16 @@ function setFieldLogCategory(category, btn) {
   btn.style.background = 'var(--teal-dim)';
   btn.style.color = '#fafaf7';
   btn.style.borderColor = 'var(--teal-dim)';
-  // For non-purchase categories, hide the purchase fields
-  const isPurchase = category === 'note' || category === 'communication' ? false : false;
-  // Errand / reminder / communication / note all hide the purchase fields by default;
-  // user can still set type if logging a real purchase under "note" category later.
-  const amountRow = document.getElementById('fl-amount')?.closest('.field');
-  const dealerRow = document.getElementById('fl-dealer')?.closest('.field-row');
+  // Errand and reminder hide the purchase fields by default;
+  // Note keeps them visible for retroactive purchase logging.
   const grid = document.getElementById('fl-amount')?.closest('div[style*="grid-template-columns"]');
   const typeBlock = document.getElementById('fl-type-btns')?.closest('.field');
-  const hidePurchase = ['errand','reminder','communication'].includes(category);
+  const hidePurchase = ['errand','reminder'].includes(category);
   if (grid) grid.style.display = hidePurchase ? 'none' : '';
   if (typeBlock) typeBlock.style.display = hidePurchase ? 'none' : '';
   // Auto-set the underlying type based on category for cleanliness
   if (category === 'errand') window._fieldLogType = 'task';
   else if (category === 'reminder') window._fieldLogType = 'reminder';
-  else if (category === 'communication') window._fieldLogType = 'communication';
   // 'note' leaves _fieldLogType alone so user can pick a purchase type
 }
 
@@ -9764,6 +9763,58 @@ function setFieldLogFilter(filter, btn) {
   document.querySelectorAll('.fl-filter-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderFieldLog();
+}
+
+function setFieldLogProjectFilter(projectId) {
+  window._fieldLogProjectFilter = projectId ? parseInt(projectId) : null;
+  var clearBtn = document.getElementById('fl-filter-project-clear');
+  if (clearBtn) clearBtn.style.display = window._fieldLogProjectFilter ? '' : 'none';
+  renderFieldLog();
+}
+
+function clearFieldLogProjectFilter() {
+  window._fieldLogProjectFilter = null;
+  var sel = document.getElementById('fl-filter-project');
+  if (sel) sel.value = '';
+  var clearBtn = document.getElementById('fl-filter-project-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderFieldLog();
+}
+
+function renderFlFilterProjectSelect() {
+  const sel = document.getElementById('fl-filter-project');
+  if (!sel) return;
+  const current = window._fieldLogProjectFilter ? String(window._fieldLogProjectFilter) : '';
+  sel.innerHTML = '<option value="">All projects</option>';
+  // Build a unique list of projects that actually have field log entries,
+  // so the dropdown stays short and useful instead of listing every quote.
+  const log = getFieldLog();
+  const seenIds = new Set();
+  const projectSummaries = [];
+  log.forEach(e => {
+    if (!e.projectId || seenIds.has(e.projectId)) return;
+    seenIds.add(e.projectId);
+    const q = (getSavedQuotes() || []).find(x => x.id === e.projectId);
+    if (q) {
+      projectSummaries.push({
+        id: q.id,
+        label: q.client + (q.projectName && q.projectName !== q.client ? ' — ' + q.projectName : ''),
+      });
+    } else {
+      // Project deleted but entries remain — still show as option
+      projectSummaries.push({ id: e.projectId, label: (e.client || 'Unknown') + ' (deleted)' });
+    }
+  });
+  projectSummaries.sort((a, b) => a.label.localeCompare(b.label));
+  projectSummaries.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.label;
+    sel.appendChild(o);
+  });
+  if (current) sel.value = current;
+  var clearBtn = document.getElementById('fl-filter-project-clear');
+  if (clearBtn) clearBtn.style.display = window._fieldLogProjectFilter ? '' : 'none';
 }
 
 function setFieldLogType(type, btn) {
@@ -9806,7 +9857,7 @@ function saveFieldLogEntry() {
   const projectId = parseInt(document.getElementById('fl-project')?.value) || null;
   const projectClient = projectId ? (getSavedQuotes().find(q => q.id === projectId)?.client || null) : null;
   const category = window._fieldLogCategory || 'note';
-  const isPurchase = !['errand','reminder','communication'].includes(category);
+  const isPurchase = !['errand','reminder'].includes(category);
   const entry = {
     id: Date.now(),
     timestamp: Date.now(),
@@ -10099,11 +10150,15 @@ function renderFieldLog() {
   const flDealer = document.getElementById('fl-dealer');
   if (flDealer && flDealer.options.length <= 1) flDealer.innerHTML = buildVendorOptions(flDealer.value, true);
   renderFlProjectSelect();
+  renderFlFilterProjectSelect();
   const log = getFieldLog();
   const filter = window._fieldLogFilter || 'all';
+  const projectFilter = window._fieldLogProjectFilter || null;
   // Helper: classify an entry's category for filter purposes.
   // Existing entries without a category get inferred from their type.
+  // Legacy 'communication' entries are now folded into 'note'.
   function categoryOf(e) {
+    if (e.category === 'communication') return 'note';
     if (e.category) return e.category;
     if (e.type === 'reminder') return 'reminder';
     if (e.type === 'task') return 'errand';
@@ -10113,12 +10168,13 @@ function renderFieldLog() {
     return ['main-stone','melee','casting','setting','findings','cad','dealer','purchase','memo','followup'].includes(e.type) && (e.amount || 0) > 0;
   }
   const filtered = log.filter(e => {
+    if (projectFilter && e.projectId !== projectFilter) return false;
     if (filter === 'all') return true;
     if (filter === 'purchase') return isPurchase(e);
     return categoryOf(e) === filter;
   });
   if (!filtered.length) {
-    list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:16px 0;text-align:center">No entries' + (filter !== 'all' ? ' in this view' : '') + '.</div>';
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:16px 0;text-align:center">No entries' + (filter !== 'all' || projectFilter ? ' in this view' : '') + '.</div>';
     return;
   }
   const active = filtered.filter(e => !e.done && !e.reconciled);
@@ -10126,14 +10182,12 @@ function renderFieldLog() {
   const typeColors = {
     'main-stone': 'var(--gold)', melee: '#ccc07a', casting: '#a07cc5', setting: 'var(--teal-dim)',
     findings: '#7aaa8a', cad: '#6a9ab0', reminder: 'var(--text-dim)', task: '#ccc07a',
-    dealer: 'var(--gold)', purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5',
-    communication: '#a07cc5'
+    dealer: 'var(--gold)', purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5'
   };
   const typeLabels = {
     'main-stone': 'Main stone', melee: 'Melee', casting: 'Casting', setting: 'Setting',
     findings: 'Findings', cad: 'CAD', reminder: 'Reminder', task: 'Errand',
-    dealer: 'Dealer', purchase: 'Purchase', memo: 'Memo', followup: 'Follow up',
-    communication: 'Communication'
+    dealer: 'Dealer', purchase: 'Purchase', memo: 'Memo', followup: 'Follow up'
   };
   function renderEntry(e) {
     const div = document.createElement('div');
@@ -10141,7 +10195,7 @@ function renderFieldLog() {
     const isDone = e.done || e.reconciled;
     div.style.cssText = 'padding:12px 0;border-bottom:1px solid var(--border)' + (isDone ? ';opacity:0.5' : '');
     const cat = categoryOf(e);
-    const labelKey = (cat === 'errand') ? 'task' : (cat === 'communication' ? 'communication' : e.type);
+    const labelKey = (cat === 'errand') ? 'task' : e.type;
     const typeColor = typeColors[labelKey] || typeColors[e.type] || 'var(--text-dim)';
     const typeLabel = typeLabels[labelKey] || typeLabels[e.type] || e.type;
     // Stone chip
