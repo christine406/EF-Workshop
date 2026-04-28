@@ -4631,18 +4631,22 @@ function saveQuote(quoteType = 'client') {
   // Tag any inventory stones referenced in this quote
   const inv = getInventory();
   let invChanged = false;
+  // Statuses that mean "this stone is committed to a real piece" — reserve it.
+  // 'project' = bespoke / semi-custom; 'collection' / 'collection-quote' = production-bound collection piece.
+  const reservesStones = ['project', 'collection', 'collection-quote'].includes(quote.status);
   stones.forEach(s => {
     if (s.inventoryId) {
       const invStone = inv.find(i => i.id === s.inventoryId);
       if (invStone) {
-        // Only mark in-use if this is a project, not just a quote
-        if (quote.status === 'project') {
-          invStone.status = 'in-use';
+        if (reservesStones) {
+          // Reserve: status flips to unavailable; category goes to memo (consignment) or owned-reserved.
+          invStone.status = 'unavailable';
+          invStone.category = quote.consignment ? 'memo' : 'owned-reserved';
           invStone.usedInProjectId = quote.id;
           invStone.usedInQuoteId = null;
           invStone.usedInQuoteClient = null;
         } else {
-          // It's just a quote — tag it but don't change status
+          // It's just a tentative quote — tag it but don't change status.
           invStone.usedInQuoteId = quote.id;
           invStone.usedInQuoteClient = quote.client || 'quote';
         }
@@ -4654,7 +4658,7 @@ function saveQuote(quoteType = 'client') {
       const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
       const newInvStone = {
         id: Date.now() + Math.random(),
-        category: 'owned-available',
+        category: reservesStones ? (quote.consignment ? 'memo' : 'owned-reserved') : 'owned-available',
         cut: s.cut || '',
         carat: parseFloat(s.carat) || 0,
         color: s.color || '',
@@ -4664,8 +4668,9 @@ function saveQuote(quoteType = 'client') {
         cost: s.cost || 0,
         notes: 'Added from quote: ' + client,
         antique: s.antique || false,
-        status: 'in-use',
-        usedInProjectId: quote.id,
+        status: reservesStones ? 'unavailable' : 'available',
+        usedInProjectId: reservesStones ? quote.id : null,
+        usedInQuoteId: reservesStones ? null : quote.id,
         dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
         inquiries: [],
         returnBy: '',
