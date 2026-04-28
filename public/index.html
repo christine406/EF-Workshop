@@ -5513,7 +5513,7 @@ function buildMultiPieceCard(q) {
   const setGiaList = [...new Set(_setGiaNums)];
   const setGiaCardLinks = setGiaList.length
     ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:6px">'
-      + setGiaList.map(g => '<a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
+      + setGiaList.map(g => '<a href="javascript:void(0)" onclick="openGiaReport(\'' + g + '\',event)" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono);cursor:pointer">GIA ' + g + ' ↗</a>').join('')
       + '</div>'
     : '';
 
@@ -5758,7 +5758,7 @@ function buildQuoteCard(q) {
   const giaList = [...new Set(_giaNums)];
   const giaCardLinks = giaList.length
     ? '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;margin-top:6px">'
-      + giaList.map(g => '<a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + g + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">GIA ' + g + ' ↗</a>').join('')
+      + giaList.map(g => '<a href="javascript:void(0)" onclick="openGiaReport(\'' + g + '\',event)" style="font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono);cursor:pointer">GIA ' + g + ' ↗</a>').join('')
       + '</div>'
     : '';
 
@@ -7342,7 +7342,7 @@ async function lookupGIAByNumber() {
     const res = await fetch('/api/gia-lookup?report=' + encodeURIComponent(giaNum));
     const data = await res.json();
     if (!data.found && !data.carat) {
-      statusEl.innerHTML = 'Not found automatically — <a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + giaNum + '" target="_blank" rel="noopener" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+      statusEl.innerHTML = 'Not found automatically — <a href="javascript:void(0)" onclick="openGiaReport(\'' + giaNum + '\',event)" style="color:var(--teal-dim);cursor:pointer">view on GIA ↗</a> or scan the cert';
       statusEl.style.color = '#ccc07a';
       return;
     }
@@ -7351,7 +7351,7 @@ async function lookupGIAByNumber() {
     statusEl.textContent = '✓ ' + filled.join(' · ');
     statusEl.style.color = 'var(--green-bright)';
   } catch(e) {
-    statusEl.innerHTML = 'Lookup failed — <a href="https://www.gia.edu/report-check?locale=en_US&reportno=' + giaNum + '" target="_blank" style="color:var(--teal-dim)">view on GIA ↗</a> or scan the cert';
+    statusEl.innerHTML = 'Lookup failed — <a href="javascript:void(0)" onclick="openGiaReport(\'' + giaNum + '\',event)" style="color:var(--teal-dim);cursor:pointer">view on GIA ↗</a> or scan the cert';
     statusEl.style.color = '#ccc07a';
   }
 }
@@ -7920,7 +7920,7 @@ function renderStoneInventory() {
     group.forEach(s => {    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
         const _giaUrlNum = String(s.gia || '').replace(/\D/g, '');
         const giaLink = _giaUrlNum
-      ? `<a href="https://www.gia.edu/report-check?locale=en_US&reportno=${_giaUrlNum}" target="_blank" style="color:var(--teal-dim);font-size:13px;text-decoration:none">GIA ${s.gia} ↗</a>`
+      ? `<a href="javascript:void(0)" onclick="openGiaReport('${_giaUrlNum}',event)" style="color:var(--teal-dim);font-size:13px;text-decoration:none;cursor:pointer">GIA ${s.gia} ↗</a>`
       : '';
     const extraDetails = [
       s.dimensions ? s.dimensions : '',
@@ -9049,6 +9049,35 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Copies the GIA number to clipboard and opens GIA's Report Check page in a new tab.
+// GIA's landing page no longer accepts a reportno query param to prefill the form,
+// so the cleanest cross-version approach is: copy → open → paste → look up.
+function openGiaReport(giaNumRaw, ev) {
+  if (ev) { try { ev.stopPropagation(); } catch (e) {} }
+  const num = String(giaNumRaw || '').replace(/\D/g, '');
+  if (!num) return;
+  const fallbackOpen = () => window.open('https://www.gia.edu/report-check-landing', '_blank', 'noopener');
+  const done = () => { showToast('GIA ' + num + ' copied — paste into Report Check'); fallbackOpen(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(num).then(done).catch(() => {
+      // Fallback for environments that block clipboard API
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = num;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      } catch (e) {}
+      done();
+    });
+  } else {
+    done();
+  }
 }
 
 // =================== INIT ===================
