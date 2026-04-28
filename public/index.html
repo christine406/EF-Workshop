@@ -1459,6 +1459,17 @@
         </div>
         <div style="font-size:12px;color:var(--text-dim);margin-top:2px">Melee, pavé, accent stones, findings, additional gold</div>
       </div>
+
+      <!-- ALTERNATE STONE OPTIONS -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="section-label" style="margin:0">Alternate stone options</div>
+          <span id="stoneOptionsCount" style="font-family:var(--font-mono);font-size:10px;color:var(--text-dim);letter-spacing:0.08em;text-transform:uppercase"></span>
+        </div>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;font-style:italic">For showing a client multiple stone choices for the same setting. Each option uses the metal, labor, and design fee above with its own stone cost.</div>
+        <div id="stoneOptionsList"></div>
+        <button class="add-stone-btn" type="button" onclick="addStoneOption()" style="margin-top:6px;background:#fafaf7;border:1px dashed var(--teal-dim);color:var(--teal-dim)">+ Add alternate stone option</button>
+      </div>
     </div>
 
     <!-- SETTING & LABOR -->
@@ -2412,6 +2423,8 @@ const CHAINS = [
 let goldSpotOz = 0;
 let stones = [];
 let stoneIdCounter = 0;
+let stoneOptions = [];
+let stoneOptionIdCounter = 0;
 let includeChain = false;
 
 window._savedQuotes = [];
@@ -3223,6 +3236,140 @@ function addStone(type) {
   calculate();
 }
 
+// === ALTERNATE STONE OPTIONS ===
+// Used to compare multiple stone choices on the same quote (e.g. showing a
+// client three potential center stones for the same ring). Each option lives
+// on the saved quote alongside the primary stone(s); the primary still drives
+// the headline retail. When a client picks an option, the chosen one swaps
+// into stones[] and the previously-primary moves into stoneOptions.
+
+function nextStoneOptionLabel() {
+  // A, B, C... based on number of existing options
+  return 'Option ' + String.fromCharCode(65 + stoneOptions.length);
+}
+
+function addStoneOption() {
+  const id = stoneOptionIdCounter++;
+  stoneOptions.push({
+    id,
+    label: nextStoneOptionLabel(),
+    cost: 0,
+    cut: '',
+    carat: '',
+    color: '',
+    clarity: '',
+    gia: '',
+    dealer: '',
+    antique: false,
+    notes: '',
+  });
+  renderStoneOptions();
+}
+
+function removeStoneOption(id) {
+  stoneOptions = stoneOptions.filter(o => o.id !== id);
+  renderStoneOptions();
+}
+
+function updateStoneOption(id, field, value) {
+  const o = stoneOptions.find(x => x.id === id);
+  if (!o) return;
+  o[field] = value;
+  // If cost changed, refresh retail readouts.
+  if (field === 'cost') renderStoneOptions();
+}
+
+// Compute the retail price of the current quote *if* the given alternate stone
+// were used as the primary stone. Reuses the same formula as calcSuggestedRetail
+// but swaps in this option's cost.
+function calcOptionRetail(option) {
+  // Pull non-stone components from the live builder fields.
+  const grams = parseFloat(document.getElementById('metalGrams')?.value) || 0;
+  const goldPriceData = window._goldPrice || { spot: 0 };
+  const purity = document.getElementById('purity')?.value || '18k';
+  const purityFactor = { '10k':0.417, '14k':0.583, '18k':0.75, '22k':0.916, '24k':1.0 }[purity] || 0.75;
+  const metalCost = grams * goldPriceData.spot * purityFactor;
+  const labor = parseFloat(document.getElementById('laborCost')?.value) || 0;
+  const designFee = parseFloat(document.getElementById('designFee')?.value) || 0;
+  const meleeInput = parseFloat(document.getElementById('meleeCost')?.value) || 0;
+  // Small-stone cost from primary stones (alternate replaces only main stones).
+  let smallCost = 0;
+  stones.forEach(s => { if (s.isSmall) smallCost += (s.cost || 0); });
+  const meleeCost = smallCost + meleeInput;
+  const chainEl = document.getElementById('chainSelect');
+  const chainIdx = chainEl?.value || '';
+  const chainCost = chainIdx !== '' && typeof CHAINS !== 'undefined' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
+  const stoneCost = option.cost || 0;
+  if (!stoneCost && !metalCost && !labor && !designFee && !meleeCost && !chainCost) return 0;
+  const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
+  const meleeRetail = meleeCost * 1.75;
+  const laborRetail = labor * 1.4;
+  const rest = Math.round(metalCost * 1.35) + Math.round(chainCost * 1.35) + Math.round(laborRetail) + Math.round(meleeRetail) + designFee;
+  const raw = stoneRetail + rest * 1.13;
+  return Math.round(raw / 50) * 50;
+}
+
+function renderStoneOptions() {
+  const list = document.getElementById('stoneOptionsList');
+  const countEl = document.getElementById('stoneOptionsCount');
+  if (countEl) countEl.textContent = stoneOptions.length ? stoneOptions.length + ' option' + (stoneOptions.length === 1 ? '' : 's') : '';
+  if (!list) return;
+  list.innerHTML = '';
+  if (!stoneOptions.length) return;
+  stoneOptions.forEach(o => {
+    const retail = calcOptionRetail(o);
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fafaf7;border:1px solid #ccc07a;border-radius:0;padding:10px 12px;margin-bottom:8px';
+    card.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <input type="text" value="${(o.label||'').replace(/"/g,'&quot;')}" placeholder="Option label" oninput="updateStoneOption(${o.id},'label',this.value)" style="background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;font-weight:500;letter-spacing:0.04em;padding:2px 0;outline:none;flex:1;max-width:160px">
+        <button type="button" onclick="removeStoneOption(${o.id})" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:0 4px">×</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Cost ($)</div>
+          <input type="number" min="0" placeholder="0" value="${o.cost || ''}" oninput="updateStoneOption(${o.id},'cost',parseFloat(this.value)||0)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Carat</div>
+          <input type="number" step="0.01" min="0" placeholder="0.00" value="${o.carat || ''}" oninput="updateStoneOption(${o.id},'carat',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Cut</div>
+          <select onchange="updateStoneOption(${o.id},'cut',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 6px;border-radius:0;outline:none;box-sizing:border-box">${buildCutOptions(o.cut || '', true)}</select>
+        </div>
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Color</div>
+          <input type="text" placeholder="K" value="${(o.color||'').replace(/"/g,'&quot;')}" oninput="updateStoneOption(${o.id},'color',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 6px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Clarity</div>
+          <input type="text" placeholder="VS2" value="${(o.clarity||'').replace(/"/g,'&quot;')}" oninput="updateStoneOption(${o.id},'clarity',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 6px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">GIA #</div>
+          <input type="text" placeholder="—" value="${(o.gia||'').replace(/"/g,'&quot;')}" oninput="updateStoneOption(${o.id},'gia',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 6px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Dealer</div>
+          <select onchange="updateStoneOption(${o.id},'dealer',this.value)" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:7px 6px;border-radius:0;outline:none;box-sizing:border-box">${buildVendorOptions(o.dealer || '', false)}</select>
+        </div>
+      </div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">With this stone</span>
+        <span style="font-family:var(--font-mono);font-size:16px;color:#7a5c3a;font-weight:500">${retail ? '$' + retail.toLocaleString() : '—'}</span>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+// Alternate stone option retails refresh from inside calculate() — see end of that function.
+
 function removeStone(id) {
   stones = stones.filter(s => s.id !== id);
   renderStones();
@@ -3676,6 +3823,8 @@ function calculate() {
     document.getElementById('discountedRow').style.display = 'none';
     document.getElementById('profitRow').style.display = 'none';
   }
+  // Refresh alternate-stone-option retail readouts whenever any cost input changes
+  if (typeof renderStoneOptions === 'function' && stoneOptions && stoneOptions.length) renderStoneOptions();
 }
 
 // =================== SAVE QUOTE ===================
@@ -4422,6 +4571,22 @@ function saveQuote(quoteType = 'client') {
     date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
     actualLabor: null,
     actualStones: null,
+    // Alternate stone options the client is choosing between. Each is a snapshot
+    // of stone-only fields. Cleaned to drop any temporary builder-only fields.
+    stoneOptions: stoneOptions.length ? stoneOptions.map(function(o){
+      return {
+        label: o.label || '',
+        cost: o.cost || 0,
+        cut: o.cut || '',
+        carat: o.carat || '',
+        color: o.color || '',
+        clarity: o.clarity || '',
+        gia: o.gia || '',
+        dealer: o.dealer || '',
+        antique: !!o.antique,
+        notes: o.notes || '',
+      };
+    }) : [],
   };
 
   // If saving directly as a project, pre-fill costs from quoted costs.
@@ -4576,6 +4741,8 @@ function clearQuote() {
   document.getElementById('gramHint').textContent = '';
   stones = [];
   renderStones();
+  stoneOptions = [];
+  renderStoneOptions();
   clearExtraPieces();
   calculate();
 }
@@ -5762,6 +5929,44 @@ function buildMultiPieceCard(q) {
   if (!discAmt && q.clientPrice > 0) html += '<div style="display:flex;justify-content:space-between;padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span style="color:var(--text-dim)">Client price</span><span style="color:var(--teal-dim);font-size:16px">$' + q.clientPrice.toLocaleString() + '</span></div>';
   html += '</div>';
 
+  // Alternate stone options (for showing a client multiple stone choices on the same setting).
+  // Only renders for single-piece quotes that have any options stored.
+  if (Array.isArray(q.stoneOptions) && q.stoneOptions.length) {
+    html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:10px 12px;border:1px solid #ccc07a">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5c3a;font-weight:500">Stone options considered</div>';
+    var _chosenIdx = q.stoneOptions.findIndex(function(o){return o && o.chosen;});
+    if (_chosenIdx >= 0) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">✓ chosen</div>';
+    html += '</div>';
+    q.stoneOptions.forEach(function(opt, idx) {
+      // Compute retail using the saved quote's non-stone components and this option's stone cost.
+      var hypothetical = Object.assign({}, q, {
+        actualStoneCost: opt.cost || 0,
+        stoneCost: opt.cost || 0,
+        stones: [],
+      });
+      var optRetail = calcSuggestedRetail(hypothetical);
+      var details = [
+        opt.carat ? parseFloat(opt.carat).toFixed(2) + ' ct' : '',
+        opt.cut, opt.color, opt.clarity,
+      ].filter(Boolean).join(' · ');
+      var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
+      var labelStyle = opt.chosen
+        ? 'color:var(--green-bright);font-weight:500'
+        : (opt.previouslyChosen ? 'color:var(--text-dim);font-style:italic;text-decoration:line-through' : 'color:var(--text)');
+      html += '<div style="padding:8px 0;border-bottom:' + (idx === q.stoneOptions.length - 1 ? 'none' : '1px solid var(--border)') + '">'
+        + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'
+        + '<div style="font-size:13px;' + labelStyle + '">' + (opt.label || ('Option ' + String.fromCharCode(65+idx))) + (opt.previouslyChosen ? ' (was primary)' : '') + '</div>'
+        + (opt.chosen ? '' : '<button onclick="chooseStoneOption(' + q.id + ',' + idx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>')
+        + '</div>'
+        + (details ? '<div style="font-size:12px;color:var(--text-dim)">' + details + (opt.dealer ? ' · ' + opt.dealer : '') + '</div>' : '')
+        + (giaPart ? '<div style="margin-top:2px">' + giaPart + '</div>' : '')
+        + '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px"><span style="color:var(--text-dim)">Cost $' + (opt.cost || 0).toLocaleString() + '</span><span style="color:var(--gold);font-weight:500">→ $' + (optRetail||0).toLocaleString() + ' retail</span></div>'
+        + '</div>';
+    });
+    html += '</div>';
+  }
+
   // Action buttons
   const isActive = q.status === 'project' || q.status === 'quote' || q.status === 'collection-quote' || q.status === 'collection';
   if (isActive) {
@@ -6479,6 +6684,83 @@ function archiveItem(id, e) {
     renderSaved();
     showToast('Archived');
   }
+}
+
+// Pick one of the alternate stone options as the primary stone.
+// Moves the current primary into stoneOptions (flagged as previouslyChosen),
+// promotes the chosen alternate into stones[], updates costs, and marks the
+// chosen option with chosen:true so it stays visible in the considered list.
+function chooseStoneOption(id, optIdx, e) {
+  if (e) e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(x => x.id === id);
+  if (!q || !Array.isArray(q.stoneOptions) || !q.stoneOptions[optIdx]) return;
+  const opt = q.stoneOptions[optIdx];
+  if (!confirm('Lock in ' + (opt.label || 'this option') + ' as the primary stone?\n\nThe current primary stone will move into the considered list.')) return;
+
+  // Snapshot the current primary main stone(s) into a stoneOption so it stays in history.
+  const currentMain = (Array.isArray(q.stones) ? q.stones : []).filter(s => s && !s.isSmall);
+  const archivedFromPrimary = currentMain.length ? {
+    label: 'Was primary',
+    cost: currentMain.reduce((sum, s) => sum + (s.cost || 0), 0),
+    cut: currentMain[0].cut || '',
+    carat: currentMain[0].carat || '',
+    color: currentMain[0].color || '',
+    clarity: currentMain[0].clarity || '',
+    gia: currentMain[0].gia || '',
+    dealer: currentMain[0].dealer || '',
+    antique: !!currentMain[0].antique,
+    notes: currentMain[0].desc || '',
+    previouslyChosen: true,
+  } : null;
+
+  // Build the new primary stone from the chosen option.
+  const newPrimary = {
+    id: Date.now(),
+    cost: opt.cost || 0,
+    desc: opt.notes || [opt.carat ? parseFloat(opt.carat).toFixed(2)+'ct' : '', opt.cut, opt.color, opt.clarity].filter(Boolean).join(' '),
+    isSmall: false,
+    gia: opt.gia || '',
+    carat: opt.carat || '',
+    color: opt.color || '',
+    clarity: opt.clarity || '',
+    cut: opt.cut || '',
+    dealer: opt.dealer || '',
+    antique: !!opt.antique,
+  };
+  // Keep any small/melee stones from the current primary list.
+  const keepSmall = (Array.isArray(q.stones) ? q.stones : []).filter(s => s && s.isSmall);
+  q.stones = [newPrimary, ...keepSmall];
+  q.stoneCost = newPrimary.cost;
+  // If the project is using actuals, update actualStoneCost too so retail math stays consistent.
+  if (q.actualStoneCost != null) q.actualStoneCost = newPrimary.cost;
+  // Update GIA-related fields on the top-level stoneDetail so the saved card shows the new cert.
+  q.stoneDetail = {
+    gia: newPrimary.gia, carat: newPrimary.carat, color: newPrimary.color,
+    clarity: newPrimary.clarity, cut: newPrimary.cut, dealer: newPrimary.dealer,
+    antique: newPrimary.antique,
+  };
+
+  // Recompute total based on current stored cost components — calcSuggestedRetail handles fallback.
+  const newRetail = calcSuggestedRetail(q);
+  if (newRetail) q.total = newRetail;
+
+  // Mark the chosen option in stoneOptions as chosen.
+  q.stoneOptions = q.stoneOptions.map((o, i) => {
+    if (i === optIdx) {
+      return Object.assign({}, o, { chosen: true, chosenAt: Date.now() });
+    }
+    // Clear chosen on others if it was set previously.
+    if (o.chosen) { var copy = Object.assign({}, o); delete copy.chosen; delete copy.chosenAt; return copy; }
+    return o;
+  });
+  // Append the previously-primary as a new entry, if any.
+  if (archivedFromPrimary) q.stoneOptions.push(archivedFromPrimary);
+
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+  showToast('Stone option locked in');
 }
 
 function unarchiveItem(id, e) {
