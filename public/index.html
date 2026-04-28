@@ -8765,6 +8765,15 @@ function renderListSection(listEl, entries, accentColor) {
     var li = document.createElement('li');
     if (e.done) li.classList.add('done');
     if (e.priority) li.classList.add('priority');
+    // Override the default flex-row layout so we can stack: top row of controls + text below.
+    li.style.flexDirection = 'column';
+    li.style.alignItems = 'stretch';
+    li.style.gap = '6px';
+
+    // === TOP ROW: checkbox, chips, action buttons ===
+    var topRow = document.createElement('div');
+    topRow.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap';
+
     var cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.className = 'dd-check';
@@ -8772,52 +8781,46 @@ function renderListSection(listEl, entries, accentColor) {
     cb.checked = !!e.done;
     cb.addEventListener('change', function(){ toggleEntryDone(e.id); });
 
-    var span = document.createElement('span');
-    span.className = 'dd-text';
-    span.textContent = e.description;
-
     var chipWrap = document.createElement('span');
-    chipWrap.style.cssText = 'display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px';
+    chipWrap.style.cssText = 'display:inline-flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0';
     chipWrap.innerHTML = _entryChip(e);
 
     var priBtn = document.createElement('button');
     priBtn.className = 'dd-del';
     priBtn.innerHTML = e.priority ? '❗' : '○';
     priBtn.title = e.priority ? 'Unmark high priority' : 'Mark high priority';
-    priBtn.style.cssText += ';font-size:12px;color:' + (e.priority ? '#7a5c3a' : 'var(--text-dim)');
+    priBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:12px;line-height:1;padding:0 2px;flex-shrink:0;color:' + (e.priority ? '#7a5c3a' : 'var(--text-dim)');
     priBtn.addEventListener('click', function(){ togglePriorityOnEntry(e.id); });
 
     var linkBtn = document.createElement('button');
     linkBtn.className = 'dd-del';
     linkBtn.innerHTML = '🔗';
     linkBtn.title = 'Link to project / vendor / stone';
-    linkBtn.style.cssText += ';font-size:11px';
+    linkBtn.style.cssText = 'background:none;border:none;cursor:pointer;font-size:11px;line-height:1;padding:0 2px;flex-shrink:0';
     linkBtn.addEventListener('click', function(){ openLinkPicker(e.id); });
 
     var editBtn = document.createElement('button');
     editBtn.className = 'dd-del';
     editBtn.textContent = '✎';
     editBtn.title = 'edit';
-    editBtn.style.cssText += ';color:var(--teal-dim);font-size:13px';
+    editBtn.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--teal-dim);font-size:13px;line-height:1;padding:0 2px;flex-shrink:0';
     editBtn.addEventListener('click', function() {
+      // Inline edit replaces the whole row contents temporarily.
       var input = document.createElement('input');
       input.type = 'text';
       input.value = e.description;
-      input.style.cssText = 'flex:1;background:var(--bg);border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:3px 6px;outline:none';
+      input.style.cssText = 'flex:1;background:var(--bg);border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:3px 6px;outline:none;min-width:0';
       var saveBtn = document.createElement('button');
       saveBtn.textContent = 'save';
-      saveBtn.style.cssText = 'background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
+      saveBtn.style.cssText = 'background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer';
       var cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'cancel';
-      cancelBtn.style.cssText = 'background:#fafaf7;color:var(--text-dim);border:1px solid var(--border);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;margin-left:4px';
-      span.style.display = 'none';
-      chipWrap.style.display = 'none';
-      editBtn.style.display = 'none';
-      linkBtn.style.display = 'none';
-      priBtn.style.display = 'none';
-      li.insertBefore(input, li.querySelector('.dd-del'));
-      li.insertBefore(saveBtn, li.querySelector('.dd-del'));
-      li.insertBefore(cancelBtn, li.querySelector('.dd-del'));
+      cancelBtn.style.cssText = 'background:#fafaf7;color:var(--text-dim);border:1px solid var(--border);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer';
+      // Replace the body row contents with edit controls.
+      bodyRow.innerHTML = '';
+      bodyRow.appendChild(input);
+      bodyRow.appendChild(saveBtn);
+      bodyRow.appendChild(cancelBtn);
       input.focus();
       input.select();
       saveBtn.addEventListener('click', function() { saveEntryDescription(e.id, input.value); });
@@ -8829,6 +8832,7 @@ function renderListSection(listEl, entries, accentColor) {
     del.className = 'dd-del';
     del.textContent = '×';
     del.title = 'remove';
+    del.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:14px;line-height:1;padding:0 2px;flex-shrink:0';
     del.addEventListener('click', function(){
       if (e.reconciled || e.amount) {
         if (!confirm('Delete this entry? It has logged data.')) return;
@@ -8836,13 +8840,24 @@ function renderListSection(listEl, entries, accentColor) {
       deleteEntry(e.id);
     });
 
-    li.appendChild(cb);
-    li.appendChild(span);
-    li.appendChild(chipWrap);
-    li.appendChild(priBtn);
-    li.appendChild(linkBtn);
-    li.appendChild(editBtn);
-    li.appendChild(del);
+    topRow.appendChild(cb);
+    topRow.appendChild(chipWrap);
+    topRow.appendChild(priBtn);
+    topRow.appendChild(linkBtn);
+    topRow.appendChild(editBtn);
+    topRow.appendChild(del);
+
+    // === BODY ROW: full-width description ===
+    var bodyRow = document.createElement('div');
+    bodyRow.style.cssText = 'display:flex;align-items:center;gap:6px;padding-left:24px';
+    var span = document.createElement('span');
+    span.className = 'dd-text';
+    span.style.cssText = 'flex:1';
+    span.textContent = e.description;
+    bodyRow.appendChild(span);
+
+    li.appendChild(topRow);
+    li.appendChild(bodyRow);
     listEl.appendChild(li);
   });
 }
