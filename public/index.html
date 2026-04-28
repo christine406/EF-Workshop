@@ -406,6 +406,7 @@
     --stage-production: #c97a4a;     /* warm orange-amber */
     --stage-balance: #741435;        /* maroon */
     --stage-ready: #4d8b5a;          /* deep green */
+    --stage-paused: #7a5c3a;         /* warm brown — on hold */
     --stage-completed: #5c7a6b;      /* sage */
     --stage-abandoned: #8b8b8b;      /* grey */
   }
@@ -413,8 +414,7 @@
   /* Kanban board */
   .kanban-col {
     flex: 0 0 240px;
-    background: #fafaf7;
-    border-top: 4px solid var(--border);
+    background: var(--border);
     border-radius: 0;
     display: flex;
     flex-direction: column;
@@ -423,7 +423,7 @@
   }
   .kanban-col-header {
     padding: 10px 12px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(255,255,255,0.25);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -433,13 +433,13 @@
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text);
+    color: #fafaf7;
     font-weight: 500;
   }
   .kanban-col-count {
     font-family: var(--font-mono);
     font-size: 11px;
-    color: var(--text-dim);
+    color: rgba(255,255,255,0.75);
     font-weight: 400;
   }
   .kanban-col-body {
@@ -454,14 +454,13 @@
   .kanban-col.collapsed .kanban-col-body { display: none; }
   .kanban-col.collapsed { flex: 0 0 56px; }
   .kanban-col.collapsed .kanban-col-title { writing-mode: vertical-rl; transform: rotate(180deg); }
-  .kanban-col.drag-over {
-    background: #fff2c4;
+  .kanban-col.drag-over .kanban-col-body {
+    background: rgba(255, 242, 196, 0.6);
   }
 
   .kanban-card {
     background: #fff;
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--border);
+    border: 1px solid rgba(0,0,0,0.08);
     padding: 9px 11px;
     cursor: grab;
     user-select: none;
@@ -511,6 +510,7 @@
   .quote-item[data-stage="production"] { border-left-color: var(--stage-production); }
   .quote-item[data-stage="balance"] { border-left-color: var(--stage-balance); }
   .quote-item[data-stage="ready"] { border-left-color: var(--stage-ready); }
+  .quote-item[data-stage="paused"] { border-left-color: var(--stage-paused); }
   .quote-item[data-stage="completed"] { border-left-color: var(--stage-completed); }
   .quote-item[data-stage="abandoned"] { border-left-color: var(--stage-abandoned); }
 
@@ -533,6 +533,7 @@
   .stage-pill.stage-production { background: var(--stage-production); }
   .stage-pill.stage-balance { background: var(--stage-balance); }
   .stage-pill.stage-ready { background: var(--stage-ready); }
+  .stage-pill.stage-paused { background: var(--stage-paused); }
   .stage-pill.stage-completed { background: var(--stage-completed); }
   .stage-pill.stage-abandoned { background: var(--stage-abandoned); }
 
@@ -9123,6 +9124,7 @@ const PIPELINE_STAGES = [
   { key: 'production',    label: 'In production',      color: 'var(--stage-production)',    stuckDays: 30 },
   { key: 'balance',       label: 'Balance paid',       color: 'var(--stage-balance)',       stuckDays: 7 },
   { key: 'ready',         label: 'Ready to ship',      color: 'var(--stage-ready)',         stuckDays: 5 },
+  { key: 'paused',        label: 'Paused',             color: 'var(--stage-paused)',        stuckDays: null, terminal: true },
   { key: 'completed',     label: 'Completed',          color: 'var(--stage-completed)',     stuckDays: null, terminal: true },
   { key: 'abandoned',     label: 'Abandoned',          color: 'var(--stage-abandoned)',     stuckDays: null, terminal: true },
 ];
@@ -9158,6 +9160,12 @@ function setProjectStage(qid, newStage) {
   // Sync status field for terminal stages.
   if (newStage === 'completed') q.status = 'completed';
   else if (newStage === 'abandoned') q.status = 'abandoned';
+  else if (newStage === 'paused') {
+    // Paused isn't a terminal status — keep project/collection alive in the data.
+    if (q.status === 'completed' || q.status === 'abandoned') {
+      q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
+    }
+  }
   else if (q.status === 'completed' || q.status === 'abandoned') {
     // Reactivating a previously-terminal project — restore to project/collection status.
     q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
@@ -9231,7 +9239,7 @@ function renderPipeline() {
     col.className = 'kanban-col';
     if (stage.terminal) col.classList.add('collapsed');
     col.dataset.stage = stage.key;
-    col.style.borderTopColor = stage.color;
+    col.style.background = stage.color;
     const items = byStage[stage.key] || [];
 
     const header = document.createElement('div');
@@ -9266,9 +9274,9 @@ function renderPipeline() {
     items.forEach(q => {
       const card = document.createElement('div');
       card.className = 'kanban-card';
+      if (q.paused) card.classList.add('paused');
       card.draggable = true;
       card.dataset.qid = q.id;
-      card.style.borderLeftColor = stage.color;
       card.addEventListener('dragstart', e => {
         e.dataTransfer.setData('text/qid', String(q.id));
         e.dataTransfer.effectAllowed = 'move';
@@ -9289,7 +9297,7 @@ function renderPipeline() {
       });
       const amt = pipelineCardAmount(q);
       const days = daysInCurrentStage(q);
-      const stuck = !stage.terminal && isStuck(q);
+      const stuck = !stage.terminal && stage.key !== 'paused' && isStuck(q);
       let pieceTag = '';
       if (q.isMultiPiece) pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · SET</span>';
       else if (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts') pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · COLLECTION</span>';
@@ -9390,7 +9398,7 @@ function renderPipelineForecast() {
   const quotes = getSavedQuotes();
   const active = quotes.filter(q => {
     const s = getProjectStage(q);
-    return s && !['completed', 'abandoned'].includes(s);
+    return s && !['completed', 'abandoned', 'paused'].includes(s);
   });
   const avgDays = _avgStageDays();
   // === Expected revenue this month + next month ===
