@@ -385,6 +385,41 @@
     border-color: var(--teal-dim);
   }
 
+  .priority-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1;
+    padding: 6px 9px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: all 0.15s;
+  }
+  .priority-toggle.armed {
+    background: #fff2c4;
+    border-color: #ccc07a;
+    color: #7a5c3a;
+  }
+
+  .dd-items li.priority {
+    background: #fff2c4;
+    margin: 0 -8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-bottom-color: #e8d89a;
+  }
+  .dd-items li.priority span.dd-text {
+    color: #5a3a0a;
+    font-weight: 500;
+  }
+  .dd-items li.priority.done {
+    background: #faf3d8;
+  }
+  .dd-items li.priority.done span.dd-text {
+    color: #7a5c3a;
+  }
+
   /* DEV NOTES */
   .dev-notes {
     width: calc(100% + 40px);
@@ -1171,6 +1206,7 @@
     <ul class="dd-items" id="ddList"></ul>
     <div class="dd-input-row">
       <input class="dd-input" id="ddInput" type="text" placeholder="add an errand for the district…" onkeydown="if(event.key==='Enter')addQuickEntry('errand')">
+      <button class="priority-toggle" id="ddPriorityToggle" onclick="togglePriorityFlag('dd')" title="Mark high priority">❗</button>
       <button class="dd-add" onclick="addQuickEntry('errand')">+ add</button>
     </div>
   </div>
@@ -1182,6 +1218,7 @@
     <ul class="dd-items" id="reminderList"></ul>
     <div class="dd-input-row">
       <input class="dd-input" id="reminderInput" type="text" placeholder="general reminder…" onkeydown="if(event.key==='Enter')addQuickEntry('reminder')">
+      <button class="priority-toggle" id="reminderPriorityToggle" onclick="togglePriorityFlag('reminder')" title="Mark high priority">❗</button>
       <button class="dd-add" onclick="addQuickEntry('reminder')" style="border-color:#7a5c3a;color:#7a5c3a">+ add</button>
     </div>
   </div>
@@ -8510,6 +8547,17 @@ function migrateDdTasksIfNeeded() {
   window._ddMigrationDone = true;
 }
 
+// Priority armed state for each input row. When armed, the next entry added
+// from that row is flagged high-priority and gets a yellow highlight.
+window._priorityArmed = window._priorityArmed || { dd: false, reminder: false };
+
+function togglePriorityFlag(which) {
+  window._priorityArmed[which] = !window._priorityArmed[which];
+  var btnId = which === 'dd' ? 'ddPriorityToggle' : 'reminderPriorityToggle';
+  var btn = document.getElementById(btnId);
+  if (btn) btn.classList.toggle('armed', window._priorityArmed[which]);
+}
+
 // Quick capture — called from command center inputs.
 // Creates a Field Log entry with the given category.
 function addQuickEntry(category) {
@@ -8518,6 +8566,8 @@ function addQuickEntry(category) {
   if (!input) return;
   var text = (input.value || '').trim();
   if (!text) return;
+  var armKey = category === 'errand' ? 'dd' : 'reminder';
+  var priority = !!(window._priorityArmed && window._priorityArmed[armKey]);
   var entry = {
     id: Date.now(),
     timestamp: Date.now(),
@@ -8531,6 +8581,7 @@ function addQuickEntry(category) {
     reconciled: false,
     done: false,
     doneAt: null,
+    priority: priority,
     projectId: null,
     client: null,
     stoneId: null,
@@ -8539,6 +8590,24 @@ function addQuickEntry(category) {
   window._fieldLog = [entry, ...(window._fieldLog || [])];
   persistFieldLog();
   input.value = '';
+  // Disarm priority after one use
+  if (priority) {
+    window._priorityArmed[armKey] = false;
+    var btnId = armKey === 'dd' ? 'ddPriorityToggle' : 'reminderPriorityToggle';
+    var btn = document.getElementById(btnId);
+    if (btn) btn.classList.remove('armed');
+  }
+  renderCommandCenterLists();
+  if (typeof renderFieldLog === 'function') renderFieldLog();
+}
+
+// Toggle priority on an existing entry.
+function togglePriorityOnEntry(id) {
+  var log = getFieldLog();
+  var e = log.find(function(x){return x.id === id;});
+  if (!e) return;
+  e.priority = !e.priority;
+  persistFieldLog();
   renderCommandCenterLists();
   if (typeof renderFieldLog === 'function') renderFieldLog();
 }
@@ -8579,16 +8648,24 @@ function deleteEntry(id) {
 // Decide what to show on the front page for a given category:
 // active entries (not done) + entries done within the last 24h
 // (so checking something off doesn't make it disappear instantly).
+// Priority entries float to the top of their respective active/recent groups.
 function entriesForCommandCenter(category) {
   var log = getFieldLog();
   var cutoff = Date.now() - (24 * 60 * 60 * 1000);
-  return log.filter(function(e) {
+  var matches = log.filter(function(e) {
     if (e.category !== category) return false;
     if (e.reconciled) return false;
     if (!e.done) return true;
     var doneTs = e.doneAt || e.timestamp || 0;
     return doneTs > cutoff;
   });
+  // Sort: active before done, then priority before normal, then most recent first.
+  matches.sort(function(a, b) {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    if (!!a.priority !== !!b.priority) return a.priority ? -1 : 1;
+    return (b.timestamp || 0) - (a.timestamp || 0);
+  });
+  return matches;
 }
 
 // Build the link chip shown on a row when an entry is tagged.
@@ -8620,6 +8697,7 @@ function renderListSection(listEl, entries, accentColor) {
   entries.forEach(function(e) {
     var li = document.createElement('li');
     if (e.done) li.classList.add('done');
+    if (e.priority) li.classList.add('priority');
     var cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.className = 'dd-check';
@@ -8634,6 +8712,13 @@ function renderListSection(listEl, entries, accentColor) {
     var chipWrap = document.createElement('span');
     chipWrap.style.cssText = 'display:inline-flex;flex-wrap:wrap;gap:4px;margin-left:6px';
     chipWrap.innerHTML = _entryChip(e);
+
+    var priBtn = document.createElement('button');
+    priBtn.className = 'dd-del';
+    priBtn.innerHTML = e.priority ? '❗' : '○';
+    priBtn.title = e.priority ? 'Unmark high priority' : 'Mark high priority';
+    priBtn.style.cssText += ';font-size:12px;color:' + (e.priority ? '#7a5c3a' : 'var(--text-dim)');
+    priBtn.addEventListener('click', function(){ togglePriorityOnEntry(e.id); });
 
     var linkBtn = document.createElement('button');
     linkBtn.className = 'dd-del';
@@ -8662,6 +8747,7 @@ function renderListSection(listEl, entries, accentColor) {
       chipWrap.style.display = 'none';
       editBtn.style.display = 'none';
       linkBtn.style.display = 'none';
+      priBtn.style.display = 'none';
       li.insertBefore(input, li.querySelector('.dd-del'));
       li.insertBefore(saveBtn, li.querySelector('.dd-del'));
       li.insertBefore(cancelBtn, li.querySelector('.dd-del'));
@@ -8686,6 +8772,7 @@ function renderListSection(listEl, entries, accentColor) {
     li.appendChild(cb);
     li.appendChild(span);
     li.appendChild(chipWrap);
+    li.appendChild(priBtn);
     li.appendChild(linkBtn);
     li.appendChild(editBtn);
     li.appendChild(del);
