@@ -165,8 +165,8 @@
     align-items: flex-start;
     justify-content: flex-end;
     padding: 14px 14px 12px;
-    background: #f5f5f2;
-    border: 2.5px solid #8dadaf;
+    background: #8dadaf;
+    border: 2.5px solid #ccc07a;
     border-radius: 0;
     cursor: pointer;
     transition: all 0.12s ease;
@@ -178,13 +178,13 @@
 
   .cc-btn:active {
     transform: scale(0.97);
-    background: #eef4f4;
+    background: #7c9b9d;
   }
 
   .cc-btn-icon {
     font-size: 18px;
     margin-bottom: 7px;
-    opacity: 0.85;
+    opacity: 0.95;
   }
 
   .cc-btn-label {
@@ -193,7 +193,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 500;
-    color: #2a1a1e;
+    color: #fafaf7;
     line-height: 1;
   }
 
@@ -202,16 +202,16 @@
   }
 
   .cc-btn.accent-teal {
-    background: #f5f5f2;
-    border: 2.5px solid #8dadaf;
+    background: #8dadaf;
+    border: 2.5px solid #ccc07a;
   }
-  .cc-btn.accent-teal:active { background: #eef4f4; }
+  .cc-btn.accent-teal:active { background: #7c9b9d; }
 
   .cc-btn.accent-gold {
-    background: #f5f5f2;
-    border: 2.5px solid #8dadaf;
+    background: #8dadaf;
+    border: 2.5px solid #ccc07a;
   }
-  .cc-btn.accent-gold:active { background: #eef4f4; }
+  .cc-btn.accent-gold:active { background: #7c9b9d; }
 
   /* DD CHECKLIST */
   .dd-checklist {
@@ -220,7 +220,7 @@
     margin-right: -20px;
     margin-top: 24px;
     padding: 18px 20px 20px;
-    background: #d8e4e6;
+    background: #fafaf7;
     box-sizing: border-box;
     overflow: visible;
   }
@@ -245,9 +245,9 @@
     font-family: var(--font-mono);
     font-size: 12px;
     font-weight: 400;
-    color: #741435;
-    background: #fafaf7;
-    border: 1px solid #741435;
+    color: #a30061;
+    background: none;
+    border: 1px solid #a30061;
     border-radius: 0;
     padding: 3px 8px;
     cursor: pointer;
@@ -268,7 +268,7 @@
     font-size: 13px;
     color: var(--text);
     padding: 8px 0;
-    border-bottom: 1px solid rgba(122, 92, 58, 0.25);
+    border-bottom: 1px solid var(--border);
     line-height: 1.4;
   }
 
@@ -282,7 +282,7 @@
   .dd-check {
     width: 16px;
     height: 16px;
-    border: 1.5px solid #ccc07a;
+    border: 1.5px solid var(--teal-dim);
     border-radius: 0;
     flex-shrink: 0;
     margin-top: 1px;
@@ -293,8 +293,8 @@
   }
 
   .dd-check:checked {
-    background: #ccc07a;
-    border-color: #ccc07a;
+    background: var(--teal-dim);
+    border-color: var(--teal-dim);
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 6l3 3 5-5' stroke='white' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-size: 10px;
     background-repeat: no-repeat;
@@ -322,8 +322,8 @@
 
   .dd-input {
     flex: 1;
-    background: #fafaf7;
-    border: 1px solid #ccc07a;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: 0;
     font-family: var(--font-mono);
     font-size: 12px;
@@ -331,12 +331,12 @@
     padding: 8px 10px;
     outline: none;
   }
-  .dd-input:focus { border-color: #7a5c3a; }
+  .dd-input:focus { border-color: var(--teal-dim); }
 
   .dd-add {
-    background: #fafaf7;
-    border: 1px solid #ccc07a;
-    color: #7a5c3a;
+    background: none;
+    border: 1px solid var(--teal-dim);
+    color: var(--teal-dim);
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.08em;
@@ -346,7 +346,7 @@
     border-radius: 0;
     white-space: nowrap;
   }
-  .dd-add:active { background: #fff2c4; }
+  .dd-add:active { background: var(--teal-faint); }
 
   .entry-chip {
     display: inline-block;
@@ -400,9 +400,9 @@
   }
 
   .priority-toggle {
-    background: #fafaf7;
-    border: 1px solid #ccc07a;
-    color: #7a5c3a;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
     font-size: 14px;
     line-height: 1;
     padding: 6px 9px;
@@ -412,8 +412,8 @@
   }
   .priority-toggle.armed {
     background: #fff2c4;
-    border-color: #7a5c3a;
-    color: #5a3a0a;
+    border-color: #ccc07a;
+    color: #7a5c3a;
   }
 
   .dd-items li.priority {
@@ -1233,7 +1233,7 @@
     <div class="dd-input-row">
       <input class="dd-input" id="reminderInput" type="text" placeholder="general reminder…" onkeydown="if(event.key==='Enter')addQuickEntry('reminder')">
       <button class="priority-toggle" id="reminderPriorityToggle" onclick="togglePriorityFlag('reminder')" title="Mark high priority">❗</button>
-      <button class="dd-add" onclick="addQuickEntry('reminder')">+ add</button>
+      <button class="dd-add" onclick="addQuickEntry('reminder')" style="border-color:#7a5c3a;color:#7a5c3a">+ add</button>
     </div>
   </div>
 
