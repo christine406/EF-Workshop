@@ -3320,11 +3320,21 @@ function renderStoneOptions() {
     const retail = calcOptionRetail(o);
     const card = document.createElement('div');
     card.style.cssText = 'background:#fafaf7;border:1px solid #ccc07a;border-radius:0;padding:10px 12px;margin-bottom:8px';
+    // Linked-stone indicator
+    const linkedNote = o.inventoryId
+      ? '<div style="font-size:10px;color:var(--teal-dim);margin-bottom:6px;font-style:italic">↗ Linked from inventory</div>'
+      : '';
     card.innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <input type="text" value="${(o.label||'').replace(/"/g,'&quot;')}" placeholder="Option label" oninput="updateStoneOption(${o.id},'label',this.value)" style="background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;font-weight:500;letter-spacing:0.04em;padding:2px 0;outline:none;flex:1;max-width:160px">
         <button type="button" onclick="removeStoneOption(${o.id})" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:0 4px">×</button>
       </div>
+      ${linkedNote}
+      <div style="display:flex;gap:6px;margin-bottom:8px">
+        <button type="button" onclick="toggleStoneOptionInvPicker(${o.id})" id="optInvPickerBtn-${o.id}" style="flex:1;background:#fafaf7;border:1px dashed var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 8px;border-radius:0;cursor:pointer">${o.inventoryId ? '↗ Linked — change' : '🗂️ Pick from inventory'}</button>
+        ${o.inventoryId ? `<button type="button" onclick="unlinkStoneOption(${o.id})" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 8px;border-radius:0;cursor:pointer">Unlink</button>` : ''}
+      </div>
+      <div id="optInvPicker-${o.id}" style="display:none;border:1px solid var(--border);background:#fff;max-height:240px;overflow-y:auto;margin-bottom:8px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
         <div>
           <div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px">Cost ($)</div>
@@ -3366,6 +3376,53 @@ function renderStoneOptions() {
     `;
     list.appendChild(card);
   });
+}
+
+// Open/close the inventory picker for a specific stone option.
+function toggleStoneOptionInvPicker(optId) {
+  const picker = document.getElementById('optInvPicker-' + optId);
+  if (!picker) return;
+  const open = picker.style.display !== 'none';
+  picker.style.display = open ? 'none' : 'block';
+  if (open) return;
+  // Build the picker contents
+  const archived = ['sold-by-dealer','sold-by-ef','archived-with-project','in-use','unavailable'];
+  const available = (getInventory() || []).filter(s => !archived.includes(s.status) && s.category !== 'owned-reserved');
+  if (typeof renderGroupedPicker === 'function') {
+    renderGroupedPicker(picker, available, function(stone) {
+      applyInventoryStoneToOption(optId, stone);
+      picker.style.display = 'none';
+    });
+  }
+}
+
+// Fill an alternate stone option's fields from a chosen inventory stone.
+function applyInventoryStoneToOption(optId, stone) {
+  const o = stoneOptions.find(x => x.id === optId);
+  if (!o || !stone) return;
+  o.inventoryId = stone.id;
+  o.cost = stone.cost || 0;
+  o.cut = stone.cut || '';
+  o.carat = stone.carat ? String(stone.carat) : '';
+  o.color = stone.color || '';
+  o.clarity = stone.clarity || '';
+  o.gia = stone.gia || '';
+  o.dealer = stone.dealer || '';
+  o.antique = !!stone.antique;
+  if (!o.label || /^Option [A-Z]$/.test(o.label)) {
+    // Auto-name with the stone's signature if the user hasn't customized the label
+    const sig = [stone.carat ? parseFloat(stone.carat).toFixed(2) + 'ct' : '', stone.cut].filter(Boolean).join(' ');
+    if (sig) o.label = sig;
+  }
+  renderStoneOptions();
+}
+
+// Break the inventory link on an option (turns it back into a manually-entered option).
+function unlinkStoneOption(optId) {
+  const o = stoneOptions.find(x => x.id === optId);
+  if (!o) return;
+  delete o.inventoryId;
+  renderStoneOptions();
 }
 
 // Alternate stone option retails refresh from inside calculate() — see end of that function.
@@ -4574,7 +4631,7 @@ function saveQuote(quoteType = 'client') {
     // Alternate stone options the client is choosing between. Each is a snapshot
     // of stone-only fields. Cleaned to drop any temporary builder-only fields.
     stoneOptions: stoneOptions.length ? stoneOptions.map(function(o){
-      return {
+      var rec = {
         label: o.label || '',
         cost: o.cost || 0,
         cut: o.cut || '',
@@ -4586,6 +4643,8 @@ function saveQuote(quoteType = 'client') {
         antique: !!o.antique,
         notes: o.notes || '',
       };
+      if (o.inventoryId) rec.inventoryId = o.inventoryId;
+      return rec;
     }) : [],
   };
 
@@ -6733,6 +6792,7 @@ function chooseStoneOption(id, optIdx, e) {
     dealer: opt.dealer || '',
     antique: !!opt.antique,
   };
+  if (opt.inventoryId) newPrimary.inventoryId = opt.inventoryId;
   // Keep any small/melee stones from the current primary list.
   const keepSmall = (Array.isArray(q.stones) ? q.stones : []).filter(s => s && s.isSmall);
   q.stones = [newPrimary, ...keepSmall];
@@ -6764,6 +6824,42 @@ function chooseStoneOption(id, optIdx, e) {
 
   window._savedQuotes = quotes;
   persistQuotes();
+
+  // Inventory side-effects: if the new primary is inventory-linked AND the quote is a real
+  // commitment (project / collection), reserve the chosen stone. Release the previously-primary
+  // if it had been reserved against this same quote.
+  const reservesStones = ['project', 'collection', 'collection-quote'].includes(q.status);
+  if (reservesStones) {
+    const inv = getInventory();
+    let invChanged = false;
+    // Release previously-primary stone if reserved against this quote.
+    if (currentMain.length) {
+      currentMain.forEach(prev => {
+        if (prev && prev.inventoryId) {
+          const prevInv = inv.find(i => String(i.id) === String(prev.inventoryId));
+          if (prevInv && String(prevInv.usedInProjectId) === String(q.id)) {
+            prevInv.status = 'available';
+            prevInv.category = 'owned-available';
+            prevInv.usedInProjectId = null;
+            invChanged = true;
+          }
+        }
+      });
+    }
+    // Reserve the newly chosen stone if it's inventory-linked.
+    if (newPrimary.inventoryId) {
+      const newInv = inv.find(i => String(i.id) === String(newPrimary.inventoryId));
+      if (newInv) {
+        newInv.status = 'unavailable';
+        newInv.category = q.consignment ? 'memo' : 'owned-reserved';
+        newInv.usedInProjectId = q.id;
+        newInv.usedInQuoteId = null;
+        invChanged = true;
+      }
+    }
+    if (invChanged) { window._inventory = inv; persistInventory(); }
+  }
+
   renderSaved();
   showToast('Stone option locked in');
 }
