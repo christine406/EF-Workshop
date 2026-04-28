@@ -397,6 +397,145 @@
     border-color: var(--teal-dim);
   }
 
+  /* === STAGE COLORS — used on both Kanban columns and Saved Project card outlines === */
+  /* Soft warming gradient from cool/early to warm/late */
+  :root {
+    --stage-deposit: #b9c8d4;        /* cool grey-blue */
+    --stage-stone-deposit: #a8c4c4;  /* pale teal */
+    --stage-cad: #ccc07a;            /* muted gold */
+    --stage-production: #c97a4a;     /* warm orange-amber */
+    --stage-balance: #741435;        /* maroon */
+    --stage-ready: #4d8b5a;          /* deep green */
+    --stage-completed: #5c7a6b;      /* sage */
+    --stage-abandoned: #8b8b8b;      /* grey */
+  }
+
+  /* Kanban board */
+  .kanban-col {
+    flex: 0 0 240px;
+    background: #fafaf7;
+    border-top: 4px solid var(--border);
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+    max-height: 70vh;
+  }
+  .kanban-col-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .kanban-col-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .kanban-col-count {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .kanban-col-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 60px;
+  }
+  .kanban-col.collapsed .kanban-col-body { display: none; }
+  .kanban-col.collapsed { flex: 0 0 56px; }
+  .kanban-col.collapsed .kanban-col-title { writing-mode: vertical-rl; transform: rotate(180deg); }
+  .kanban-col.drag-over {
+    background: #fff2c4;
+  }
+
+  .kanban-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+    padding: 9px 11px;
+    cursor: grab;
+    user-select: none;
+  }
+  .kanban-card:active { cursor: grabbing; }
+  .kanban-card.dragging { opacity: 0.5; }
+  .kanban-card-client {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 3px;
+    line-height: 1.3;
+    word-wrap: break-word;
+  }
+  .kanban-card-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+  .kanban-card-amount {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--gold);
+    margin-top: 4px;
+  }
+  .kanban-card-stuck {
+    background: #fff2c4;
+    color: #7a5c3a;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 5px;
+    margin-top: 4px;
+    display: inline-block;
+  }
+
+  /* Stage-colored outline on Saved Projects cards */
+  .quote-item[data-stage] {
+    border-left: 4px solid var(--border);
+  }
+  .quote-item[data-stage="deposit"] { border-left-color: var(--stage-deposit); }
+  .quote-item[data-stage="stone-deposit"] { border-left-color: var(--stage-stone-deposit); }
+  .quote-item[data-stage="cad"] { border-left-color: var(--stage-cad); }
+  .quote-item[data-stage="production"] { border-left-color: var(--stage-production); }
+  .quote-item[data-stage="balance"] { border-left-color: var(--stage-balance); }
+  .quote-item[data-stage="ready"] { border-left-color: var(--stage-ready); }
+  .quote-item[data-stage="completed"] { border-left-color: var(--stage-completed); }
+  .quote-item[data-stage="abandoned"] { border-left-color: var(--stage-abandoned); }
+
+  /* Stage pill — small rectangular label with stage color */
+  .stage-pill {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fafaf7;
+    padding: 2px 7px;
+    border-radius: 0;
+    line-height: 1.4;
+    vertical-align: middle;
+  }
+  .stage-pill.stage-deposit { background: var(--stage-deposit); color: #2a3a44; }
+  .stage-pill.stage-stone-deposit { background: var(--stage-stone-deposit); color: #2a4444; }
+  .stage-pill.stage-cad { background: var(--stage-cad); color: #4a3a0a; }
+  .stage-pill.stage-production { background: var(--stage-production); }
+  .stage-pill.stage-balance { background: var(--stage-balance); }
+  .stage-pill.stage-ready { background: var(--stage-ready); }
+  .stage-pill.stage-completed { background: var(--stage-completed); }
+  .stage-pill.stage-abandoned { background: var(--stage-abandoned); }
+
   .priority-toggle {
     background: none;
     border: 1px solid var(--border);
@@ -1157,6 +1296,10 @@
     <button class="cc-btn accent-teal" onclick="showScreen('quote')">
       <div class="cc-btn-icon">💰</div>
       <div class="cc-btn-label">Quote Builder</div>
+    </button>
+    <button class="cc-btn accent-teal" onclick="showScreen('pipeline')">
+      <div class="cc-btn-icon">📋</div>
+      <div class="cc-btn-label">Pipeline</div>
     </button>
     <button class="cc-btn accent-teal" onclick="showScreen('saved')">
       <div class="cc-btn-icon">🗂️</div>
@@ -1955,6 +2098,24 @@
         </div>
       </div>
       <div id="invoiceList"></div>
+    </div>
+  </div>
+
+  <!-- =================== PIPELINE / KANBAN SCREEN =================== -->
+  <div class="screen" id="screen-pipeline">
+    <div class="section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="section-label" style="margin:0">📋 Pipeline</div>
+        <button onclick="togglePipelineForecast()" id="forecastToggleBtn" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;border-radius:0;cursor:pointer">▾ Forecast</button>
+      </div>
+
+      <!-- FORECAST PANEL -->
+      <div id="pipelineForecast" style="display:none;background:#fafaf7;border:1px solid var(--border);padding:12px;margin-bottom:14px">
+        <div id="pipelineForecastBody"></div>
+      </div>
+
+      <!-- KANBAN BOARD -->
+      <div id="pipelineBoard" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:14px;-webkit-overflow-scrolling:touch"></div>
     </div>
   </div>
 
@@ -5497,6 +5658,20 @@ function markProjectStatus(id, newStatus, e) {
   if (q) {
     q.status = newStatus;
     if (newStatus === 'completed') q.completedDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    // Sync pipeline stage so the Kanban + forecast reflect this transition.
+    if (newStatus === 'completed' || newStatus === 'abandoned') {
+      if (!Array.isArray(q.stageHistory)) q.stageHistory = [];
+      const prev = q.pipelineStage || null;
+      q.pipelineStage = newStatus;
+      q.stageHistory.push({ stage: newStatus, enteredAt: Date.now(), from: prev });
+    } else if (newStatus === 'project' || newStatus === 'collection') {
+      // Reactivating a previously-terminal project — give it a stage if it doesn't have one.
+      if (!q.pipelineStage || q.pipelineStage === 'completed' || q.pipelineStage === 'abandoned') {
+        q.pipelineStage = 'deposit';
+        if (!Array.isArray(q.stageHistory)) q.stageHistory = [];
+        q.stageHistory.push({ stage: 'deposit', enteredAt: Date.now(), from: null });
+      }
+    }
     window._savedQuotes = quotes;
     persistQuotes();
 
@@ -5871,10 +6046,15 @@ function buildMultiPieceCard(q) {
       + '</div>'
     : '';
 
+  // Stage pill for confirmed projects (renders nothing if no stage).
+  const _mpStage = (typeof getProjectStage === 'function') ? getProjectStage(q) : null;
+  const _mpMeta = _mpStage ? getStageMeta(_mpStage) : null;
+  const setStagePill = _mpStage && _mpMeta ? '<span class="stage-pill stage-' + _mpStage + '">' + _mpMeta.label + '</span>' : '';
+
   let html = '<div class="quote-item-header" style="cursor:pointer;align-items:flex-start" onclick="toggleCard(this)">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + (q.consignment ? '<span style="font-size:10px;background:#7a5c3a;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:0">Consignment' + (q.consignmentDealer ? ' · ' + q.consignmentDealer : '') + '</span>' : '') + '</div>'
-    + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:0;font-family:var(--font-mono)">Consignment</span>' : '') + '</div>'
+    + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + setStagePill + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:0;font-family:var(--font-mono)">Consignment</span>' : '') + '</div>'
     + '</div>'
     + '<div style="text-align:right">'
     + '<div class="quote-amount" style="' + displayAmountColor + '">$' + displayAmount.toLocaleString() + '</div>'
@@ -6174,11 +6354,16 @@ function buildQuoteCard(q) {
       + '</div>'
     : '';
 
+  // Stage pill for confirmed projects (renders nothing if no stage).
+  const _spKey = (typeof getProjectStage === 'function') ? getProjectStage(q) : null;
+  const _spMeta = _spKey ? getStageMeta(_spKey) : null;
+  const stagePill = _spKey && _spMeta ? '<span class="stage-pill stage-' + _spKey + '">' + _spMeta.label + '</span>' : '';
+
   // HEADER — always visible, tap to expand
   let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
-    + '<div class="quote-meta">' + (q.date ? '<span>' + q.date + '</span>' : '') + (q.purity ? '<span>' + q.purity + '</span>' : '') + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:0;font-family:var(--font-mono)">Consignment</span>' : '') + occasionTag + '</div>'
+    + '<div class="quote-meta">' + (q.date ? '<span>' + q.date + '</span>' : '') + (q.purity ? '<span>' + q.purity + '</span>' : '') + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + stagePill + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:0;font-family:var(--font-mono)">Consignment</span>' : '') + occasionTag + '</div>'
     + (q.clientBudget ? '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">Budget <span style="color:#ccc07a">$' + q.clientBudget.toLocaleString() + '</span>' + (q.total ? ' · <span style="color:' + (q.clientBudget >= q.total ? 'var(--green-bright)' : 'var(--red)') + '">' + (q.clientBudget >= q.total ? '✓ $' + (q.clientBudget - q.total).toLocaleString() + ' under' : '$' + (q.total - q.clientBudget).toLocaleString() + ' over') + '</span>' : '') + '</div>' : '')
     + '</div>'
     + '<div style="text-align:right">'
@@ -6602,6 +6787,8 @@ function renderSaved() {
         const div = document.createElement('div');
         div.className = 'quote-item';
         div.dataset.id = q.id;
+        const stage = (typeof getProjectStage === 'function') ? getProjectStage(q) : null;
+        if (stage) div.dataset.stage = stage;
         div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
         body.appendChild(div);
       });
@@ -6619,6 +6806,8 @@ function renderSaved() {
       const div = document.createElement('div');
       div.className = 'quote-item';
       div.dataset.id = q.id;
+      const stage = (typeof getProjectStage === 'function') ? getProjectStage(q) : null;
+      if (stage) div.dataset.stage = stage;
       div.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
       list.appendChild(div);
     });
@@ -6928,6 +7117,12 @@ function convertToProject(id, e) {
   const q = quotes.find(q => q.id === id);
   if (q) {
     q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
+    // Pipeline entry — confirmed projects start at 'Deposit paid'.
+    if (!q.pipelineStage) q.pipelineStage = 'deposit';
+    if (!Array.isArray(q.stageHistory)) q.stageHistory = [];
+    if (!q.stageHistory.some(h => h.stage === 'deposit')) {
+      q.stageHistory.push({ stage: 'deposit', enteredAt: Date.now(), from: null });
+    }
 
     // Auto pre-fill costs from quoted costs if not already set
     const quotedStoneCost = (q.stones||[]).reduce((s,st) => s+(st.cost||0), 0) || q.stoneCost || 0;
@@ -8898,6 +9093,7 @@ function showScreen(name) {
   if (name === 'invoices' && typeof renderInvoices === 'function') { renderInvoices(); refreshAllVendorDropdowns(); }
   if (name === 'field' && typeof renderFieldLog === 'function') renderFieldLog();
   if (name === 'field' && typeof renderFlProjectSelect === 'function') renderFlProjectSelect();
+  if (name === 'pipeline' && typeof renderPipeline === 'function') renderPipeline();
 }
 
 function goHome() {
@@ -8915,6 +9111,377 @@ function goHome() {
   const goldDot2 = document.getElementById('goldDot');
   if (goldDot2) goldDot2.style.display = '';
   window.scrollTo(0, 0);
+}
+
+// =================== PIPELINE / KANBAN ===================
+// Pipeline stages — ordered. Terminal stages (completed/abandoned) live at the right edge,
+// collapsed by default. Stuck-day thresholds are per-stage and editable later if they feel wrong.
+const PIPELINE_STAGES = [
+  { key: 'deposit',       label: 'Deposit paid',       color: 'var(--stage-deposit)',       stuckDays: 14 },
+  { key: 'stone-deposit', label: 'Stone deposit',      color: 'var(--stage-stone-deposit)', stuckDays: 21 },
+  { key: 'cad',           label: 'Finalizing CAD',     color: 'var(--stage-cad)',           stuckDays: 10 },
+  { key: 'production',    label: 'In production',      color: 'var(--stage-production)',    stuckDays: 30 },
+  { key: 'balance',       label: 'Balance paid',       color: 'var(--stage-balance)',       stuckDays: 7 },
+  { key: 'ready',         label: 'Ready to ship',      color: 'var(--stage-ready)',         stuckDays: 5 },
+  { key: 'completed',     label: 'Completed',          color: 'var(--stage-completed)',     stuckDays: null, terminal: true },
+  { key: 'abandoned',     label: 'Abandoned',          color: 'var(--stage-abandoned)',     stuckDays: null, terminal: true },
+];
+
+function getStageMeta(key) {
+  return PIPELINE_STAGES.find(s => s.key === key) || null;
+}
+
+// Pulls a project's current pipeline stage. Pipeline lives only on confirmed projects
+// (status === 'project' or 'collection'). A project without a stage defaults to 'deposit'.
+// Terminal mappings: status 'completed' → stage 'completed'; 'abandoned' → 'abandoned'.
+function getProjectStage(q) {
+  if (!q) return null;
+  if (q.status === 'completed') return 'completed';
+  if (q.status === 'abandoned') return 'abandoned';
+  if (q.status !== 'project' && q.status !== 'collection') return null;
+  return q.pipelineStage || 'deposit';
+}
+
+// Set a project's stage and append history. Re-syncs status terminal states.
+function setProjectStage(qid, newStage) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(x => x.id === qid);
+  if (!q) return;
+  const meta = getStageMeta(newStage);
+  if (!meta) return;
+  const old = getProjectStage(q);
+  if (old === newStage) return;
+  // Stage history: append on every transition.
+  if (!Array.isArray(q.stageHistory)) q.stageHistory = [];
+  q.stageHistory.push({ stage: newStage, enteredAt: Date.now(), from: old || null });
+  q.pipelineStage = newStage;
+  // Sync status field for terminal stages.
+  if (newStage === 'completed') q.status = 'completed';
+  else if (newStage === 'abandoned') q.status = 'abandoned';
+  else if (q.status === 'completed' || q.status === 'abandoned') {
+    // Reactivating a previously-terminal project — restore to project/collection status.
+    q.status = q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts' ? 'collection' : 'project';
+  }
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderPipeline();
+  if (typeof renderSaved === 'function') renderSaved();
+}
+
+// Days since the project entered its current stage (or its created date if no history).
+function daysInCurrentStage(q) {
+  const stage = getProjectStage(q);
+  if (!stage) return 0;
+  let entered = null;
+  if (Array.isArray(q.stageHistory) && q.stageHistory.length) {
+    // Last entry where stage matches current
+    for (let i = q.stageHistory.length - 1; i >= 0; i--) {
+      if (q.stageHistory[i].stage === stage) { entered = q.stageHistory[i].enteredAt; break; }
+    }
+  }
+  if (!entered) entered = q.id || Date.now(); // q.id is a creation timestamp
+  return Math.floor((Date.now() - entered) / (1000 * 60 * 60 * 24));
+}
+
+function isStuck(q) {
+  const stage = getProjectStage(q);
+  const meta = getStageMeta(stage);
+  if (!meta || !meta.stuckDays) return false;
+  return daysInCurrentStage(q) > meta.stuckDays;
+}
+
+// Display amount for a project on the pipeline card — prefer client price, then suggested retail, then total.
+function pipelineCardAmount(q) {
+  if (q.clientPrice && q.clientPrice > 0) return q.clientPrice;
+  if (q.isMultiPiece && Array.isArray(q.pieces)) {
+    return q.pieces.reduce(function(sum, p){
+      if (p.clientPrice && p.clientPrice > 0) return sum + p.clientPrice;
+      const r = (typeof calcSuggestedRetail === 'function') ? calcSuggestedRetail(p) : 0;
+      return sum + (r || p.total || 0);
+    }, 0);
+  }
+  const r = (typeof calcSuggestedRetail === 'function') ? calcSuggestedRetail(q) : 0;
+  return r || q.total || 0;
+}
+
+function renderPipeline() {
+  const board = document.getElementById('pipelineBoard');
+  if (!board) return;
+  const quotes = getSavedQuotes();
+  // Collect projects with a pipeline stage. Anything with a real status that maps to a stage gets included.
+  const inPipeline = quotes.filter(q => getProjectStage(q));
+  // Group by stage
+  const byStage = {};
+  PIPELINE_STAGES.forEach(s => { byStage[s.key] = []; });
+  inPipeline.forEach(q => {
+    const stage = getProjectStage(q);
+    if (byStage[stage]) byStage[stage].push(q);
+  });
+  // Sort within each column: stuck first, then most recently entered stage.
+  Object.keys(byStage).forEach(k => {
+    byStage[k].sort((a, b) => {
+      const aStuck = isStuck(a), bStuck = isStuck(b);
+      if (aStuck !== bStuck) return aStuck ? -1 : 1;
+      return daysInCurrentStage(b) - daysInCurrentStage(a);
+    });
+  });
+  board.innerHTML = '';
+  PIPELINE_STAGES.forEach(stage => {
+    const col = document.createElement('div');
+    col.className = 'kanban-col';
+    if (stage.terminal) col.classList.add('collapsed');
+    col.dataset.stage = stage.key;
+    col.style.borderTopColor = stage.color;
+    const items = byStage[stage.key] || [];
+
+    const header = document.createElement('div');
+    header.className = 'kanban-col-header';
+    header.style.cursor = stage.terminal ? 'pointer' : 'default';
+    header.innerHTML = '<span class="kanban-col-title">' + stage.label + '</span>'
+      + '<span class="kanban-col-count">' + items.length + '</span>';
+    if (stage.terminal) {
+      header.addEventListener('click', () => {
+        col.classList.toggle('collapsed');
+      });
+    }
+    col.appendChild(header);
+
+    const body = document.createElement('div');
+    body.className = 'kanban-col-body';
+    body.dataset.stage = stage.key;
+
+    // Drag-and-drop targets
+    body.addEventListener('dragover', e => {
+      e.preventDefault();
+      col.classList.add('drag-over');
+    });
+    body.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    body.addEventListener('drop', e => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const qid = parseInt(e.dataTransfer.getData('text/qid'));
+      if (qid && stage.key) setProjectStage(qid, stage.key);
+    });
+
+    items.forEach(q => {
+      const card = document.createElement('div');
+      card.className = 'kanban-card';
+      card.draggable = true;
+      card.dataset.qid = q.id;
+      card.style.borderLeftColor = stage.color;
+      card.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/qid', String(q.id));
+        e.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      card.addEventListener('click', e => {
+        // Tap on a card jumps to Saved Projects with that one expanded.
+        showScreen('saved');
+        setTimeout(() => {
+          const div = document.getElementById('quote-' + q.id);
+          if (div) {
+            const body = div.querySelector('.card-body');
+            if (body && body.style.display === 'none') body.style.display = 'block';
+            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 80);
+      });
+      const amt = pipelineCardAmount(q);
+      const days = daysInCurrentStage(q);
+      const stuck = !stage.terminal && isStuck(q);
+      let pieceTag = '';
+      if (q.isMultiPiece) pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · SET</span>';
+      else if (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts') pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · COLLECTION</span>';
+      card.innerHTML = '<div class="kanban-card-client">' + (q.client || 'Unnamed').replace(/</g,'&lt;') + pieceTag + '</div>'
+        + '<div class="kanban-card-meta">' + days + 'd in stage</div>'
+        + (amt ? '<div class="kanban-card-amount">$' + amt.toLocaleString() + '</div>' : '')
+        + (stuck ? '<div class="kanban-card-stuck">⚠ stuck</div>' : '');
+      body.appendChild(card);
+    });
+
+    if (!items.length) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'color:var(--text-dim);font-size:11px;padding:8px;text-align:center;font-family:var(--font-mono);font-style:italic';
+      empty.textContent = stage.terminal ? '—' : 'drag here';
+      body.appendChild(empty);
+    }
+    col.appendChild(body);
+    board.appendChild(col);
+  });
+  // Always render forecast body too (it's collapsed but stays current).
+  renderPipelineForecast();
+}
+
+function togglePipelineForecast() {
+  const panel = document.getElementById('pipelineForecast');
+  const btn = document.getElementById('forecastToggleBtn');
+  if (!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (btn) btn.textContent = (open ? '▾' : '▴') + ' Forecast';
+  if (!open) renderPipelineForecast();
+}
+
+// === FORECAST WIDGETS ===
+
+function _completedInMonth(quotes, year, monthIdx) {
+  // Returns completed projects whose 'completed' stage entry falls within the given calendar month.
+  return quotes.filter(q => {
+    if (q.status !== 'completed') return false;
+    let completedAt = null;
+    if (Array.isArray(q.stageHistory)) {
+      const last = [...q.stageHistory].reverse().find(h => h.stage === 'completed');
+      if (last) completedAt = last.enteredAt;
+    }
+    if (!completedAt) return false;
+    const d = new Date(completedAt);
+    return d.getFullYear() === year && d.getMonth() === monthIdx;
+  });
+}
+
+// Average velocity: median days each project spends per stage.
+function _avgStageDays() {
+  const quotes = getSavedQuotes();
+  const buckets = {};
+  PIPELINE_STAGES.forEach(s => { if (!s.terminal) buckets[s.key] = []; });
+  quotes.forEach(q => {
+    if (!Array.isArray(q.stageHistory) || q.stageHistory.length < 2) return;
+    for (let i = 0; i < q.stageHistory.length - 1; i++) {
+      const cur = q.stageHistory[i], nxt = q.stageHistory[i + 1];
+      if (!buckets[cur.stage]) continue;
+      const days = (nxt.enteredAt - cur.enteredAt) / (1000 * 60 * 60 * 24);
+      if (days > 0 && days < 365) buckets[cur.stage].push(days);
+    }
+  });
+  const avg = {};
+  Object.keys(buckets).forEach(k => {
+    if (buckets[k].length) {
+      const sorted = [...buckets[k]].sort((a, b) => a - b);
+      avg[k] = sorted[Math.floor(sorted.length / 2)]; // median
+    } else avg[k] = null;
+  });
+  return avg;
+}
+
+// Predict expected ship date for a project based on average velocity.
+function _predictShipDate(q, avgDays) {
+  const stage = getProjectStage(q);
+  const stageOrder = PIPELINE_STAGES.filter(s => !s.terminal).map(s => s.key);
+  const idx = stageOrder.indexOf(stage);
+  if (idx < 0) return null;
+  let daysOut = 0;
+  // Days remaining in current stage (assume avg minus already-served if positive)
+  const served = daysInCurrentStage(q);
+  const curAvg = avgDays[stage];
+  if (curAvg) daysOut += Math.max(curAvg - served, 0);
+  else daysOut += 7; // fallback fudge
+  // Plus avg days for each subsequent stage
+  for (let i = idx + 1; i < stageOrder.length; i++) {
+    const a = avgDays[stageOrder[i]];
+    daysOut += a != null ? a : 7;
+  }
+  return new Date(Date.now() + daysOut * 24 * 60 * 60 * 1000);
+}
+
+function renderPipelineForecast() {
+  const body = document.getElementById('pipelineForecastBody');
+  if (!body) return;
+  const quotes = getSavedQuotes();
+  const active = quotes.filter(q => {
+    const s = getProjectStage(q);
+    return s && !['completed', 'abandoned'].includes(s);
+  });
+  const avgDays = _avgStageDays();
+  // === Expected revenue this month + next month ===
+  const now = new Date();
+  const thisMonth = { y: now.getFullYear(), m: now.getMonth() };
+  const nextMonthDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const nextMonth = { y: nextMonthDate.getFullYear(), m: nextMonthDate.getMonth() };
+  let revThis = 0, revNext = 0, revLater = 0;
+  let cashInThis = 0;
+  const noVelocity = Object.values(avgDays).every(v => v == null);
+  active.forEach(q => {
+    const amt = pipelineCardAmount(q) || 0;
+    const ship = _predictShipDate(q, avgDays);
+    if (ship) {
+      const sy = ship.getFullYear(), sm = ship.getMonth();
+      if (sy === thisMonth.y && sm === thisMonth.m) revThis += amt;
+      else if (sy === nextMonth.y && sm === nextMonth.m) revNext += amt;
+      else revLater += amt;
+    }
+    // Cash flow: a project past 'balance' is paid in full; before that, only the deposit-paid portion.
+    // We don't have actual deposit amounts stored, so we approximate: 50% on Deposit paid, 75% by Balance paid.
+    const stage = getProjectStage(q);
+    const stageIdx = PIPELINE_STAGES.findIndex(s => s.key === stage);
+    const balanceIdx = PIPELINE_STAGES.findIndex(s => s.key === 'balance');
+    if (stageIdx >= balanceIdx) {
+      // Balance was paid this month if the stage transition lands here
+      const transition = (q.stageHistory || []).find(h => h.stage === 'balance');
+      if (transition) {
+        const td = new Date(transition.enteredAt);
+        if (td.getFullYear() === thisMonth.y && td.getMonth() === thisMonth.m) cashInThis += Math.round(amt * 0.5); // remaining 50% balance
+      }
+    }
+  });
+  // === Stuck projects ===
+  const stuckList = active.filter(isStuck);
+  // === Monthly close: last calendar month's completed ===
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthCompleted = _completedInMonth(quotes, lastMonthDate.getFullYear(), lastMonthDate.getMonth());
+  const lastMonthRevenue = lastMonthCompleted.reduce((s, q) => s + (pipelineCardAmount(q) || 0), 0);
+  // Compute approximate total cost for est profit on completed
+  const totalCost = q => {
+    if (q.isMultiPiece && Array.isArray(q.pieces)) {
+      return q.pieces.reduce((s, p) => s + ((p.actualStoneCost||0)+(p.actualMetalCost||0)+(p.actualLabor||0)+(p.actualMeleeCost||0)+(p.actualChainCost||0)+(p.actualDesignFee||0)), 0);
+    }
+    return (q.actualStoneCost||0)+(q.actualMetalCost||0)+(q.actualLabor||0)+(q.actualMeleeCost||0)+(q.actualChainCost||0)+(q.actualDesignFee||0);
+  };
+  const lastMonthProfit = lastMonthCompleted.reduce((s, q) => s + ((pipelineCardAmount(q) || 0) - totalCost(q)), 0);
+  // Render
+  const monthName = m => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m];
+  let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">';
+  // Expected revenue
+  html += '<div style="background:#fff;border:1px solid var(--border);padding:10px">'
+    + '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Expected revenue</div>'
+    + (noVelocity ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic">Not enough stage history yet</div>' : '')
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="color:var(--text-dim)">' + monthName(thisMonth.m) + '</span><span style="color:var(--text);font-weight:500">$' + Math.round(revThis).toLocaleString() + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="color:var(--text-dim)">' + monthName(nextMonth.m) + '</span><span style="color:var(--text);font-weight:500">$' + Math.round(revNext).toLocaleString() + '</span></div>'
+    + (revLater > 0 ? '<div style="display:flex;justify-content:space-between;font-size:11px;margin-top:4px;padding-top:4px;border-top:1px solid var(--border)"><span style="color:var(--text-dim)">Later</span><span style="color:var(--text-dim)">$' + Math.round(revLater).toLocaleString() + '</span></div>' : '')
+    + '</div>';
+  // Cash flow
+  html += '<div style="background:#fff;border:1px solid var(--border);padding:10px">'
+    + '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Cash flow — ' + monthName(thisMonth.m) + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text-dim)">Balances paid in</span><span style="color:var(--green-bright);font-weight:500">$' + Math.round(cashInThis).toLocaleString() + '</span></div>'
+    + '<div style="font-size:10px;color:var(--text-dim);margin-top:4px;font-style:italic">Estimate based on 50% balance assumption</div>'
+    + '</div>';
+  html += '</div>';
+  // Stuck projects
+  html += '<div style="background:#fff;border:1px solid var(--border);padding:10px;margin-bottom:10px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">Stuck projects</span><span style="font-family:var(--font-mono);font-size:11px;color:' + (stuckList.length ? '#7a5c3a' : 'var(--text-dim)') + '">' + stuckList.length + '</span></div>';
+  if (stuckList.length) {
+    html += '<div style="background:#fff2c4;padding:6px 8px">';
+    stuckList.slice(0, 8).forEach(q => {
+      const stage = getStageMeta(getProjectStage(q));
+      const days = daysInCurrentStage(q);
+      html += '<div style="font-size:11px;color:#5a3a0a;margin-bottom:2px">'
+        + (q.client || 'Unnamed').replace(/</g,'&lt;')
+        + ' <span style="color:#7a5c3a">— ' + (stage ? stage.label : '') + ', ' + days + 'd</span></div>';
+    });
+    if (stuckList.length > 8) html += '<div style="font-size:10px;color:#7a5c3a;font-style:italic;margin-top:4px">+' + (stuckList.length - 8) + ' more</div>';
+    html += '</div>';
+  } else {
+    html += '<div style="font-size:11px;color:var(--text-dim);font-style:italic">Nothing stuck — all projects within thresholds.</div>';
+  }
+  html += '</div>';
+  // Monthly close — last month
+  html += '<div style="background:#fff;border:1px solid var(--border);padding:10px">'
+    + '<div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px">Monthly close — ' + monthName(lastMonthDate.getMonth()) + ' ' + lastMonthDate.getFullYear() + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="color:var(--text-dim)">Completed</span><span style="color:var(--text);font-weight:500">' + lastMonthCompleted.length + ' project' + (lastMonthCompleted.length === 1 ? '' : 's') + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span style="color:var(--text-dim)">Revenue</span><span style="color:var(--text);font-weight:500">$' + Math.round(lastMonthRevenue).toLocaleString() + '</span></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text-dim)">Est. profit</span><span style="color:' + (lastMonthProfit >= 0 ? 'var(--green-bright)' : 'var(--red)') + ';font-weight:500">$' + Math.round(lastMonthProfit).toLocaleString() + '</span></div>'
+    + '</div>';
+  body.innerHTML = html;
 }
 
 // =================== DD CHECKLIST ===================
