@@ -2280,7 +2280,6 @@
         💍 Awaiting Proposals
         <button onclick="openAddProposalForm()" style="background:#741435;color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 10px;cursor:pointer">+ Add</button>
       </div>
-      <div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.4">Engagement rings delivered, waiting on word that the proposal happened so you can post photos.</div>
       <!-- Manual add form -->
       <div id="addProposalForm" style="display:none;background:#fafaf7;border:1px solid var(--teal-dim);padding:14px;margin-bottom:14px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Add proposal manually</div>
@@ -10620,7 +10619,8 @@ function renderProposals() {
     const days = daysSinceDelivered(p);
     const waitingText = days != null ? (days === 0 ? 'Delivered today' : days + ' day' + (days===1?'':'s') + ' waiting') : '';
     const waitingColor = days != null && days > 90 ? '#951d5f' : (days != null && days > 30 ? 'var(--gold)' : 'var(--text-dim)');
-    html += '<div data-proposal-id="' + p.id + '" style="background:#fafaf7;border:1px solid var(--border);border-left:3px solid #951d5f;padding:12px 14px;margin-bottom:10px">';
+    const overdueBg = days != null && days > 100 ? '#fce8f1' : '#fafaf7';
+    html += '<div data-proposal-id="' + p.id + '" style="background:' + overdueBg + ';border:1px solid var(--border);border-left:3px solid #951d5f;padding:12px 14px;margin-bottom:10px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">';
     html += '<div style="font-size:15px;color:var(--text);font-weight:500">' + (p.names || '').replace(/</g,'&lt;') + '</div>';
     html += '<div style="display:flex;gap:6px;flex-shrink:0">';
