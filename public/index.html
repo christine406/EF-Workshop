@@ -6591,7 +6591,9 @@ function buildQuoteCard(q) {
         if (!opt.isPrimary) {
           btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + optIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
         }
-        html += '<div style="padding:8px 0;border-bottom:' + (displayIdx === _displayList2.length - 1 ? 'none' : '1px solid var(--border)') + '">'
+        var rowBg = (opt.isPrimary && _stoneOpts2.length > 0) ? 'background:#fdf6d8;' : '';
+        var rowPad = (opt.isPrimary && _stoneOpts2.length > 0) ? 'padding:8px 10px;margin:0 -10px;' : 'padding:8px 0;';
+        html += '<div style="' + rowPad + 'border-bottom:' + (displayIdx === _displayList2.length - 1 ? 'none' : '1px solid var(--border)') + ';' + rowBg + '">'
           + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'
           + '<div style="font-size:13px;' + labelStyle + '">' + labelText + '</div>'
           + '<div style="display:flex;align-items:center;gap:4px">' + btns + '</div>'
