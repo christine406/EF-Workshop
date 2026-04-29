@@ -11296,8 +11296,10 @@ function saveNoteComposer(projectId, e) {
   if (!ta) return;
   const text = (ta.value || '').trim();
   if (!text) { ta.focus(); return; }
+  // Close composer immediately so the user sees feedback even before re-render.
+  const composer = document.getElementById('noteComposer-' + projectId);
+  if (composer) composer.remove();
   pushNoteToProject(projectId, text, null);
-  // pushNoteToProject calls renderSaved, which rebuilds the cards — composer goes with it.
 }
 
 function deleteCostPush(quoteId, pushId) {
