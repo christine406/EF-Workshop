@@ -5746,6 +5746,44 @@ function markProjectStatus(id, newStatus, e) {
   }
 }
 
+// Move a project back to quote status. Clears pipeline stage + history and
+// releases any owned stones reserved against this project (memo stones stay
+// reserved since the dealer commitment doesn't go away).
+function revertProjectToQuote(id, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Move this project back to a quote? It will leave the pipeline. Reserved stones will be released back to available.')) return;
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+  q.status = 'quote';
+  q.pipelineStage = null;
+  q.stageHistory = [];
+  window._savedQuotes = quotes;
+  persistQuotes();
+  // Release owned reserved stones; leave memo stones alone (they're still committed to the dealer).
+  const inv = getInventory();
+  let touched = false;
+  inv.forEach(s => {
+    if (String(s.usedInProjectId) === String(id) && s.category !== 'memo') {
+      s.status = 'available';
+      s.category = 'owned';
+      s.usedInProjectId = null;
+      touched = true;
+    }
+  });
+  if (touched) {
+    window._inventory = inv;
+    persistInventory();
+  }
+  renderSaved();
+  // If this card was open in the pipeline detail, close it (project no longer in pipeline).
+  if (window._pipelineDetailQid === id && typeof closePipelineDetail === 'function') {
+    closePipelineDetail();
+  }
+  if (typeof renderPipeline === 'function') renderPipeline();
+  showToast('Moved back to quote');
+}
+
 
 function deletePieceFromSet(setId, pieceIdx, e) {
   e.stopPropagation();
@@ -9496,39 +9534,44 @@ function renderPipeline() {
   PIPELINE_STAGES.forEach(stage => {
     const col = document.createElement('div');
     col.className = 'kanban-col';
-    if (stage.terminal) col.classList.add('collapsed');
+    const items = byStage[stage.key] || [];
+    // Collapse if terminal (always) or empty (no projects in this stage).
+    const shouldCollapse = stage.terminal || items.length === 0;
+    if (shouldCollapse) col.classList.add('collapsed');
     col.dataset.stage = stage.key;
     col.style.background = stage.color;
-    const items = byStage[stage.key] || [];
 
     const header = document.createElement('div');
     header.className = 'kanban-col-header';
-    header.style.cursor = stage.terminal ? 'pointer' : 'default';
+    // Any collapsible column is clickable to expand. With auto-collapse, that's all of them.
+    header.style.cursor = 'pointer';
     header.innerHTML = '<span class="kanban-col-title">' + stage.label + '</span>'
       + '<span class="kanban-col-count">' + items.length + '</span>';
-    if (stage.terminal) {
-      header.addEventListener('click', () => {
-        col.classList.toggle('collapsed');
-      });
-    }
+    header.addEventListener('click', () => {
+      col.classList.toggle('collapsed');
+    });
     col.appendChild(header);
 
     const body = document.createElement('div');
     body.className = 'kanban-col-body';
     body.dataset.stage = stage.key;
 
-    // Drag-and-drop targets
-    body.addEventListener('dragover', e => {
+    // Drag-and-drop targets — listen on the column itself (not just body) so collapsed
+    // columns still accept drops without needing to expand first.
+    const handleDragOver = e => {
       e.preventDefault();
       col.classList.add('drag-over');
-    });
-    body.addEventListener('dragleave', () => col.classList.remove('drag-over'));
-    body.addEventListener('drop', e => {
+    };
+    const handleDragLeave = () => col.classList.remove('drag-over');
+    const handleDrop = e => {
       e.preventDefault();
       col.classList.remove('drag-over');
       const qid = parseInt(e.dataTransfer.getData('text/qid'));
       if (qid && stage.key) setProjectStage(qid, stage.key);
-    });
+    };
+    col.addEventListener('dragover', handleDragOver);
+    col.addEventListener('dragleave', handleDragLeave);
+    col.addEventListener('drop', handleDrop);
 
     items.forEach(q => {
       const card = document.createElement('div');
