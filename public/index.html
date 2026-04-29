@@ -9048,7 +9048,7 @@ function renderStoneInventory() {
         </div>
 
         <div style="text-align:right">
-          ${s.cost ? '<div style="font-size:14px;color:var(--gold)">$' + s.cost.toLocaleString() + '</div>' : ''}
+          ${s.cost ? '<div style="font-size:14px;color:var(--gold)">$' + s.cost.toLocaleString() + '</div>' : '<div style="font-size:11px;background:#951d5f;color:#fff;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;font-weight:500;display:inline-block">❗️ No price</div>'}
           <div style="font-size:12px;color:' + statusColors[s.status || 'available'] + ';letter-spacing:0.08em;text-transform:uppercase;margin-top:2px">${statusLabels[s.status || 'available']}</div>
         </div>
       </div>
