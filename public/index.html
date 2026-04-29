@@ -2025,7 +2025,7 @@
         </div>
       </div>
 
-      <div id="inventoryList"></div>
+      <div id="inventoryList" style="background:#8dadaf;margin:0 -16px;padding:14px 16px"></div>
     </div>
   </div>
 
@@ -3716,7 +3716,8 @@ function renderStones() {
           <div class="field">
             <div class="field-label">GIA number</div>
             <input type="text" id="qs-gia-${s.id}" value="${s.gia||''}" placeholder="optional"
-              oninput="updateStone(${s.id},'gia',this.value)">
+              oninput="updateStone(${s.id},'gia',this.value);document.getElementById('qs-gia-link-${s.id}').style.display=this.value.trim()?'inline-block':'none'">
+            <a href="javascript:void(0)" id="qs-gia-link-${s.id}" onclick="openGiaReport(document.getElementById('qs-gia-${s.id}').value.trim(),event)" style="display:${s.gia?'inline-block':'none'};margin-top:4px;font-size:11px;color:var(--teal-dim);text-decoration:none;font-family:var(--font-mono)">↗ View GIA report (for fluorescence, etc.)</a>
           </div>
           <div class="field">
             <div class="field-label">Carat</div>
@@ -8949,8 +8950,8 @@ function renderStoneInventory() {
   const allStones = stones.filter(s => !archivedStatuses.includes(s.status));
 
   const allHeader = document.createElement('div');
-  allHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;cursor:pointer;user-select:none';
-  allHeader.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">All stones <span style="color:var(--text-dim);font-size:10px">(' + allStones.length + ')</span></span><span style="font-size:13px;color:var(--text-dim)">' + (allStonesExpanded ? '▴' : '▾') + '</span>';
+  allHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 14px 12px;background:#f5f5f2;border:2.5px solid #ccc07a;cursor:pointer;user-select:none;margin-bottom:10px;transition:all 0.12s ease';
+  allHeader.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;color:#2a1a1e">📋 All stones <span style="color:var(--text-dim);font-weight:400;margin-left:4px">(' + allStones.length + ')</span></span><span style="font-size:14px;color:var(--text-dim)">' + (allStonesExpanded ? '▴' : '▾') + '</span>';
   allHeader.onclick = () => {
     window._stoneSecExpanded = window._stoneSecExpanded || {};
     window._stoneSecExpanded[allStonesKey] = !window._stoneSecExpanded[allStonesKey];
@@ -9002,11 +9003,12 @@ function renderStoneInventory() {
     const expanded = window._stoneSecExpanded[cat];
 
     // Section header
+    const catEmoji = cat === 'owned-available' ? '✓' : cat === 'owned-reserved' ? '🔒' : cat === 'memo' ? '📦' : cat === 'viewed' ? '👁' : '·';
     const header = document.createElement('div');
-    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 0;cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:' + (expanded ? '8px' : '0');
-    header.innerHTML = '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">'
-      + (catLabels[cat] || cat) + ' <span style="color:var(--text-dim);font-size:10px">(' + group.length + ')</span></div>'
-      + '<div style="font-size:14px;color:var(--text-dim)">' + (expanded ? '▴' : '▾') + '</div>';
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 14px 12px;background:#f5f5f2;border:2.5px solid #ccc07a;cursor:pointer;user-select:none;margin-bottom:' + (expanded ? '10px' : '10px') + ';transition:all 0.12s ease';
+    header.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;color:#2a1a1e">' + catEmoji + ' '
+      + (catLabels[cat] || cat) + ' <span style="color:var(--text-dim);font-weight:400;margin-left:4px">(' + group.length + ')</span></span>'
+      + '<span style="font-size:14px;color:var(--text-dim)">' + (expanded ? '▴' : '▾') + '</span>';
     header.onclick = () => {
       window._stoneSecExpanded[cat] = !window._stoneSecExpanded[cat];
       renderStoneInventory();
@@ -9159,8 +9161,8 @@ function renderStoneInventory() {
     const archiveExpanded = window._stoneSecExpanded?.[archiveKey] ?? false;
 
     const archiveHeader = document.createElement('div');
-    archiveHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;border-top:2px solid var(--border);margin-top:8px;cursor:pointer;user-select:none';
-    archiveHeader.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">Archived <span style="color:var(--text-dim);font-size:10px">(' + archivedStones.length + ')</span></span><span style="font-size:13px;color:var(--text-dim)">' + (archiveExpanded ? '▴' : '▾') + '</span>';
+    archiveHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 14px 12px;background:#f5f5f2;border:2.5px solid #ccc07a;margin-top:10px;margin-bottom:10px;cursor:pointer;user-select:none;transition:all 0.12s ease';
+    archiveHeader.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;color:#2a1a1e">📦 Archived <span style="color:var(--text-dim);font-weight:400;margin-left:4px">(' + archivedStones.length + ')</span></span><span style="font-size:14px;color:var(--text-dim)">' + (archiveExpanded ? '▴' : '▾') + '</span>';
     archiveHeader.onclick = () => {
       window._stoneSecExpanded = window._stoneSecExpanded || {};
       window._stoneSecExpanded[archiveKey] = !window._stoneSecExpanded[archiveKey];
