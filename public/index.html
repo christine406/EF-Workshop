@@ -6406,6 +6406,9 @@ function buildMultiPieceCard(q) {
     }
   }
 
+  // Linked Field Log entries (errands, reminders, notes connected to this project).
+  html += buildLinkedFieldLogSection(q.id);
+
   html += '</div>';
   return html;
 }
@@ -6764,7 +6767,42 @@ function buildQuoteCard(q) {
     }
   }
 
+  // Linked Field Log entries (errands, reminders, notes connected to this project).
+  html += buildLinkedFieldLogSection(q.id);
+
   html += '</div>'; // end card-body
+  return html;
+}
+
+// Render Field Log entries (errands, reminders, notes) linked to this project, as a
+// section on the saved card. Single source of truth — entries live in field log, this
+// just pulls and displays. Edits/deletes/done-state changes happen in Field Log itself.
+function buildLinkedFieldLogSection(projectId) {
+  const log = (typeof getFieldLog === 'function') ? getFieldLog() : (window._fieldLog || []);
+  const linked = log.filter(e => e.projectId === projectId);
+  if (!linked.length) return '';
+  // Sort: open first by recency, done at the bottom.
+  linked.sort((a, b) => {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    return (b.timestamp || 0) - (a.timestamp || 0);
+  });
+  const catLabel = c => c === 'errand' ? 'Errand' : c === 'reminder' ? 'Reminder' : 'Note';
+  const catColor = c => c === 'errand' ? '#5a0e22' : c === 'reminder' ? '#7a5c3a' : 'var(--text-dim)';
+  const catBg = c => c === 'errand' ? '#f7c8d4' : c === 'reminder' ? '#ccc07a' : '#e8e8e2';
+  let html = '<div style="margin-top:12px;background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+  html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">From Field Log</div>';
+  linked.forEach(e => {
+    const cat = e.category || 'note';
+    const desc = (e.description || '').replace(/</g,'&lt;');
+    const dim = e.done ? 'text-decoration:line-through;opacity:0.5;' : '';
+    html += '<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0">'
+      + '<span style="font-size:9px;letter-spacing:0.08em;text-transform:uppercase;background:' + catBg(cat) + ';color:' + catColor(cat) + ';padding:2px 6px;border-radius:0;flex-shrink:0;margin-top:2px">' + catLabel(cat) + '</span>'
+      + '<div style="flex:1;font-size:13px;color:var(--text);' + dim + '">' + desc
+      + (e.amount ? ' <span style="color:var(--text-dim)">· $' + e.amount.toLocaleString() + '</span>' : '')
+      + ' <span style="font-size:11px;color:var(--text-dim);margin-left:4px">' + (e.date || '') + '</span></div>'
+      + '</div>';
+  });
+  html += '</div>';
   return html;
 }
 
@@ -10336,6 +10374,7 @@ function openLinkPicker(entryId) {
     var log2 = getFieldLog();
     var e2 = log2.find(function(x){return x.id === entryId;});
     if (!e2) { ov.remove(); return; }
+    var oldProjectId = e2.projectId || null;
     var pid = parseInt(projSel.value) || null;
     e2.projectId = pid;
     e2.client = pid ? ((getSavedQuotes()||[]).find(function(q){return q.id === pid;})?.client || null) : null;
@@ -10351,6 +10390,13 @@ function openLinkPicker(entryId) {
     ov.remove();
     renderCommandCenterLists();
     if (typeof renderFieldLog === 'function') renderFieldLog();
+    // Re-render project cards so the entry appears on its new project (and vanishes from old).
+    if (typeof renderSaved === 'function') renderSaved();
+    [oldProjectId, pid].filter(Boolean).forEach(function(p){
+      if (window._pipelineDetailQid === p && typeof openPipelineDetail === 'function') {
+        openPipelineDetail(p, { refresh: true });
+      }
+    });
   });
   btnRow.appendChild(cancel); btnRow.appendChild(save);
   box.appendChild(btnRow);
@@ -11296,6 +11342,12 @@ function saveFieldLogEntry() {
   showToast('Logged ✓');
   if (typeof renderCommandCenterLists === 'function') renderCommandCenterLists();
   renderFieldLog();
+  // Re-render project cards so a newly-linked entry appears on its project card
+  // immediately. Pipeline detail panel too if it's open on this project.
+  if (typeof renderSaved === 'function') renderSaved();
+  if (projectId && window._pipelineDetailQid === projectId && typeof openPipelineDetail === 'function') {
+    openPipelineDetail(projectId, { refresh: true });
+  }
 }
 
 function pushNoteToProject(projectId, text, fieldLogId) {
@@ -11614,9 +11666,15 @@ function reconcileFieldEntry(id) {
 
 function deleteFieldEntry(id) {
   if (!confirm('Delete this entry?')) return;
+  const e = getFieldLog().find(x => x.id === id);
+  const projectId = e ? e.projectId : null;
   window._fieldLog = getFieldLog().filter(e => e.id !== id);
   persistFieldLog();
   renderFieldLog();
+  if (typeof renderSaved === 'function') renderSaved();
+  if (projectId && window._pipelineDetailQid === projectId && typeof openPipelineDetail === 'function') {
+    openPipelineDetail(projectId, { refresh: true });
+  }
 }
 
 function renderFieldLog() {
@@ -13826,6 +13884,10 @@ function refreshAllVendorDropdowns() {
 function markFieldEntryDone(id) {
   var log = getFieldLog(); var e = log.find(function(e){return e.id===id;}); if(!e)return;
   e.done = !e.done; window._fieldLog = log; persistFieldLog(); renderFieldLog();
+  if (typeof renderSaved === 'function') renderSaved();
+  if (e.projectId && window._pipelineDetailQid === e.projectId && typeof openPipelineDetail === 'function') {
+    openPipelineDetail(e.projectId, { refresh: true });
+  }
 }
 function editFieldEntry(id) {
   var log = getFieldLog(); var e = log.find(function(e){return e.id===id;}); if(!e)return;
@@ -13846,6 +13908,10 @@ function editFieldEntry(id) {
     var l=getFieldLog(); var e2=l.find(function(e){return e.id===id;});
     if(e2){e2.description=ta.value.trim()||e2.description;e2.amount=parseFloat(amtIn.value)||0;}
     window._fieldLog=l; persistFieldLog(); renderFieldLog();
+    if (typeof renderSaved === 'function') renderSaved();
+    if (e2 && e2.projectId && window._pipelineDetailQid === e2.projectId && typeof openPipelineDetail === 'function') {
+      openPipelineDetail(e2.projectId, { refresh: true });
+    }
   });
   var cb = document.createElement('button'); cb.textContent='Cancel';
   cb.style.cssText='background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px;border-radius:0;cursor:pointer';
