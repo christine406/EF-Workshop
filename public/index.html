@@ -402,6 +402,7 @@
   :root {
     --stage-deposit: #b9c8d4;        /* cool grey-blue */
     --stage-stone-deposit: #a8c4c4;  /* pale teal */
+    --stage-sourcing: #b8c490;       /* dusty olive — hunting */
     --stage-cad: #ccc07a;            /* muted gold */
     --stage-production: #c97a4a;     /* warm orange-amber */
     --stage-balance: #741435;        /* maroon */
@@ -506,6 +507,7 @@
   }
   .quote-item[data-stage="deposit"] { border-left-color: var(--stage-deposit); }
   .quote-item[data-stage="stone-deposit"] { border-left-color: var(--stage-stone-deposit); }
+  .quote-item[data-stage="sourcing"] { border-left-color: var(--stage-sourcing); }
   .quote-item[data-stage="cad"] { border-left-color: var(--stage-cad); }
   .quote-item[data-stage="production"] { border-left-color: var(--stage-production); }
   .quote-item[data-stage="balance"] { border-left-color: var(--stage-balance); }
@@ -529,6 +531,7 @@
   }
   .stage-pill.stage-deposit { background: var(--stage-deposit); color: #2a3a44; }
   .stage-pill.stage-stone-deposit { background: var(--stage-stone-deposit); color: #2a4444; }
+  .stage-pill.stage-sourcing { background: var(--stage-sourcing); color: #3a4422; }
   .stage-pill.stage-cad { background: var(--stage-cad); color: #4a3a0a; }
   .stage-pill.stage-production { background: var(--stage-production); }
   .stage-pill.stage-balance { background: var(--stage-balance); }
@@ -9120,6 +9123,7 @@ function goHome() {
 const PIPELINE_STAGES = [
   { key: 'deposit',       label: 'Deposit paid',       color: 'var(--stage-deposit)',       stuckDays: 14 },
   { key: 'stone-deposit', label: 'Stone deposit',      color: 'var(--stage-stone-deposit)', stuckDays: 21 },
+  { key: 'sourcing',      label: 'Stone sourcing',     color: 'var(--stage-sourcing)',      stuckDays: 21 },
   { key: 'cad',           label: 'Finalizing CAD',     color: 'var(--stage-cad)',           stuckDays: 10 },
   { key: 'production',    label: 'In production',      color: 'var(--stage-production)',    stuckDays: 30 },
   { key: 'balance',       label: 'Balance paid',       color: 'var(--stage-balance)',       stuckDays: 7 },
