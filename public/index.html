@@ -11300,6 +11300,15 @@ function saveNoteComposer(projectId, e) {
   const composer = document.getElementById('noteComposer-' + projectId);
   if (composer) composer.remove();
   pushNoteToProject(projectId, text, null);
+  // Force the target card to stay open after the re-render so the new note is visible.
+  const card = document.querySelector('.quote-item[data-id="' + projectId + '"]');
+  if (card) {
+    const body = card.querySelector('.card-body');
+    const arrow = card.querySelector('.tap-arrow');
+    if (body) body.style.display = 'block';
+    if (arrow) arrow.textContent = 'tap to collapse ▴';
+    card.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+  }
 }
 
 function deleteCostPush(quoteId, pushId) {
