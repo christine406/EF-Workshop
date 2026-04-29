@@ -1791,8 +1791,7 @@
       <div class="section-label">📁 Saved quotes &amp; projects</div>
       <div style="overflow-x:auto;scrollbar-width:none;margin-bottom:8px">
         <div class="toggle-group" style="min-width:max-content">
-          <button class="toggle-btn active" onclick="setFilter('all',this)">All</button>
-          <button class="toggle-btn" onclick="setFilter('quotes',this)">Quotes</button>
+          <button class="toggle-btn active" onclick="setFilter('quotes',this)">Quotes</button>
           <button class="toggle-btn" onclick="setFilter('project',this)">Client projects</button>
           <button class="toggle-btn" onclick="setFilter('collection',this)">Collection</button>
           <button class="toggle-btn" onclick="toggleArchivePanel(this)">Archived ▾</button>
@@ -2120,6 +2119,15 @@
 
       <!-- KANBAN BOARD -->
       <div id="pipelineBoard" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:14px;-webkit-overflow-scrolling:touch"></div>
+
+      <!-- DETAIL PANEL — shows the full project card when one is clicked on the Kanban -->
+      <div id="pipelineDetail" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)" id="pipelineDetailLabel">Project</div>
+          <button onclick="closePipelineDetail()" style="background:none;border:none;color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;padding:4px 8px">close ✕</button>
+        </div>
+        <div id="pipelineDetailBody"></div>
+      </div>
     </div>
   </div>
 
@@ -6831,7 +6839,7 @@ function renderSaved() {
 }
 
 
-let savedFilter = 'all';
+let savedFilter = 'quotes';
 let savedSort = 'date';
 
 function setSavedSort(sort) {
@@ -9291,16 +9299,13 @@ function renderPipeline() {
       });
       card.addEventListener('dragend', () => card.classList.remove('dragging'));
       card.addEventListener('click', e => {
-        // Tap on a card jumps to Saved Projects with that one expanded.
-        showScreen('saved');
-        setTimeout(() => {
-          const div = document.getElementById('quote-' + q.id);
-          if (div) {
-            const body = div.querySelector('.card-body');
-            if (body && body.style.display === 'none') body.style.display = 'block';
-            div.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 80);
+        // Tap on a card opens its full project detail panel inline below the Kanban.
+        // If the same card is clicked again, the panel closes.
+        if (window._pipelineDetailQid === q.id) {
+          closePipelineDetail();
+        } else {
+          openPipelineDetail(q.id);
+        }
       });
       const amt = pipelineCardAmount(q);
       const days = daysInCurrentStage(q);
@@ -9326,6 +9331,57 @@ function renderPipeline() {
   });
   // Always render forecast body too (it's collapsed but stays current).
   renderPipelineForecast();
+  // If the detail panel is currently open, refresh it so it reflects any
+  // stage/data changes that just happened (e.g. drag-and-drop landed).
+  if (window._pipelineDetailQid) {
+    const stillExists = quotes.find(x => x.id === window._pipelineDetailQid);
+    if (stillExists) openPipelineDetail(window._pipelineDetailQid, { refresh: true });
+    else closePipelineDetail();
+  }
+}
+
+// Open the inline detail panel for a project. Reuses the same card builder as
+// Saved Projects so visuals + actions are identical. The panel sits below the
+// Kanban and stays open until closed or another card is clicked.
+function openPipelineDetail(qid, opts) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(x => x.id === qid);
+  if (!q) return;
+  const isRefresh = opts && opts.refresh;
+  window._pipelineDetailQid = qid;
+  const panel = document.getElementById('pipelineDetail');
+  const body = document.getElementById('pipelineDetailBody');
+  const label = document.getElementById('pipelineDetailLabel');
+  if (!panel || !body) return;
+  if (label) label.textContent = (q.client || 'Project').replace(/</g,'&lt;');
+  // Render the project card with the same wrapper class Saved Projects uses,
+  // so all the existing CSS (stage outline, body styling, etc.) applies.
+  const wrap = document.createElement('div');
+  wrap.className = 'quote-item';
+  wrap.dataset.id = q.id;
+  const stage = getProjectStage(q);
+  if (stage) wrap.dataset.stage = stage;
+  wrap.innerHTML = q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q);
+  body.innerHTML = '';
+  body.appendChild(wrap);
+  // Open the body of the rendered card so the full detail is immediately visible.
+  const cardBody = wrap.querySelector('.card-body');
+  if (cardBody) cardBody.style.display = 'block';
+  const arrow = wrap.querySelector('.tap-arrow');
+  if (arrow) arrow.textContent = 'tap to collapse ▴';
+  panel.style.display = 'block';
+  // Smooth-scroll the panel into view only on initial open, not on data refresh.
+  if (!isRefresh) {
+    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+  }
+}
+
+function closePipelineDetail() {
+  window._pipelineDetailQid = null;
+  const panel = document.getElementById('pipelineDetail');
+  const body = document.getElementById('pipelineDetailBody');
+  if (panel) panel.style.display = 'none';
+  if (body) body.innerHTML = '';
 }
 
 function togglePipelineForecast() {
