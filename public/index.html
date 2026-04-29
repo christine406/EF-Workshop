@@ -245,9 +245,9 @@
     font-family: var(--font-mono);
     font-size: 12px;
     font-weight: 400;
-    color: #a30061;
+    color: #951d5f;
     background: none;
-    border: 1px solid #a30061;
+    border: 1px solid #951d5f;
     border-radius: 0;
     padding: 3px 8px;
     cursor: pointer;
@@ -1363,7 +1363,7 @@
     </button>
     <button id="cc-inquiries-btn" class="cc-btn" onclick="showScreen('inquiries')">
       <div class="cc-btn-icon">💌</div>
-      <div class="cc-btn-label">Inquiries <span id="inq-badge-wrap" style="display:none;margin-left:4px;font-size:13px">✨<span id="inq-badge" style="background:none;color:#a30061;border:1px solid #a30061;font-size:11px;padding:2px 6px;border-radius:2px;vertical-align:middle">0</span>✨</span></div>
+      <div class="cc-btn-label">Inquiries <span id="inq-badge-wrap" style="display:none;margin-left:4px;font-size:13px">✨<span id="inq-badge" style="background:none;color:#951d5f;border:1px solid #951d5f;font-size:11px;padding:2px 6px;border-radius:2px;vertical-align:middle">0</span>✨</span></div>
     </button>
   </div>
 
@@ -1597,7 +1597,7 @@
     <div class="section" style="background:#f7f2ea;margin:0 -16px;padding:16px;border-top:1px solid #e0d8cc;border-bottom:1px solid #e0d8cc">
       <div class="section-label">💎 Stones</div>
       <div id="stoneList"></div>
-      <button class="add-stone-btn" onclick="addStone('main')" style="background:#a30061">Add stone / enter cost manually</button>
+      <button class="add-stone-btn" onclick="addStone('main')" style="background:#951d5f">Add stone / enter cost manually</button>
       <button class="add-stone-btn" onclick="toggleInventoryPicker()" id="invPickerBtn" style="border-color:var(--teal-dim);color:#ffffff">🗂️ Pick from inventory</button>
 
       <!-- INVENTORY PICKER -->
@@ -6348,10 +6348,10 @@ function buildMultiPieceCard(q) {
   const isActive = q.status === 'project' || q.status === 'quote' || q.status === 'collection-quote' || q.status === 'collection';
   if (isActive) {
     if (q.status === 'quote') {
-      html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+      html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
     }
     if (q.status === 'collection-quote') {
-      html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Move to collection</button>';
+      html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="convertToProject(' + q.id + ',event)">→ Move to collection</button>';
     }
     // Costs are updated per-piece via the Edit button on each piece row
     // For projects, Completed/Abandoned replace Archive (both remove from active list).
@@ -6697,7 +6697,7 @@ function buildQuoteCard(q) {
   }
 
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  if (q.status === 'quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+  if (q.status === 'quote') html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
   if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
 
   if (q.status === 'project' || q.status === 'collection' || q.status === 'collection-quote') {
