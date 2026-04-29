@@ -11247,6 +11247,11 @@ function pushNoteToProject(projectId, text, fieldLogId) {
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
+  // If the user is viewing this project in the Pipeline detail panel, refresh it
+  // too so the new note appears without needing to navigate away and back.
+  if (window._pipelineDetailQid === projectId && typeof openPipelineDetail === 'function') {
+    openPipelineDetail(projectId, { refresh: true });
+  }
 }
 
 // Quick-add a note from the saved card action buttons (no Field Log roundtrip).
