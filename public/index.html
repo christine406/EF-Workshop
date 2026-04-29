@@ -8951,7 +8951,7 @@ function renderStoneInventory() {
 
   const allHeader = document.createElement('div');
   allHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 14px 12px;background:#f5f5f2;border:2.5px solid #ccc07a;cursor:pointer;user-select:none;margin-bottom:10px;transition:all 0.12s ease';
-  allHeader.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;color:#2a1a1e">📋 All stones <span style="color:var(--text-dim);font-weight:400;margin-left:4px">(' + allStones.length + ')</span></span><span style="font-size:14px;color:var(--text-dim)">' + (allStonesExpanded ? '▴' : '▾') + '</span>';
+  allHeader.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;color:#2a1a1e">💎 All stones <span style="color:var(--text-dim);font-weight:400;margin-left:4px">(' + allStones.length + ')</span></span><span style="font-size:14px;color:var(--text-dim)">' + (allStonesExpanded ? '▴' : '▾') + '</span>';
   allHeader.onclick = () => {
     window._stoneSecExpanded = window._stoneSecExpanded || {};
     window._stoneSecExpanded[allStonesKey] = !window._stoneSecExpanded[allStonesKey];
@@ -9003,7 +9003,7 @@ function renderStoneInventory() {
     const expanded = window._stoneSecExpanded[cat];
 
     // Section header
-    const catEmoji = cat === 'owned-available' ? '✓' : cat === 'owned-reserved' ? '🔒' : cat === 'memo' ? '📦' : cat === 'viewed' ? '👁' : '·';
+    const catEmoji = cat === 'owned-available' ? '✓' : cat === 'owned-reserved' ? '🔒' : cat === 'memo' ? '🤝' : cat === 'viewed' ? '👁' : '·';
     const header = document.createElement('div');
     header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:14px 14px 12px;background:#f5f5f2;border:2.5px solid #ccc07a;cursor:pointer;user-select:none;margin-bottom:' + (expanded ? '10px' : '10px') + ';transition:all 0.12s ease';
     header.innerHTML = '<span style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;color:#2a1a1e">' + catEmoji + ' '
