@@ -10499,6 +10499,65 @@ function deleteProposal(id) {
   renderProposals();
 }
 
+// Open an inline editor for a proposal entry. Drops in below the entry row,
+// mirrors the Add form fields, saves back to the same id.
+function editProposal(id) {
+  const list = getProposals();
+  const p = list.find(x => x.id === id);
+  if (!p) return;
+  // If this entry's editor is already open, close it (toggle).
+  const existing = document.getElementById('proposalEditor-' + id);
+  if (existing) { existing.remove(); return; }
+  // Close any other open editor.
+  document.querySelectorAll('[id^="proposalEditor-"]').forEach(el => el.remove());
+  // Find the entry's row to insert after.
+  const row = document.querySelector('[data-proposal-id="' + id + '"]');
+  if (!row) return;
+  // Convert the stored 'Apr 28, 2026' format back to YYYY-MM-DD for the date input.
+  let deliveredISO = '';
+  if (p.delivered) {
+    const t = new Date(p.delivered);
+    if (!isNaN(t)) {
+      deliveredISO = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+    }
+  }
+  const editor = document.createElement('div');
+  editor.id = 'proposalEditor-' + id;
+  editor.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);padding:14px;margin:-10px 0 10px';
+  editor.innerHTML =
+    '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Edit entry</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">' +
+      '<div><div class="field-label">Couple\'s names</div><input type="text" id="ep-names-' + id + '" value="' + (p.names||'').replace(/"/g,'&quot;') + '" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>' +
+      '<div><div class="field-label">Ring</div><input type="text" id="ep-ring-' + id + '" value="' + (p.ring||'').replace(/"/g,'&quot;') + '" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>' +
+      '<div><div class="field-label">Delivered</div><input type="date" id="ep-delivered-' + id + '" value="' + deliveredISO + '" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>' +
+      '<div><div class="field-label">Expected proposal</div><input type="text" id="ep-expected-' + id + '" value="' + (p.expected||'').replace(/"/g,'&quot;') + '" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;box-sizing:border-box"></div>' +
+    '</div>' +
+    '<div style="margin-bottom:10px"><div class="field-label">Notes</div><textarea id="ep-notes-' + id + '" rows="2" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;outline:none;resize:vertical;box-sizing:border-box">' + (p.notes||'').replace(/</g,'&lt;') + '</textarea></div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button onclick="saveProposalEdit(' + id + ')" style="flex:1;background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;padding:9px;cursor:pointer">Save</button>' +
+      '<button onclick="document.getElementById(\'proposalEditor-' + id + '\')?.remove()" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:9px 14px;cursor:pointer">Cancel</button>' +
+    '</div>';
+  row.parentNode.insertBefore(editor, row.nextSibling);
+}
+
+function saveProposalEdit(id) {
+  const list = getProposals();
+  const p = list.find(x => x.id === id);
+  if (!p) return;
+  const names = document.getElementById('ep-names-' + id).value.trim();
+  if (!names) { showToast("Couple's names can't be empty"); return; }
+  p.names = names;
+  p.ring = document.getElementById('ep-ring-' + id).value.trim();
+  const deliveredRaw = document.getElementById('ep-delivered-' + id).value;
+  p.delivered = deliveredRaw ? new Date(deliveredRaw + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : '';
+  p.expected = document.getElementById('ep-expected-' + id).value.trim();
+  p.notes = document.getElementById('ep-notes-' + id).value.trim();
+  window._proposals = list;
+  persistProposals();
+  renderProposals();
+  showToast('Updated');
+}
+
 // Auto-add a completed engagement project to the awaiting list. Idempotent —
 // won't duplicate if the project's already there.
 function autoAddProposalFromProject(q) {
@@ -10561,10 +10620,13 @@ function renderProposals() {
     const days = daysSinceDelivered(p);
     const waitingText = days != null ? (days === 0 ? 'Delivered today' : days + ' day' + (days===1?'':'s') + ' waiting') : '';
     const waitingColor = days != null && days > 90 ? '#951d5f' : (days != null && days > 30 ? 'var(--gold)' : 'var(--text-dim)');
-    html += '<div style="background:#fafaf7;border:1px solid var(--border);border-left:3px solid #951d5f;padding:12px 14px;margin-bottom:10px">';
+    html += '<div data-proposal-id="' + p.id + '" style="background:#fafaf7;border:1px solid var(--border);border-left:3px solid #951d5f;padding:12px 14px;margin-bottom:10px">';
     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px">';
     html += '<div style="font-size:15px;color:var(--text);font-weight:500">' + (p.names || '').replace(/</g,'&lt;') + '</div>';
-    html += '<button onclick="deleteProposal(' + p.id + ')" style="background:none;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer;flex-shrink:0">Proposed ✓</button>';
+    html += '<div style="display:flex;gap:6px;flex-shrink:0">';
+    html += '<button onclick="editProposal(' + p.id + ')" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Edit</button>';
+    html += '<button onclick="deleteProposal(' + p.id + ')" style="background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Proposed ✓</button>';
+    html += '</div>';
     html += '</div>';
     if (p.ring) html += '<div style="font-size:13px;color:var(--text-dim);margin-bottom:4px">' + p.ring.replace(/</g,'&lt;') + '</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--text-dim);margin-top:6px">';
