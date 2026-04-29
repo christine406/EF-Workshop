@@ -423,7 +423,7 @@
     --stage-stone-deposit: #a8c4c4;  /* pale teal */
     --stage-sourcing: #b8c490;       /* dusty olive — hunting */
     --stage-cad: #ccc07a;            /* muted gold */
-    --stage-production: #c97a4a;     /* warm orange-amber */
+    --stage-production: #951d5f;     /* magenta-pink */
     --stage-balance: #741435;        /* maroon */
     --stage-ready: #4d8b5a;          /* deep green */
     --stage-paused: #7a5c3a;         /* warm brown — on hold */
@@ -6303,6 +6303,7 @@ function buildMultiPieceCard(q) {
   } else {
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;project&quot;,event)">Reopen</button>';
   }
+  html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="quickAddProjectNote(' + q.id + ',event)">+ Note</button>';
   html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
 
@@ -6343,8 +6344,8 @@ function buildMultiPieceCard(q) {
   if (q.projectNotes && q.projectNotes.length) {
     const open = q.projectNotes.filter(n => !n.done);
     const done = q.projectNotes.filter(n => n.done);
-    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Notes & reminders</div>';
+    html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes & reminders</div>';
     [...open, ...done].forEach(n => {
       html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
         + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:var(--teal-dim);cursor:pointer;flex-shrink:0">'
@@ -6640,6 +6641,7 @@ function buildQuoteCard(q) {
   } else if (archived.includes(q.status)) {
     html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="unarchiveItem(' + q.id + ',event)">Unarchive</button>';
   }
+  html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="quickAddProjectNote(' + q.id + ',event)">+ Note</button>';
   html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
   html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
   html += '</div>';
@@ -6682,8 +6684,8 @@ function buildQuoteCard(q) {
   if (q.projectNotes && q.projectNotes.length) {
     const open = q.projectNotes.filter(n => !n.done);
     const done = q.projectNotes.filter(n => n.done);
-    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Notes & reminders</div>';
+    html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes & reminders</div>';
     [...open, ...done].forEach(n => {
       html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
         + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:var(--teal-dim);cursor:pointer;flex-shrink:0">'
@@ -11207,6 +11209,14 @@ function pushNoteToProject(projectId, text, fieldLogId) {
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
+}
+
+// Quick-add a note from the saved card action buttons (no Field Log roundtrip).
+function quickAddProjectNote(projectId, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const text = prompt('Add a note:');
+  if (!text || !text.trim()) return;
+  pushNoteToProject(projectId, text.trim(), null);
 }
 
 function deleteCostPush(quoteId, pushId) {
