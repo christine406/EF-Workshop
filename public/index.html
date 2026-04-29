@@ -6186,15 +6186,35 @@ function buildMultiPieceCard(q) {
   html += '</div>';
 
   // Alternate stone options (for showing a client multiple stone choices on the same setting).
-  // Only renders for single-piece quotes that have any options stored.
-  if (Array.isArray(q.stoneOptions) && q.stoneOptions.length) {
+  // When this section renders, we show the PRIMARY stone first (so the comparison is complete),
+  // then each alternate. Firebase can return arrays as objects, so normalize first.
+  var _stoneOpts = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
+  if (_stoneOpts.length) {
+    // Pull the primary main stone(s) (non-melee) so it shows up in the comparison.
+    var _stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+    var _primaryMain = _stonesArr.filter(function(s){ return s && !s.isSmall; });
+    var _primarySnap = _primaryMain.length ? {
+      label: 'Primary stone',
+      isPrimary: true,
+      cost: _primaryMain.reduce(function(sum, s){ return sum + (s.cost || 0); }, 0),
+      cut: _primaryMain[0].cut || '',
+      carat: _primaryMain[0].carat || '',
+      color: _primaryMain[0].color || '',
+      clarity: _primaryMain[0].clarity || '',
+      gia: _primaryMain[0].gia || '',
+      dealer: _primaryMain[0].dealer || '',
+    } : null;
+    var _displayList = _primarySnap ? [_primarySnap].concat(_stoneOpts) : _stoneOpts.slice();
+
     html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:10px 12px;border:1px solid #ccc07a">';
     html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5c3a;font-weight:500">Stone options considered</div>';
-    var _chosenIdx = q.stoneOptions.findIndex(function(o){return o && o.chosen;});
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5c3a;font-weight:500">Stone options</div>';
+    var _chosenIdx = _stoneOpts.findIndex(function(o){return o && o.chosen;});
     if (_chosenIdx >= 0) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">✓ chosen</div>';
     html += '</div>';
-    q.stoneOptions.forEach(function(opt, idx) {
+    _displayList.forEach(function(opt, displayIdx) {
+      // For alternates, idx into the underlying stoneOptions array is offset by 1 if a primary leads.
+      var optIdx = _primarySnap ? displayIdx - 1 : displayIdx;
       // Compute retail using the saved quote's non-stone components and this option's stone cost.
       var hypothetical = Object.assign({}, q, {
         actualStoneCost: opt.cost || 0,
@@ -6207,13 +6227,22 @@ function buildMultiPieceCard(q) {
         opt.cut, opt.color, opt.clarity,
       ].filter(Boolean).join(' · ');
       var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
-      var labelStyle = opt.chosen
-        ? 'color:var(--green-bright);font-weight:500'
-        : (opt.previouslyChosen ? 'color:var(--text-dim);font-style:italic;text-decoration:line-through' : 'color:var(--text)');
-      html += '<div style="padding:8px 0;border-bottom:' + (idx === q.stoneOptions.length - 1 ? 'none' : '1px solid var(--border)') + '">'
+      var labelStyle = opt.isPrimary
+        ? 'color:var(--gold);font-weight:500'
+        : (opt.chosen
+          ? 'color:var(--green-bright);font-weight:500'
+          : (opt.previouslyChosen ? 'color:var(--text-dim);font-style:italic;text-decoration:line-through' : 'color:var(--text)'));
+      var labelText = opt.isPrimary
+        ? 'Primary stone <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
+        : (opt.label || ('Option ' + String.fromCharCode(65+optIdx))) + (opt.previouslyChosen ? ' (was primary)' : '');
+      // Choose button only on alternates (not the primary itself), and not on already-chosen ones.
+      var chooseBtn = (!opt.isPrimary && !opt.chosen)
+        ? '<button onclick="chooseStoneOption(' + q.id + ',' + optIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>'
+        : '';
+      html += '<div style="padding:8px 0;border-bottom:' + (displayIdx === _displayList.length - 1 ? 'none' : '1px solid var(--border)') + '">'
         + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'
-        + '<div style="font-size:13px;' + labelStyle + '">' + (opt.label || ('Option ' + String.fromCharCode(65+idx))) + (opt.previouslyChosen ? ' (was primary)' : '') + '</div>'
-        + (opt.chosen ? '' : '<button onclick="chooseStoneOption(' + q.id + ',' + idx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>')
+        + '<div style="font-size:13px;' + labelStyle + '">' + labelText + '</div>'
+        + chooseBtn
         + '</div>'
         + (details ? '<div style="font-size:12px;color:var(--text-dim)">' + details + (opt.dealer ? ' · ' + opt.dealer : '') + '</div>' : '')
         + (giaPart ? '<div style="margin-top:2px">' + giaPart + '</div>' : '')
@@ -6959,7 +6988,10 @@ function chooseStoneOption(id, optIdx, e) {
   if (e) e.stopPropagation();
   const quotes = getSavedQuotes();
   const q = quotes.find(x => x.id === id);
-  if (!q || !Array.isArray(q.stoneOptions) || !q.stoneOptions[optIdx]) return;
+  if (!q) return;
+  // Firebase can return arrays as objects — normalize to array form so we can mutate it.
+  q.stoneOptions = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
+  if (!q.stoneOptions[optIdx]) return;
   const opt = q.stoneOptions[optIdx];
   if (!confirm('Lock in ' + (opt.label || 'this option') + ' as the primary stone?\n\nThe current primary stone will move into the considered list.')) return;
 
