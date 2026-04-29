@@ -397,6 +397,25 @@
     border-color: var(--teal-dim);
   }
 
+  .saved-sort-btn {
+    background: #fafaf7;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-right-width: 0;
+  }
+  .saved-sort-btn:last-child { border-right-width: 1px; }
+  .saved-sort-btn.active {
+    background: var(--teal-dim);
+    color: #fafaf7;
+    border-color: var(--teal-dim);
+  }
+
   /* === STAGE COLORS — used on both Kanban columns and Saved Project card outlines === */
   /* Soft warming gradient from cool/early to warm/late */
   :root {
@@ -503,7 +522,7 @@
 
   /* Stage-colored full border on Saved Projects cards */
   .quote-item[data-stage] {
-    border: 2px solid var(--border);
+    border: 4px solid var(--border);
     margin-bottom: 14px;
   }
   .quote-item[data-stage="deposit"] { border-color: var(--stage-deposit); }
@@ -1810,9 +1829,11 @@
         </div>
       </div>
 
-      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
-        <button id="sortDateBtn" onclick="setSavedSort('date')" style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 0 0 2px;cursor:pointer">Date</button>
-        <button id="sortAlphaBtn" onclick="setSavedSort('alpha')" style="background:#fafaf7;color:var(--text-dim);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0 2px 2px 0;cursor:pointer;border-left:1px solid var(--border)">A–Z</button>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;flex-wrap:wrap;gap:0">
+        <button id="sortNewestBtn" onclick="setSavedSort('newest')" class="saved-sort-btn active">Newest</button>
+        <button id="sortOldestBtn" onclick="setSavedSort('oldest')" class="saved-sort-btn">Oldest</button>
+        <button id="sortStageBtn" onclick="setSavedSort('stage')" class="saved-sort-btn">Stage</button>
+        <button id="sortAlphaBtn" onclick="setSavedSort('alpha')" class="saved-sort-btn">A–Z</button>
       </div>
 
       <div id="plSummary" style="margin-bottom:12px"></div>
@@ -6798,8 +6819,27 @@ function renderSaved() {
   if (savedSort === 'alpha') {
     const stripEmoji = s => (s||'').replace(/^[^a-zA-Z]+/, '').trim().toLowerCase();
     filtered = [...filtered].sort((a,b) => stripEmoji(a.client).localeCompare(stripEmoji(b.client)));
+  } else if (savedSort === 'oldest') {
+    // q.id is a timestamp from Date.now() at save time — ascending = oldest first
+    filtered = [...filtered].sort((a,b) => (a.id || 0) - (b.id || 0));
+  } else if (savedSort === 'stage') {
+    // Group by pipeline stage in PIPELINE_STAGES order. Items without a stage (quotes,
+    // collection pieces) go to the end, sorted newest-first within that bucket.
+    const stageOrder = (typeof PIPELINE_STAGES !== 'undefined' ? PIPELINE_STAGES : []).map(s => s.key);
+    const stageIdx = q => {
+      const s = (typeof getProjectStage === 'function') ? getProjectStage(q) : null;
+      const i = s ? stageOrder.indexOf(s) : -1;
+      return i < 0 ? 999 : i;
+    };
+    filtered = [...filtered].sort((a,b) => {
+      const ai = stageIdx(a), bi = stageIdx(b);
+      if (ai !== bi) return ai - bi;
+      return (b.id || 0) - (a.id || 0);
+    });
+  } else {
+    // 'newest' — default. q.id is a timestamp, descending = newest first.
+    filtered = [...filtered].sort((a,b) => (b.id || 0) - (a.id || 0));
   }
-  // date order is already default (newest first by id)
   list.innerHTML = '';
   if (savedFilter === 'collection') {
     // Split into MTO and RTS groups
@@ -6870,20 +6910,15 @@ function renderSaved() {
 
 
 let savedFilter = 'quotes';
-let savedSort = 'date';
+let savedSort = 'newest';
 
 function setSavedSort(sort) {
   savedSort = sort;
-  const dateBtn = document.getElementById('sortDateBtn');
-  const alphaBtn = document.getElementById('sortAlphaBtn');
-  if (dateBtn) {
-    dateBtn.style.background = sort === 'date' ? 'var(--teal-dim)' : 'var(--surface2)';
-    dateBtn.style.color = sort === 'date' ? '#fafaf7' : 'var(--text-dim)';
-  }
-  if (alphaBtn) {
-    alphaBtn.style.background = sort === 'alpha' ? 'var(--teal-dim)' : 'var(--surface2)';
-    alphaBtn.style.color = sort === 'alpha' ? '#fafaf7' : 'var(--text-dim)';
-  }
+  // Highlight the active button.
+  document.querySelectorAll('.saved-sort-btn').forEach(b => b.classList.remove('active'));
+  var map = { newest: 'sortNewestBtn', oldest: 'sortOldestBtn', stage: 'sortStageBtn', alpha: 'sortAlphaBtn' };
+  var btn = document.getElementById(map[sort]);
+  if (btn) btn.classList.add('active');
   renderSaved();
 }
 
