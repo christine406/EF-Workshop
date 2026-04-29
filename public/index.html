@@ -37,7 +37,6 @@
     --text: #2a1a1e;
     --text-mid: #6b4a52;
     --text-dim: #a88a92;
-    --green: #4a7068;
     --green-bright: #2d6b5e;
     --teal: #8dadaf;
     --teal-dim: #6b9496;
@@ -9094,7 +9093,7 @@ function renderStoneInventory() {
     if (s.status === 'in-use') {
       const activeProject = getSavedQuotes().find(q => q.id === s.usedInProjectId);
       if (!activeProject) {
-        html += `<button class="convert-btn" style="border-color:var(--green);color:var(--green-bright)" onclick="releaseStone(${s.id})">← Release</button>`;
+        html += `<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="releaseStone(${s.id})">← Release</button>`;
       }
     }
     if (s.status === 'out-with-jeweler') {
@@ -11913,7 +11912,7 @@ function renderFieldLog() {
   const done = filtered.filter(e => e.done || e.reconciled);
   const typeColors = {
     'main-stone': 'var(--gold)', melee: '#ccc07a', casting: '#a07cc5', setting: 'var(--teal-dim)',
-    findings: '#7aaa8a', cad: '#6a9ab0', reminder: 'var(--text-dim)', task: '#ccc07a',
+    findings: '#5c7a6b', cad: '#6a9ab0', reminder: 'var(--text-dim)', task: '#ccc07a',
     dealer: 'var(--gold)', purchase: 'var(--gold)', memo: 'var(--teal-dim)', followup: '#a07cc5'
   };
   const typeLabels = {
@@ -13377,7 +13376,7 @@ function renderInvoices(){
   list.innerHTML='';
   var typeOrder=['casting','setting','dealer','findings','other'];
   var typeLabels={casting:'Casting',setting:'Setting',dealer:'Dealers',findings:'Findings',other:'Other'};
-  var typeColors={casting:'#a07cc5',setting:'var(--teal-dim)',dealer:'var(--gold)',findings:'#7aaa8a',other:'var(--text-dim)'};
+  var typeColors={casting:'#a07cc5',setting:'var(--teal-dim)',dealer:'var(--gold)',findings:'#5c7a6b',other:'var(--text-dim)'};
   var byType={};typeOrder.forEach(function(t){byType[t]={};});
   invoices.forEach(function(inv){var t=inv.type||'other';if(!byType[t])byType[t]={};var v=inv.vendor||'Unknown';if(!byType[t][v])byType[t][v]=[];byType[t][v].push(inv);});
   typeOrder.forEach(function(type){
