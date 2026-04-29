@@ -9133,14 +9133,17 @@ function getStageMeta(key) {
   return PIPELINE_STAGES.find(s => s.key === key) || null;
 }
 
-// Pulls a project's current pipeline stage. Pipeline lives only on confirmed projects
-// (status === 'project' or 'collection'). A project without a stage defaults to 'deposit'.
+// Pulls a project's current pipeline stage. Pipeline lives only on confirmed
+// CLIENT projects (status === 'project'). Collection pieces and collection-mto/rts
+// are recipes/inventory, not pipeline items — they live in Saved Projects only.
 // Terminal mappings: status 'completed' → stage 'completed'; 'abandoned' → 'abandoned'.
 function getProjectStage(q) {
   if (!q) return null;
+  // Collection pieces don't belong on the pipeline.
+  if (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts') return null;
   if (q.status === 'completed') return 'completed';
   if (q.status === 'abandoned') return 'abandoned';
-  if (q.status !== 'project' && q.status !== 'collection') return null;
+  if (q.status !== 'project') return null;
   return q.pipelineStage || 'deposit';
 }
 
