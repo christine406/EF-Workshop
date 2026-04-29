@@ -6348,7 +6348,7 @@ function buildMultiPieceCard(q) {
     const reminders = q.projectNotes.filter(n => n.fieldLogId);
 
     if (plainNotes.length) {
-      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="margin-top:12px;background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
       html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes</div>';
       plainNotes.forEach(n => {
         html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
@@ -6362,7 +6362,7 @@ function buildMultiPieceCard(q) {
     if (reminders.length) {
       const openR = reminders.filter(n => !n.done);
       const doneR = reminders.filter(n => n.done);
-      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="margin-top:12px;background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
       html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Reminders</div>';
       [...openR, ...doneR].forEach(n => {
         html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
@@ -6707,7 +6707,7 @@ function buildQuoteCard(q) {
     const reminders = q.projectNotes.filter(n => n.fieldLogId);
 
     if (plainNotes.length) {
-      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="margin-top:12px;background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
       html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes</div>';
       plainNotes.forEach(n => {
         html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
@@ -6721,7 +6721,7 @@ function buildQuoteCard(q) {
     if (reminders.length) {
       const openR = reminders.filter(n => !n.done);
       const doneR = reminders.filter(n => n.done);
-      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="margin-top:12px;background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
       html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Reminders</div>';
       [...openR, ...doneR].forEach(n => {
         html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
@@ -11266,7 +11266,7 @@ function quickAddProjectNote(projectId, e) {
   if (!card) return;
   const composer = document.createElement('div');
   composer.id = 'noteComposer-' + projectId;
-  composer.style.cssText = 'margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px';
+  composer.style.cssText = 'margin-top:12px;background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px 12px';
   composer.innerHTML =
     '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">New note</div>' +
     '<textarea id="noteComposerTA-' + projectId + '" placeholder="Type your note..." style="width:100%;min-height:90px;padding:8px 10px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:14px;color:var(--text);box-sizing:border-box;resize:vertical;border-radius:0"></textarea>' +
