@@ -6536,6 +6536,80 @@ function buildQuoteCard(q) {
     html += '</div>';
   }
 
+  // Alternate stone options (showing a client multiple stone choices on the same setting).
+  // Always render — even when empty — so options can be added retroactively.
+  // Firebase can return arrays as objects; normalize first.
+  var _stoneOpts2 = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
+  {
+    var _stonesArr2 = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
+    var _primaryMain2 = _stonesArr2.filter(function(s){ return s && !s.isSmall; });
+    var _primarySnap2 = _primaryMain2.length ? {
+      label: 'Primary stone',
+      isPrimary: true,
+      cost: _primaryMain2.reduce(function(sum, s){ return sum + (s.cost || 0); }, 0),
+      cut: _primaryMain2[0].cut || '',
+      carat: _primaryMain2[0].carat || '',
+      color: _primaryMain2[0].color || '',
+      clarity: _primaryMain2[0].clarity || '',
+      gia: _primaryMain2[0].gia || '',
+      dealer: _primaryMain2[0].dealer || '',
+    } : null;
+    var _displayList2 = _primarySnap2 ? [_primarySnap2].concat(_stoneOpts2) : _stoneOpts2.slice();
+
+    html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:10px 12px;border:1px solid #ccc07a">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5c3a;font-weight:500">Stone options</div>';
+    var _chosenIdx2 = _stoneOpts2.findIndex(function(o){return o && o.chosen;});
+    if (_chosenIdx2 >= 0) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">✓ chosen</div>';
+    html += '</div>';
+    if (_displayList2.length) {
+      _displayList2.forEach(function(opt, displayIdx) {
+        var optIdx = _primarySnap2 ? displayIdx - 1 : displayIdx;
+        var hypothetical = Object.assign({}, q, {
+          actualStoneCost: opt.cost || 0,
+          stoneCost: opt.cost || 0,
+          stones: [],
+        });
+        var optRetail = calcSuggestedRetail(hypothetical);
+        var details = [
+          opt.carat ? parseFloat(opt.carat).toFixed(2) + ' ct' : '',
+          opt.cut, opt.color, opt.clarity,
+        ].filter(Boolean).join(' · ');
+        var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
+        var labelStyle = opt.isPrimary
+          ? 'color:var(--gold);font-weight:500'
+          : (opt.chosen
+            ? 'color:var(--green-bright);font-weight:500'
+            : (opt.previouslyChosen ? 'color:var(--text-dim);font-style:italic;text-decoration:line-through' : 'color:var(--text)'));
+        var labelText = opt.isPrimary
+          ? 'Primary stone <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
+          : (opt.label || ('Option ' + String.fromCharCode(65+optIdx))) + (opt.previouslyChosen ? ' (was primary)' : '');
+        var btns = '';
+        if (!opt.isPrimary && !opt.chosen) {
+          btns += '<button onclick="chooseStoneOption(' + q.id + ',' + optIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>';
+        }
+        if (!opt.isPrimary) {
+          btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + optIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
+        }
+        html += '<div style="padding:8px 0;border-bottom:' + (displayIdx === _displayList2.length - 1 ? 'none' : '1px solid var(--border)') + '">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'
+          + '<div style="font-size:13px;' + labelStyle + '">' + labelText + '</div>'
+          + '<div style="display:flex;align-items:center;gap:4px">' + btns + '</div>'
+          + '</div>'
+          + (details ? '<div style="font-size:12px;color:var(--text-dim)">' + details + (opt.dealer ? ' · ' + opt.dealer : '') + '</div>' : '')
+          + (giaPart ? '<div style="margin-top:2px">' + giaPart + '</div>' : '')
+          + '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px"><span style="color:var(--text-dim)">Cost $' + (opt.cost || 0).toLocaleString() + '</span><span style="color:var(--gold);font-weight:500">→ $' + (optRetail||0).toLocaleString() + ' retail</span></div>'
+          + '</div>';
+      });
+    } else {
+      html += '<div style="font-size:12px;color:var(--text-dim);font-style:italic;padding:6px 0">No stone options yet. Add one to compare alternatives for this client.</div>';
+    }
+    html += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">';
+    html += '<button onclick="addSavedStoneOption(' + q.id + ',event)" style="width:100%;background:none;border:1px dashed var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:0;cursor:pointer">+ Add stone option</button>';
+    html += '</div>';
+    html += '</div>';
+  }
+
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
   if (q.status === 'quote') html += '<button class="convert-btn" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
   if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
