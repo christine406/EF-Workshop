@@ -14107,7 +14107,6 @@ function startProdOrder(specId) {
     const val = snap.val();
     window._production = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     if (typeof renderProduction === 'function') renderProduction();
-  if (id === 'inquiries' && typeof renderInquiries === 'function') renderInquiries();
   });
 
 
