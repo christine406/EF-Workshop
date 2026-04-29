@@ -6333,17 +6333,18 @@ function buildMultiPieceCard(q) {
     // For projects, Completed/Abandoned replace Archive (both remove from active list).
     // For quotes, Archive is still the only way to hide them.
     if (q.status === 'project' || q.status === 'collection') {
-      html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
-      html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
+      html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',&quot;completed&quot;,event)">✓ Completed</button>';
+      html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="markProjectStatus(' + q.id + ',&quot;abandoned&quot;,event)">✕ Abandoned</button>';
+      html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="revertProjectToQuote(' + q.id + ',event)">← Revert to quote</button>';
     } else {
       html += '<button class="convert-btn" onclick="archiveItem(' + q.id + ',event)">Archive</button>';
     }
   } else {
     html += '<button class="convert-btn" onclick="markProjectStatus(' + q.id + ',&quot;project&quot;,event)">Reopen</button>';
   }
-  html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="quickAddProjectNote(' + q.id + ',event)">+ Note</button>';
+  html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="quickAddProjectNote(' + q.id + ',event)">+ Note</button>';
   html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
-  html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
+  html += '<button class="convert-btn" style="border-color:#741435;color:#741435" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
 
   // Invoice connections
   if (q.invoiceLinks && q.invoiceLinks.length) {
@@ -6679,7 +6680,8 @@ function buildQuoteCard(q) {
   }
   if (q.status === 'project' || q.status === 'collection') {
     html += '<button class="convert-btn" style="border-color:var(--green-bright);color:var(--green-bright)" onclick="markProjectStatus(' + q.id + ',\'completed\',event)">✓ Completed</button>';
-    html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'abandoned\',event)">✕ Abandoned</button>';
+    html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="markProjectStatus(' + q.id + ',\'abandoned\',event)">✕ Abandoned</button>';
+    html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="revertProjectToQuote(' + q.id + ',event)">← Revert to quote</button>';
   }
   if (q.status === 'completed') {
     html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateCosts(' + q.id + ',event)">Update costs</button>';
@@ -6687,7 +6689,7 @@ function buildQuoteCard(q) {
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
   }
   if (q.status === 'abandoned') {
-    html += '<span style="font-size:13px;color:var(--text-dim);padding:4px 0">✕ Abandoned</span>';
+    html += '<span style="font-size:13px;color:#951d5f;padding:4px 0">✕ Abandoned</span>';
     html += '<button class="convert-btn" style="border-color:var(--text-dim);color:var(--text-dim)" onclick="markProjectStatus(' + q.id + ',\'project\',event)">Reopen</button>';
   }
   // Archive is only shown for quotes (which don't have Completed/Abandoned). For active projects,
@@ -6698,9 +6700,9 @@ function buildQuoteCard(q) {
   } else if (archived.includes(q.status)) {
     html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="unarchiveItem(' + q.id + ',event)">Unarchive</button>';
   }
-  html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="quickAddProjectNote(' + q.id + ',event)">+ Note</button>';
+  html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="quickAddProjectNote(' + q.id + ',event)">+ Note</button>';
   html += '<button class="convert-btn" style="border-color:var(--teal-dim);color:var(--teal-dim)" onclick="copyQuote(' + q.id + ',event)">Copy</button>';
-  html += '<button class="convert-btn" style="border-color:var(--red);color:var(--red)" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
+  html += '<button class="convert-btn" style="border-color:#741435;color:#741435" onclick="deleteItem(' + q.id + ',event)">Delete</button>';
   html += '</div>';
 
   // Cost pushes from field log / invoices
@@ -7463,6 +7465,37 @@ function convertToProject(id, e) {
     renderSaved();
     showToast(q.status === 'collection' ? 'Moved to collection' : 'Moved to projects');
   }
+}
+
+// Revert a confirmed project (or collection piece) back to quote status. Pipeline stage
+// is cleared so it disappears from the Kanban, but stageHistory is preserved in case the
+// user converts again later. Actual cost overrides are left intact.
+function revertProjectToQuote(id, e) {
+  if (e) e.stopPropagation();
+  const quotes = getSavedQuotes();
+  const q = quotes.find(q => q.id === id);
+  if (!q) return;
+  q.status = 'quote';
+  q.pipelineStage = null;
+  // Release any inventory stones that were reserved for this as a project.
+  const inv = getInventory();
+  let invChanged = false;
+  inv.forEach(s => {
+    if (s.usedInProjectId === id) {
+      s.status = 'available';
+      s.category = 'owned';
+      s.usedInProjectId = null;
+      s.usedInQuoteId = id;
+      s.usedInQuoteClient = q.client || null;
+      invChanged = true;
+    }
+  });
+  window._savedQuotes = quotes;
+  persistQuotes();
+  if (invChanged) { window._inventory = inv; persistInventory(); }
+  renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
+  showToast('Reverted to quote');
 }
 
 function updateCosts(id, e, pieceIdx) {
