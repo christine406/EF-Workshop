@@ -6208,10 +6208,10 @@ function buildMultiPieceCard(q) {
   html += '</div>';
 
   // Alternate stone options (for showing a client multiple stone choices on the same setting).
-  // When this section renders, we show the PRIMARY stone first (so the comparison is complete),
-  // then each alternate. Firebase can return arrays as objects, so normalize first.
+  // Always render the section for single-piece quotes — even when empty — so the user
+  // can add options retroactively. Firebase can return arrays as objects; normalize first.
   var _stoneOpts = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
-  if (_stoneOpts.length) {
+  if (!q.isMultiPiece) {
     // Pull the primary main stone(s) (non-melee) so it shows up in the comparison.
     var _stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
     var _primaryMain = _stonesArr.filter(function(s){ return s && !s.isSmall; });
@@ -6234,43 +6234,51 @@ function buildMultiPieceCard(q) {
     var _chosenIdx = _stoneOpts.findIndex(function(o){return o && o.chosen;});
     if (_chosenIdx >= 0) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">✓ chosen</div>';
     html += '</div>';
-    _displayList.forEach(function(opt, displayIdx) {
-      // For alternates, idx into the underlying stoneOptions array is offset by 1 if a primary leads.
-      var optIdx = _primarySnap ? displayIdx - 1 : displayIdx;
-      // Compute retail using the saved quote's non-stone components and this option's stone cost.
-      var hypothetical = Object.assign({}, q, {
-        actualStoneCost: opt.cost || 0,
-        stoneCost: opt.cost || 0,
-        stones: [],
+    if (_displayList.length) {
+      _displayList.forEach(function(opt, displayIdx) {
+        var optIdx = _primarySnap ? displayIdx - 1 : displayIdx;
+        var hypothetical = Object.assign({}, q, {
+          actualStoneCost: opt.cost || 0,
+          stoneCost: opt.cost || 0,
+          stones: [],
+        });
+        var optRetail = calcSuggestedRetail(hypothetical);
+        var details = [
+          opt.carat ? parseFloat(opt.carat).toFixed(2) + ' ct' : '',
+          opt.cut, opt.color, opt.clarity,
+        ].filter(Boolean).join(' · ');
+        var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
+        var labelStyle = opt.isPrimary
+          ? 'color:var(--gold);font-weight:500'
+          : (opt.chosen
+            ? 'color:var(--green-bright);font-weight:500'
+            : (opt.previouslyChosen ? 'color:var(--text-dim);font-style:italic;text-decoration:line-through' : 'color:var(--text)'));
+        var labelText = opt.isPrimary
+          ? 'Primary stone <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
+          : (opt.label || ('Option ' + String.fromCharCode(65+optIdx))) + (opt.previouslyChosen ? ' (was primary)' : '');
+        var btns = '';
+        if (!opt.isPrimary && !opt.chosen) {
+          btns += '<button onclick="chooseStoneOption(' + q.id + ',' + optIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>';
+        }
+        if (!opt.isPrimary) {
+          btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + optIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
+        }
+        html += '<div style="padding:8px 0;border-bottom:' + (displayIdx === _displayList.length - 1 ? 'none' : '1px solid var(--border)') + '">'
+          + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'
+          + '<div style="font-size:13px;' + labelStyle + '">' + labelText + '</div>'
+          + '<div style="display:flex;align-items:center;gap:4px">' + btns + '</div>'
+          + '</div>'
+          + (details ? '<div style="font-size:12px;color:var(--text-dim)">' + details + (opt.dealer ? ' · ' + opt.dealer : '') + '</div>' : '')
+          + (giaPart ? '<div style="margin-top:2px">' + giaPart + '</div>' : '')
+          + '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px"><span style="color:var(--text-dim)">Cost $' + (opt.cost || 0).toLocaleString() + '</span><span style="color:var(--gold);font-weight:500">→ $' + (optRetail||0).toLocaleString() + ' retail</span></div>'
+          + '</div>';
       });
-      var optRetail = calcSuggestedRetail(hypothetical);
-      var details = [
-        opt.carat ? parseFloat(opt.carat).toFixed(2) + ' ct' : '',
-        opt.cut, opt.color, opt.clarity,
-      ].filter(Boolean).join(' · ');
-      var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
-      var labelStyle = opt.isPrimary
-        ? 'color:var(--gold);font-weight:500'
-        : (opt.chosen
-          ? 'color:var(--green-bright);font-weight:500'
-          : (opt.previouslyChosen ? 'color:var(--text-dim);font-style:italic;text-decoration:line-through' : 'color:var(--text)'));
-      var labelText = opt.isPrimary
-        ? 'Primary stone <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
-        : (opt.label || ('Option ' + String.fromCharCode(65+optIdx))) + (opt.previouslyChosen ? ' (was primary)' : '');
-      // Choose button only on alternates (not the primary itself), and not on already-chosen ones.
-      var chooseBtn = (!opt.isPrimary && !opt.chosen)
-        ? '<button onclick="chooseStoneOption(' + q.id + ',' + optIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>'
-        : '';
-      html += '<div style="padding:8px 0;border-bottom:' + (displayIdx === _displayList.length - 1 ? 'none' : '1px solid var(--border)') + '">'
-        + '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px">'
-        + '<div style="font-size:13px;' + labelStyle + '">' + labelText + '</div>'
-        + chooseBtn
-        + '</div>'
-        + (details ? '<div style="font-size:12px;color:var(--text-dim)">' + details + (opt.dealer ? ' · ' + opt.dealer : '') + '</div>' : '')
-        + (giaPart ? '<div style="margin-top:2px">' + giaPart + '</div>' : '')
-        + '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:12px"><span style="color:var(--text-dim)">Cost $' + (opt.cost || 0).toLocaleString() + '</span><span style="color:var(--gold);font-weight:500">→ $' + (optRetail||0).toLocaleString() + ' retail</span></div>'
-        + '</div>';
-    });
+    } else {
+      html += '<div style="font-size:12px;color:var(--text-dim);font-style:italic;padding:6px 0">No stone options yet. Add one to compare alternatives for this client.</div>';
+    }
+    html += '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">';
+    html += '<button onclick="addSavedStoneOption(' + q.id + ',event)" style="width:100%;background:none;border:1px dashed var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px;border-radius:0;cursor:pointer">+ Add stone option</button>';
+    html += '</div>';
     html += '</div>';
   }
 
@@ -7020,6 +7028,58 @@ function archiveItem(id, e) {
 // Moves the current primary into stoneOptions (flagged as previouslyChosen),
 // promotes the chosen alternate into stones[], updates costs, and marks the
 // chosen option with chosen:true so it stays visible in the considered list.
+// Add a stone option to an existing saved quote. Opens a small inline form
+// inside the section. Lightweight — fields match what the builder collects.
+function addSavedStoneOption(qid, e) {
+  if (e) e.stopPropagation();
+  var quotes = getSavedQuotes();
+  var q = quotes.find(function(x){ return x.id === qid; });
+  if (!q) return;
+  // Quick prompt-based form. Could be a modal but prompts are reliable on mobile.
+  var label = prompt('Option label (e.g. "Option B" or "2.5ct OEC"):');
+  if (label === null) return; // cancelled
+  var cost = parseFloat(prompt('Cost ($):', '0'));
+  if (isNaN(cost)) cost = 0;
+  var carat = prompt('Carat (optional):', '');
+  var cut = prompt('Cut (optional, e.g. "Old Mine Cut"):', '');
+  var color = prompt('Color (optional, e.g. "K"):', '');
+  var clarity = prompt('Clarity (optional, e.g. "VS2"):', '');
+  var gia = prompt('GIA # (optional):', '');
+  var dealer = prompt('Dealer (optional):', '');
+  // Normalize stoneOptions to array form before pushing.
+  q.stoneOptions = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
+  q.stoneOptions.push({
+    label: (label || '').trim() || ('Option ' + String.fromCharCode(65 + q.stoneOptions.length)),
+    cost: cost || 0,
+    cut: (cut || '').trim(),
+    carat: (carat || '').trim(),
+    color: (color || '').trim(),
+    clarity: (clarity || '').trim(),
+    gia: (gia || '').trim(),
+    dealer: (dealer || '').trim(),
+    antique: false,
+    notes: '',
+  });
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+  showToast('Stone option added');
+}
+
+// Remove a saved stone option by index.
+function removeSavedStoneOption(qid, optIdx, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Remove this stone option?')) return;
+  var quotes = getSavedQuotes();
+  var q = quotes.find(function(x){ return x.id === qid; });
+  if (!q) return;
+  q.stoneOptions = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
+  q.stoneOptions.splice(optIdx, 1);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  renderSaved();
+}
+
 function chooseStoneOption(id, optIdx, e) {
   if (e) e.stopPropagation();
   const quotes = getSavedQuotes();
