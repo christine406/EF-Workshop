@@ -6340,20 +6340,39 @@ function buildMultiPieceCard(q) {
     html += '</div>';
   }
 
-  // Project notes
+  // Project notes & reminders. Direct notes (added via + Note button on the card) have
+  // no fieldLogId and render without a checkbox. Reminders pushed from Field Log have a
+  // fieldLogId and keep the checkbox so they can be checked off.
   if (q.projectNotes && q.projectNotes.length) {
-    const open = q.projectNotes.filter(n => !n.done);
-    const done = q.projectNotes.filter(n => n.done);
-    html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes & reminders</div>';
-    [...open, ...done].forEach(n => {
-      html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
-        + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:var(--teal-dim);cursor:pointer;flex-shrink:0">'
-        + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;opacity:0.5;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
-        + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
-        + '</div>';
-    });
-    html += '</div>';
+    const plainNotes = q.projectNotes.filter(n => !n.fieldLogId);
+    const reminders = q.projectNotes.filter(n => n.fieldLogId);
+
+    if (plainNotes.length) {
+      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes</div>';
+      plainNotes.forEach(n => {
+        html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
+          + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text)">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
+          + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+
+    if (reminders.length) {
+      const openR = reminders.filter(n => !n.done);
+      const doneR = reminders.filter(n => n.done);
+      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Reminders</div>';
+      [...openR, ...doneR].forEach(n => {
+        html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
+          + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:#951d5f;cursor:pointer;flex-shrink:0">'
+          + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;opacity:0.5;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
+          + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
   }
 
   html += '</div>';
@@ -6680,20 +6699,39 @@ function buildQuoteCard(q) {
     html += '</div>';
   }
 
-  // Project notes / reminders
+  // Project notes & reminders. Direct notes (added via + Note button on the card) have
+  // no fieldLogId and render without a checkbox. Reminders pushed from Field Log have a
+  // fieldLogId and keep the checkbox so they can be checked off.
   if (q.projectNotes && q.projectNotes.length) {
-    const open = q.projectNotes.filter(n => !n.done);
-    const done = q.projectNotes.filter(n => n.done);
-    html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes & reminders</div>';
-    [...open, ...done].forEach(n => {
-      html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
-        + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:var(--teal-dim);cursor:pointer;flex-shrink:0">'
-        + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;opacity:0.5;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
-        + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
-        + '</div>';
-    });
-    html += '</div>';
+    const plainNotes = q.projectNotes.filter(n => !n.fieldLogId);
+    const reminders = q.projectNotes.filter(n => n.fieldLogId);
+
+    if (plainNotes.length) {
+      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Notes</div>';
+      plainNotes.forEach(n => {
+        html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
+          + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text)">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
+          + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
+
+    if (reminders.length) {
+      const openR = reminders.filter(n => !n.done);
+      const doneR = reminders.filter(n => n.done);
+      html += '<div style="margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px">';
+      html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">Reminders</div>';
+      [...openR, ...doneR].forEach(n => {
+        html += '<div data-note-id="' + n.id + '" style="display:flex;align-items:flex-start;gap:10px;padding:5px 0;">'
+          + '<input type="checkbox" ' + (n.done ? 'checked' : '') + ' onclick="event.stopPropagation();checkOffProjectNote(' + q.id + ',' + n.id + ')" style="margin-top:2px;width:15px;height:15px;accent-color:#951d5f;cursor:pointer;flex-shrink:0">'
+          + '<div class="note-text" style="flex:1;font-size:13px;color:var(--text);' + (n.done ? 'text-decoration:line-through;opacity:0.5;' : '') + '">' + n.text + '<span style="font-size:11px;color:var(--text-dim);margin-left:6px">' + n.date + '</span></div>'
+          + '<span onclick="event.stopPropagation();deleteProjectNote(' + q.id + ',' + n.id + ')" style="font-size:11px;color:var(--text-dim);cursor:pointer;flex-shrink:0;padding:2px 4px">✕</span>'
+          + '</div>';
+      });
+      html += '</div>';
+    }
   }
 
   html += '</div>'; // end card-body
@@ -11212,11 +11250,48 @@ function pushNoteToProject(projectId, text, fieldLogId) {
 }
 
 // Quick-add a note from the saved card action buttons (no Field Log roundtrip).
+// Opens an inline textarea inside the card so long notes are fully visible while typing.
 function quickAddProjectNote(projectId, e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
-  const text = prompt('Add a note:');
-  if (!text || !text.trim()) return;
-  pushNoteToProject(projectId, text.trim(), null);
+  // If a composer is already open for this project, focus it and bail.
+  const existing = document.getElementById('noteComposer-' + projectId);
+  if (existing) {
+    const ta = existing.querySelector('textarea');
+    if (ta) ta.focus();
+    return;
+  }
+  // Find the card body for this project to insert the composer into.
+  const card = document.querySelector('.quote-item[data-id="' + projectId + '"] .card-body')
+    || document.querySelector('.quote-item[data-id="' + projectId + '"]');
+  if (!card) return;
+  const composer = document.createElement('div');
+  composer.id = 'noteComposer-' + projectId;
+  composer.style.cssText = 'margin-top:12px;background:#fafaf7;border:2px solid #951d5f;border-radius:0;padding:10px 12px';
+  composer.innerHTML =
+    '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;font-weight:500;margin-bottom:8px">New note</div>' +
+    '<textarea placeholder="Type your note..." style="width:100%;min-height:90px;padding:8px 10px;border:1px solid var(--border);background:#fff;font-family:inherit;font-size:14px;color:var(--text);box-sizing:border-box;resize:vertical;border-radius:0"></textarea>' +
+    '<div style="display:flex;gap:6px;margin-top:8px;justify-content:flex-end">' +
+      '<button type="button" data-act="cancel" style="background:none;border:1px solid var(--text-dim);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;cursor:pointer;border-radius:0">Cancel</button>' +
+      '<button type="button" data-act="save" style="background:#951d5f;border:1px solid #951d5f;color:#fff;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;cursor:pointer;border-radius:0">Save note</button>' +
+    '</div>';
+  card.appendChild(composer);
+  const ta = composer.querySelector('textarea');
+  const cancelBtn = composer.querySelector('[data-act="cancel"]');
+  const saveBtn = composer.querySelector('[data-act="save"]');
+  cancelBtn.onclick = function(ev) { ev.stopPropagation(); composer.remove(); };
+  saveBtn.onclick = function(ev) {
+    ev.stopPropagation();
+    const text = (ta.value || '').trim();
+    if (!text) { ta.focus(); return; }
+    pushNoteToProject(projectId, text, null);
+    // pushNoteToProject calls renderSaved, which rebuilds the cards — composer goes with it.
+  };
+  // Cmd/Ctrl+Enter to save quickly.
+  ta.addEventListener('keydown', function(ev) {
+    if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') { ev.preventDefault(); saveBtn.click(); }
+  });
+  ta.focus();
+  composer.scrollIntoView({behavior: 'smooth', block: 'nearest'});
 }
 
 function deleteCostPush(quoteId, pushId) {
