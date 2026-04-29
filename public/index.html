@@ -501,20 +501,21 @@
     display: inline-block;
   }
 
-  /* Stage-colored outline on Saved Projects cards */
+  /* Stage-colored full border on Saved Projects cards */
   .quote-item[data-stage] {
-    border-left: 4px solid var(--border);
+    border: 2px solid var(--border);
+    margin-bottom: 14px;
   }
-  .quote-item[data-stage="deposit"] { border-left-color: var(--stage-deposit); }
-  .quote-item[data-stage="stone-deposit"] { border-left-color: var(--stage-stone-deposit); }
-  .quote-item[data-stage="sourcing"] { border-left-color: var(--stage-sourcing); }
-  .quote-item[data-stage="cad"] { border-left-color: var(--stage-cad); }
-  .quote-item[data-stage="production"] { border-left-color: var(--stage-production); }
-  .quote-item[data-stage="balance"] { border-left-color: var(--stage-balance); }
-  .quote-item[data-stage="ready"] { border-left-color: var(--stage-ready); }
-  .quote-item[data-stage="paused"] { border-left-color: var(--stage-paused); }
-  .quote-item[data-stage="completed"] { border-left-color: var(--stage-completed); }
-  .quote-item[data-stage="abandoned"] { border-left-color: var(--stage-abandoned); }
+  .quote-item[data-stage="deposit"] { border-color: var(--stage-deposit); }
+  .quote-item[data-stage="stone-deposit"] { border-color: var(--stage-stone-deposit); }
+  .quote-item[data-stage="sourcing"] { border-color: var(--stage-sourcing); }
+  .quote-item[data-stage="cad"] { border-color: var(--stage-cad); }
+  .quote-item[data-stage="production"] { border-color: var(--stage-production); }
+  .quote-item[data-stage="balance"] { border-color: var(--stage-balance); }
+  .quote-item[data-stage="ready"] { border-color: var(--stage-ready); }
+  .quote-item[data-stage="paused"] { border-color: var(--stage-paused); }
+  .quote-item[data-stage="completed"] { border-color: var(--stage-completed); }
+  .quote-item[data-stage="abandoned"] { border-color: var(--stage-abandoned); }
 
   /* Stage pill — small rectangular label with stage color */
   .stage-pill {
