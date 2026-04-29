@@ -5221,10 +5221,6 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         </div>
       </div>
     </div>` : ``}
-    <div style="margin-bottom:10px">
-      <div class="field-label">Notes</div>
-      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none;box-sizing:border-box">${q.notes || ''}</textarea>
-    </div>
     <div style="display:flex;gap:8px">
       <button class="btn-primary" style="padding:9px;font-size:12px" onclick="event.stopPropagation();saveQuoteEdit(${id})">Save</button>
       <button class="btn-secondary" style="padding:9px;font-size:12px" onclick="this.closest('.inline-edit-overlay').remove()">Cancel</button>
@@ -5397,10 +5393,6 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
           <label for="ep-add-inv-${id}" style="font-size:13px;color:var(--teal-dim);cursor:pointer">${_linkedInv ? '↗ Already in inventory' : 'Add to stone inventory'}</label>
         </div>
       </div>
-    </div>
-    <div style="margin-bottom:8px">
-      <div class="field-label">Notes</div>
-      <textarea id="eq-notes-${id}" rows="2" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none;resize:none">${q.notes || ''}</textarea>
     </div>
       </div>
     </div>
@@ -6541,8 +6533,6 @@ function buildQuoteCard(q) {
     html += '<div style="display:flex;justify-content:space-between"><span style="color:var(--text-dim)">Casting</span><span>' + q.castingCompany + '</span></div>';
     html += '</div>';
   }
-
-  if (q.notes) html += '<div style="margin-bottom:8px;font-size:13px;color:var(--text-dim);font-style:italic">' + q.notes + '</div>';
 
   // Cost summary — show costs, markup factor, and retail per line.
   // Note on metalEstimate: it stores the retail-marked-up number (×1.35 already baked in).
