@@ -8910,6 +8910,9 @@ function renderStoneInventory() {
   list.appendChild(allHeader);
 
   if (allStonesExpanded) {
+    const allStonesContainer = document.createElement('div');
+    allStonesContainer.style.cssText = 'background:#f5f5f2;padding:10px;margin-bottom:10px';
+    
     const tableWrap = document.createElement('div');
     tableWrap.style.cssText = 'overflow-x:auto;padding:0 4px';
     const sorted = [...allStones].sort((a,b) => (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0));
@@ -8941,7 +8944,8 @@ function renderStoneInventory() {
     });
     thtml += '</tbody></table>';
     tableWrap.innerHTML = thtml;
-    list.appendChild(tableWrap);
+    allStonesContainer.appendChild(tableWrap);
+    list.appendChild(allStonesContainer);
   }
 
   catOrder.forEach(cat => {
@@ -8966,6 +8970,10 @@ function renderStoneInventory() {
     list.appendChild(header);
 
     if (!expanded) return;
+
+    // Wrap expanded cards in a container with cream background for legibility
+    const cardContainer = document.createElement('div');
+    cardContainer.style.cssText = 'background:#f5f5f2;padding:10px;margin-bottom:10px';
 
     // Stone cards in this group
     group.forEach(s => {    const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
@@ -9100,9 +9108,10 @@ function renderStoneInventory() {
 
     html += '</div>';
     div.innerHTML = html;
-    list.appendChild(div);
+    cardContainer.appendChild(div);
 
     }); // end group.forEach
+    list.appendChild(cardContainer);
   }); // end catOrder.forEach
 
   // Archive section — sold stones
@@ -9121,6 +9130,9 @@ function renderStoneInventory() {
     list.appendChild(archiveHeader);
 
     if (archiveExpanded) {
+      const archiveContainer = document.createElement('div');
+      archiveContainer.style.cssText = 'background:#f5f5f2;padding:10px;margin-bottom:10px';
+      
       archivedStones.forEach(s => {
         const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
         const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : s.status === 'archived-with-project' ? (s.archiveLabel || 'Project archived') : 'Sold by dealer';
@@ -9137,8 +9149,9 @@ function renderStoneInventory() {
           + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:2px">' + soldLabel + '</div>'
           + '</div></div>';
         
-        list.appendChild(card);
+        archiveContainer.appendChild(card);
       });
+      list.appendChild(archiveContainer);
     }
   }
 }
