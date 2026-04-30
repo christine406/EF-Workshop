@@ -7112,8 +7112,8 @@ function openStonePickerForStoneOption(projectId) {
   const quotes = getSavedQuotes();
   const q = quotes.find(x => x.id === projectId);
   if (!q) return;
-  const inv = getInventory().filter(s => s.status === 'available' && s.category === 'owned');
-  if (!inv.length) { showToast('No available owned stones in inventory'); return; }
+  const inv = getInventory().filter(s => s.status !== 'reserved' && s.status !== 'unavailable');
+  if (!inv.length) { showToast('No available stones in inventory'); return; }
   
   const picker = document.createElement('div');
   picker.id = 'stone-option-picker-overlay';
