@@ -7626,7 +7626,9 @@ function addStoneToCosts(projectId, stoneId, pieceIdx) {
   if (!stone) return;
   
   // Add stone to the project's stones array (or piece's stones array if multi-piece)
-  const target = pieceIdx !== null ? q.pieces[pieceIdx] : q;
+  // pieceIdx can be a number, null, undefined, or the string 'null' from template interpolation
+  const validPieceIdx = (pieceIdx !== null && pieceIdx !== 'null' && pieceIdx !== undefined) ? pieceIdx : null;
+  const target = validPieceIdx !== null ? q.pieces[validPieceIdx] : q;
   if (!Array.isArray(target.stones)) target.stones = [];
   target.stones.push({
     id: stone.id,
@@ -7644,14 +7646,15 @@ function addStoneToCosts(projectId, stoneId, pieceIdx) {
   // Close picker, refresh the Update Costs modal
   document.getElementById('stone-picker-overlay')?.remove();
   document.getElementById('costs-overlay-' + projectId)?.remove();
-  setTimeout(() => updateCosts(projectId, {stopPropagation: () => {}}, pieceIdx !== null ? pieceIdx : undefined), 50);
+  setTimeout(() => updateCosts(projectId, {stopPropagation: () => {}}, validPieceIdx !== null ? validPieceIdx : undefined), 50);
 }
 
 function removeStoneFromCosts(projectId, stoneIdx, pieceIdx) {
   const quotes = getSavedQuotes();
   const q = quotes.find(x => x.id === projectId);
   if (!q) return;
-  const target = pieceIdx !== null ? q.pieces[pieceIdx] : q;
+  const validPieceIdx = (pieceIdx !== null && pieceIdx !== 'null' && pieceIdx !== undefined) ? pieceIdx : null;
+  const target = validPieceIdx !== null ? q.pieces[validPieceIdx] : q;
   if (!Array.isArray(target.stones)) return;
   target.stones.splice(stoneIdx, 1);
   window._savedQuotes = quotes;
@@ -7659,7 +7662,7 @@ function removeStoneFromCosts(projectId, stoneIdx, pieceIdx) {
   
   // Refresh modal
   document.getElementById('costs-overlay-' + projectId)?.remove();
-  setTimeout(() => updateCosts(projectId, {stopPropagation: () => {}}, pieceIdx !== null ? pieceIdx : undefined), 50);
+  setTimeout(() => updateCosts(projectId, {stopPropagation: () => {}}, validPieceIdx !== null ? validPieceIdx : undefined), 50);
 }
 
 function startSemiCustom(id, e) {
