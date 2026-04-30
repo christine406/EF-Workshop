@@ -7429,7 +7429,7 @@ function updateCosts(id, e, pieceIdx) {
     <div style="background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px;margin-bottom:14px">
       <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
         <span>Stones</span>
-        <button onclick="document.getElementById('costs-overlay-${id}').remove();showScreen('stones')" style="background:#951d5f;color:#fff;border:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;cursor:pointer">+ Add from inventory</button>
+        <button onclick="openStonePickerForCosts(${id}, ${pieceIdx !== undefined ? pieceIdx : 'null'})" style="background:#951d5f;color:#fff;border:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;cursor:pointer">+ Add from inventory</button>
       </div>
       <div id="af-stones-list-${id}" style="display:flex;flex-direction:column;gap:6px">
         ${(effectiveQ.stones || []).map((st, idx) => `
@@ -7599,18 +7599,19 @@ function openStonePickerForCosts(projectId, pieceIdx) {
   picker.id = 'stone-picker-overlay';
   picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:2px solid var(--teal-dim);padding:16px;width:100%;max-width:500px;margin:auto';
+  modal.style.cssText = 'background:#fafaf7;border:2px solid var(--teal-dim);padding:16px;width:100%;max-width:600px;margin:auto';
   modal.innerHTML = '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Select stone from inventory</div>'
-    + '<div style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto">'
+    + '<div style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto">'
     + inv.map(s => {
       const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
-      return '<div onclick="addStoneToCosts(' + projectId + ',' + s.id + ',' + (pieceIdx !== null ? pieceIdx : 'null') + ')" style="padding:10px;background:#fafaf7;border:1px solid var(--border);cursor:pointer;transition:all 0.1s" onmouseover="this.style.background=\'#f5f5f2\'" onmouseout="this.style.background=\'#fafaf7\'">'
-        + '<div style="font-size:13px;color:var(--text);margin-bottom:2px">' + desc + '</div>'
-        + '<div style="font-size:11px;color:var(--text-dim)">' + (s.cost ? '$' + s.cost.toLocaleString() : 'No price set') + (s.gia ? ' · GIA ' + s.gia : '') + '</div>'
+      const price = s.cost ? '$' + s.cost.toLocaleString() : '<span style="color:#951d5f;font-weight:500">❗️ No price</span>';
+      return '<div onclick="addStoneToCosts(' + projectId + ',' + s.id + ',' + (pieceIdx !== null ? pieceIdx : 'null') + ')" style="padding:12px;background:#fafaf7;border:1px solid var(--border);cursor:pointer;transition:background 0.1s" onmouseover="this.style.background=\'#f5f5f2\'" onmouseout="this.style.background=\'#fafaf7\'">'
+        + '<div style="font-size:14px;color:var(--text);margin-bottom:4px;font-weight:500">' + desc + '</div>'
+        + '<div style="font-size:12px;color:var(--text-dim)">' + price + (s.gia ? ' · GIA ' + s.gia : '') + '</div>'
         + '</div>';
     }).join('')
     + '</div>'
-    + '<button onclick="document.getElementById(\'stone-picker-overlay\').remove()" style="margin-top:12px;width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:8px;cursor:pointer">Cancel</button>';
+    + '<button onclick="document.getElementById(\'stone-picker-overlay\').remove()" style="margin-top:14px;width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;cursor:pointer">Cancel</button>';
   picker.appendChild(modal);
   picker.addEventListener('click', ev => { if (ev.target === picker) picker.remove(); });
   document.body.appendChild(picker);
