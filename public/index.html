@@ -7104,36 +7104,69 @@ function archiveItem(id, e) {
 // inside the section. Lightweight — fields match what the builder collects.
 function addSavedStoneOption(qid, e) {
   if (e) e.stopPropagation();
-  var quotes = getSavedQuotes();
-  var q = quotes.find(function(x){ return x.id === qid; });
+  // Open the same stone picker used in Update Costs
+  openStonePickerForStoneOption(qid);
+}
+
+function openStonePickerForStoneOption(projectId) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(x => x.id === projectId);
   if (!q) return;
-  // Quick prompt-based form. Could be a modal but prompts are reliable on mobile.
-  var label = prompt('Option label (e.g. "Option B" or "2.5ct OEC"):');
-  if (label === null) return; // cancelled
-  var cost = parseFloat(prompt('Cost ($):', '0'));
-  if (isNaN(cost)) cost = 0;
-  var carat = prompt('Carat (optional):', '');
-  var cut = prompt('Cut (optional, e.g. "Old Mine Cut"):', '');
-  var color = prompt('Color (optional, e.g. "K"):', '');
-  var clarity = prompt('Clarity (optional, e.g. "VS2"):', '');
-  var gia = prompt('GIA # (optional):', '');
-  var dealer = prompt('Dealer (optional):', '');
-  // Normalize stoneOptions to array form before pushing.
+  const inv = getInventory().filter(s => s.status === 'available' && s.category === 'owned');
+  if (!inv.length) { showToast('No available owned stones in inventory'); return; }
+  
+  const picker = document.createElement('div');
+  picker.id = 'stone-option-picker-overlay';
+  picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:#fafaf7;border:2px solid var(--teal-dim);padding:16px;width:100%;max-width:600px;margin:auto';
+  modal.innerHTML = '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Select stone from inventory</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto">'
+    + inv.map(s => {
+      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
+      const price = s.cost ? '$' + s.cost.toLocaleString() : '<span style="color:#951d5f;font-weight:500">❗️ No price</span>';
+      return '<div onclick="addStoneOptionFromInventory(' + projectId + ',' + s.id + ')" style="padding:12px;background:#fafaf7;border:1px solid var(--border);cursor:pointer;transition:background 0.1s" onmouseover="this.style.background=\'#f5f5f2\'" onmouseout="this.style.background=\'#fafaf7\'">'
+        + '<div style="font-size:14px;color:var(--text);margin-bottom:4px;font-weight:500">' + desc + '</div>'
+        + '<div style="font-size:12px;color:var(--text-dim)">' + price + (s.gia ? ' · GIA ' + s.gia : '') + '</div>'
+        + '</div>';
+    }).join('')
+    + '</div>'
+    + '<button onclick="document.getElementById(\'stone-option-picker-overlay\').remove()" style="margin-top:14px;width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;cursor:pointer">Cancel</button>';
+  picker.appendChild(modal);
+  picker.addEventListener('click', ev => { if (ev.target === picker) picker.remove(); });
+  document.body.appendChild(picker);
+}
+
+function addStoneOptionFromInventory(projectId, stoneId) {
+  const quotes = getSavedQuotes();
+  const q = quotes.find(x => x.id === projectId);
+  if (!q) return;
+  const inv = getInventory();
+  const stone = inv.find(s => s.id === stoneId);
+  if (!stone) return;
+  
+  // Normalize stoneOptions to array
   q.stoneOptions = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
+  
+  // Generate label from stone details
+  const label = [stone.carat ? stone.carat + 'ct' : '', stone.cut, stone.color, stone.clarity].filter(Boolean).join(' ') || 'Option ' + String.fromCharCode(65 + q.stoneOptions.length);
+  
   q.stoneOptions.push({
-    label: (label || '').trim() || ('Option ' + String.fromCharCode(65 + q.stoneOptions.length)),
-    cost: cost || 0,
-    cut: (cut || '').trim(),
-    carat: (carat || '').trim(),
-    color: (color || '').trim(),
-    clarity: (clarity || '').trim(),
-    gia: (gia || '').trim(),
-    dealer: (dealer || '').trim(),
-    antique: false,
+    label: label,
+    cost: stone.cost || 0,
+    cut: stone.cut || '',
+    carat: stone.carat || '',
+    color: stone.color || '',
+    clarity: stone.clarity || '',
+    gia: stone.gia || '',
+    dealer: stone.dealer || '',
+    antique: stone.antique || false,
     notes: '',
+    id: Date.now(),
   });
   window._savedQuotes = quotes;
   persistQuotes();
+  document.getElementById('stone-option-picker-overlay')?.remove();
   renderSaved();
   showToast('Stone option added');
 }
@@ -7426,21 +7459,6 @@ function updateCosts(id, e, pieceIdx) {
         <div style="color:var(--text-dim);font-weight:500">Quote retail</div><div style="color:var(--gold);font-weight:500">$${(src.total || q.total || 0).toLocaleString()}</div>
       </div>
     </div>
-    <div style="background:#fdf6d8;border:2px solid #951d5f;border-radius:0;padding:10px;margin-bottom:14px">
-      <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:#951d5f;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
-        <span>Stones</span>
-        <button onclick="openStonePickerForCosts(${id}, ${pieceIdx !== undefined ? pieceIdx : 'null'})" style="background:#951d5f;color:#fff;border:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:3px 7px;cursor:pointer">+ Add from inventory</button>
-      </div>
-      <div id="af-stones-list-${id}" style="display:flex;flex-direction:column;gap:6px">
-        ${(effectiveQ.stones || []).map((st, idx) => `
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 6px;background:#fafaf7;border:1px solid var(--border)">
-            <div><span style="color:var(--text)">${st.carat ? st.carat + 'ct' : ''} ${st.cut || 'stone'}</span>${st.cost ? ' <span style="color:var(--gold)">· $' + st.cost.toLocaleString() + '</span>' : ''}</div>
-            <button onclick="removeStoneFromCosts(${id}, ${idx}, ${pieceIdx !== undefined ? pieceIdx : 'null'})" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer;padding:2px 4px">✕</button>
-          </div>
-        `).join('')}
-        ${(effectiveQ.stones || []).length === 0 ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;text-align:center;padding:8px 0">No stones yet — add from inventory or enter cost manually below</div>' : ''}
-      </div>
-    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
       <div>
         <div class="field-label">Casting company</div>
@@ -7459,9 +7477,8 @@ function updateCosts(id, e, pieceIdx) {
       </div>
       <div>
         <div class="field-label">Stone cost ($)</div>
-        <input type="number" id="af-stone-${id}" value="${src.actualStoneCost != null ? src.actualStoneCost : (src.stones?.reduce((s,st)=>s+(st.cost||0),0) || src.stoneCost || '')}" min="0" placeholder="${(src.stones?.reduce((s,st)=>s+(st.cost||0),0) || 0)}" oninput="calcCostsLive(${id})"
+        <input type="number" id="af-stone-${id}" value="${src.actualStoneCost != null ? src.actualStoneCost : (src.stones?.reduce((s,st)=>s+(st.cost||0),0) || src.stoneCost || '')}" min="0" placeholder="0" oninput="calcCostsLive(${id})"
           style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:7px 8px;border-radius:0;outline:none">
-        <div style="font-size:10px;color:var(--text-dim);margin-top:2px">Auto-filled from stones above (${src.stones?.reduce((s,st)=>s+(st.cost||0),0) || 0}). Override if needed.</div>
       </div>
       <div>
         <div class="field-label">Final labor cost ($)</div>
@@ -7588,83 +7605,6 @@ function calcCostsLive(id) {
 }
 
 // Open stone picker overlay to add stones from inventory to a project in the Update Costs modal
-function openStonePickerForCosts(projectId, pieceIdx) {
-  const quotes = getSavedQuotes();
-  const q = quotes.find(x => x.id === projectId);
-  if (!q) return;
-  const inv = getInventory().filter(s => s.status === 'available' && s.category === 'owned');
-  if (!inv.length) { showToast('No available owned stones in inventory'); return; }
-  
-  const picker = document.createElement('div');
-  picker.id = 'stone-picker-overlay';
-  picker.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:#fafaf7;border:2px solid var(--teal-dim);padding:16px;width:100%;max-width:600px;margin:auto';
-  modal.innerHTML = '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px">Select stone from inventory</div>'
-    + '<div style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto">'
-    + inv.map(s => {
-      const desc = [s.carat ? s.carat + 'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' ');
-      const price = s.cost ? '$' + s.cost.toLocaleString() : '<span style="color:#951d5f;font-weight:500">❗️ No price</span>';
-      return '<div onclick="addStoneToCosts(' + projectId + ',' + s.id + ',' + (pieceIdx !== null ? pieceIdx : 'null') + ')" style="padding:12px;background:#fafaf7;border:1px solid var(--border);cursor:pointer;transition:background 0.1s" onmouseover="this.style.background=\'#f5f5f2\'" onmouseout="this.style.background=\'#fafaf7\'">'
-        + '<div style="font-size:14px;color:var(--text);margin-bottom:4px;font-weight:500">' + desc + '</div>'
-        + '<div style="font-size:12px;color:var(--text-dim)">' + price + (s.gia ? ' · GIA ' + s.gia : '') + '</div>'
-        + '</div>';
-    }).join('')
-    + '</div>'
-    + '<button onclick="document.getElementById(\'stone-picker-overlay\').remove()" style="margin-top:14px;width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:10px;cursor:pointer">Cancel</button>';
-  picker.appendChild(modal);
-  picker.addEventListener('click', ev => { if (ev.target === picker) picker.remove(); });
-  document.body.appendChild(picker);
-}
-
-function addStoneToCosts(projectId, stoneId, pieceIdx) {
-  const quotes = getSavedQuotes();
-  const q = quotes.find(x => x.id === projectId);
-  if (!q) return;
-  const inv = getInventory();
-  const stone = inv.find(s => s.id === stoneId);
-  if (!stone) return;
-  
-  // Add stone to the project's stones array (or piece's stones array if multi-piece)
-  // pieceIdx can be a number, null, undefined, or the string 'null' from template interpolation
-  const validPieceIdx = (pieceIdx !== null && pieceIdx !== 'null' && pieceIdx !== undefined) ? pieceIdx : null;
-  const target = validPieceIdx !== null ? q.pieces[validPieceIdx] : q;
-  if (!Array.isArray(target.stones)) target.stones = [];
-  target.stones.push({
-    id: stone.id,
-    carat: stone.carat,
-    cut: stone.cut,
-    color: stone.color,
-    clarity: stone.clarity,
-    cost: stone.cost || 0,
-    gia: stone.gia || '',
-  });
-  
-  window._savedQuotes = quotes;
-  persistQuotes();
-  
-  // Close picker, refresh the Update Costs modal
-  document.getElementById('stone-picker-overlay')?.remove();
-  document.getElementById('costs-overlay-' + projectId)?.remove();
-  setTimeout(() => updateCosts(projectId, {stopPropagation: () => {}}, validPieceIdx !== null ? validPieceIdx : undefined), 50);
-}
-
-function removeStoneFromCosts(projectId, stoneIdx, pieceIdx) {
-  const quotes = getSavedQuotes();
-  const q = quotes.find(x => x.id === projectId);
-  if (!q) return;
-  const validPieceIdx = (pieceIdx !== null && pieceIdx !== 'null' && pieceIdx !== undefined) ? pieceIdx : null;
-  const target = validPieceIdx !== null ? q.pieces[validPieceIdx] : q;
-  if (!Array.isArray(target.stones)) return;
-  target.stones.splice(stoneIdx, 1);
-  window._savedQuotes = quotes;
-  persistQuotes();
-  
-  // Refresh modal
-  document.getElementById('costs-overlay-' + projectId)?.remove();
-  setTimeout(() => updateCosts(projectId, {stopPropagation: () => {}}, validPieceIdx !== null ? validPieceIdx : undefined), 50);
-}
-
 function startSemiCustom(id, e) {
   e.stopPropagation();
   const quotes = getSavedQuotes();
