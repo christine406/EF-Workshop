@@ -7212,6 +7212,7 @@ function addStoneOptionFromInventory(projectId, stoneId) {
   persistQuotes();
   document.getElementById('stone-option-picker-overlay')?.remove();
   renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
   showToast('Stone option added');
 }
 
@@ -7227,6 +7228,7 @@ function removeSavedStoneOption(qid, optIdx, e) {
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
 }
 
 function chooseStoneOption(id, optIdx, e) {
@@ -7339,6 +7341,7 @@ function chooseStoneOption(id, optIdx, e) {
   }
 
   renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
   showToast('Stone option locked in');
 }
 
