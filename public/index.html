@@ -7778,6 +7778,7 @@ function saveActuals(id) {
   const form = document.getElementById('costs-overlay-' + id);
   if (form) form.remove();
   renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
   showToast('Costs saved');
 }
 
