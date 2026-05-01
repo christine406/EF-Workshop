@@ -7730,12 +7730,13 @@ function saveActuals(id) {
   const meleeField = document.getElementById('af-melee-' + id)?.value;
   const clientField = document.getElementById('af-client-' + id)?.value;
 
-  const stoneCost = stoneField !== '' && stoneField != null ? parseFloat(stoneField) : origStoneCost;
-  const metalCost = metalField !== '' && metalField != null ? parseFloat(metalField) : origMetalCost;
-  const laborCost = laborField !== '' && laborField != null ? parseFloat(laborField) : origLaborCost;
-  const designFee = (designField !== '' && designField != null) ? (parseFloat(designField) || 0) : origDesignFee;
-  const meleeCost = meleeField !== '' && meleeField != null ? parseFloat(meleeField) : (q.meleeCost || 0);
-  const clientPrice = (clientField !== '' && clientField != null) ? (parseFloat(clientField) || 0) : null;
+  // Empty string means user backspaced it = treat as 0 (intentional deletion)
+  const stoneCost = stoneField === '' ? 0 : (parseFloat(stoneField) || origStoneCost);
+  const metalCost = metalField === '' ? 0 : (parseFloat(metalField) || origMetalCost);
+  const laborCost = laborField === '' ? 0 : (parseFloat(laborField) || origLaborCost);
+  const designFee = designField === '' ? 0 : (parseFloat(designField) || origDesignFee);
+  const meleeCost = meleeField === '' ? 0 : (parseFloat(meleeField) || (q.meleeCost || 0));
+  const clientPrice = clientField === '' ? null : (parseFloat(clientField) || null);
 
   const castingCompany = document.getElementById('af-caster-' + id)?.value || q.castingCompany || '';
   const chainEl = document.getElementById('af-chain-' + id);
