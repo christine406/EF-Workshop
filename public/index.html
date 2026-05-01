@@ -7812,6 +7812,7 @@ function applyDiscount(id, val, type) {
   window._savedQuotes = quotes;
   persistQuotes();
   renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
 }
 
 // =================== DIRECT PROJECT ===================
