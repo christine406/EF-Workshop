@@ -6155,11 +6155,18 @@ function buildMultiPieceCard(q) {
     if (_displayList.length) {
       _displayList.forEach(function(opt, displayIdx) {
         var optIdx = _primarySnap ? displayIdx - 1 : displayIdx;
-        var hypothetical = Object.assign({}, q, {
-          actualStoneCost: opt.cost || 0,
-          stoneCost: opt.cost || 0,
-          stones: [],
-        });
+        var hypothetical;
+        // For primary stone, use full current costs to show actual retail
+        if (opt.isPrimary) {
+          hypothetical = q;
+        } else {
+          // For alternate options, show hypothetical retail with just that stone
+          hypothetical = Object.assign({}, q, {
+            actualStoneCost: opt.cost || 0,
+            stoneCost: opt.cost || 0,
+            stones: [],
+          });
+        }
         var optRetail = calcSuggestedRetail(hypothetical);
         var details = [
           opt.carat ? parseFloat(opt.carat).toFixed(2) + ' ct' : '',
@@ -6505,11 +6512,18 @@ function buildQuoteCard(q) {
     if (_displayList2.length) {
       _displayList2.forEach(function(opt, displayIdx) {
         var optIdx = _primarySnap2 ? displayIdx - 1 : displayIdx;
-        var hypothetical = Object.assign({}, q, {
-          actualStoneCost: opt.cost || 0,
-          stoneCost: opt.cost || 0,
-          stones: [],
-        });
+        var hypothetical;
+        // For primary stone, use full current costs to show actual retail
+        if (opt.isPrimary) {
+          hypothetical = q;
+        } else {
+          // For alternate options, show hypothetical retail with just that stone
+          hypothetical = Object.assign({}, q, {
+            actualStoneCost: opt.cost || 0,
+            stoneCost: opt.cost || 0,
+            stones: [],
+          });
+        }
         var optRetail = calcSuggestedRetail(hypothetical);
         var details = [
           opt.carat ? parseFloat(opt.carat).toFixed(2) + ' ct' : '',
@@ -7163,9 +7177,9 @@ function renderStoneOptionPicker(projectId, listContainer) {
   if (!listContainer) return;
   
   const searchQuery = document.getElementById('stoneOptionPickerSearch')?.value || '';
-  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  // Include ALL stones except unavailable (keep sold/archived - they go in Archived section)
   const available = getInventory().filter(s =>
-    !archivedStatuses.includes(s.status) &&
+    s.status !== 'unavailable' &&
     s.status !== 'reserved' &&
     stoneMatchesSearch(s, searchQuery)
   );
@@ -8137,12 +8151,46 @@ function renderGroupedPicker(list, stones, onSelect) {
       row.onmouseenter = () => row.style.background = 'var(--surface2)';
       row.onmouseleave = () => row.style.background = '';
       row.innerHTML = '<div><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div>'
-        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + catLabel + (s.cost ? ' · $' + s.cost.toLocaleString() : '') + '</div></div>'
+        + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + catLabel + (s.cost ? ' · $' + s.cost.toLocaleString() : '') + (s.gia ? ' · GIA ' + s.gia : '') + '</div></div>'
         + '<button style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Use</button>';
       row.querySelector('button').onclick = (e) => { e.stopPropagation(); onSelect(s); };
       list.appendChild(row);
     });
   });
+
+  // Add Archived section at the bottom
+  if (archivedStones.length) {
+    hasAny = true;
+    const expanded = searchActive || (window._pickerExpanded['archived-stone'] !== undefined ? window._pickerExpanded['archived-stone'] : false);
+    
+    const header = document.createElement('div');
+    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 12px;cursor:pointer;background:#fafaf7;border-bottom:1px solid var(--border)';
+    header.innerHTML = '<div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">'
+      + catLabels['archived-stone'] + ' (' + archivedStones.length + ')</div>'
+      + '<div style="font-size:13px;color:var(--text-dim)">' + (expanded ? '▴' : '▾') + '</div>';
+    header.onclick = () => {
+      window._pickerExpanded['archived-stone'] = !window._pickerExpanded['archived-stone'];
+      const parentList = list;
+      renderGroupedPicker(parentList, stones, onSelect);
+    };
+    list.appendChild(header);
+
+    if (expanded) {
+      archivedStones.forEach(s => {
+        const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
+        const statusLabel = s.status === 'sold-by-dealer' ? 'sold by dealer' : s.status === 'sold-by-ef' ? 'sold by EF' : 'archived';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);cursor:pointer';
+        row.onmouseenter = () => row.style.background = 'var(--surface2)';
+        row.onmouseleave = () => row.style.background = '';
+        row.innerHTML = '<div><div style="font-size:13px;color:var(--text-dim)">' + (desc || 'Stone') + '</div>'
+          + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + statusLabel + (s.cost ? ' · $' + s.cost.toLocaleString() : '') + (s.gia ? ' · GIA ' + s.gia : '') + '</div></div>'
+          + '<button style="background:var(--teal-dim);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Use</button>';
+        row.querySelector('button').onclick = (e) => { e.stopPropagation(); onSelect(s); };
+        list.appendChild(row);
+      });
+    }
+  }
 
   if (!hasAny) {
     list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-dim);text-align:center">No available stones in inventory.</div>';
@@ -8151,10 +8199,10 @@ function renderGroupedPicker(list, stones, onSelect) {
 
 function renderInventoryPicker() {
   const list = document.getElementById('inventoryPickerList');
-  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  // Include ALL stones except unavailable (sold/archived go in Archived section)
   const searchQuery = document.getElementById('invPickerSearch')?.value || '';
   const available = getInventory().filter(s =>
-    !archivedStatuses.includes(s.status) &&
+    s.status !== 'unavailable' &&
     s.category !== 'owned-reserved' &&
     stoneMatchesSearch(s, searchQuery)
   );
