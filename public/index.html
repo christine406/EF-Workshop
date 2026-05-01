@@ -7742,7 +7742,7 @@ function saveActuals(id) {
   const chainIdx = chainEl?.value || '';
   const chainPickerWholesale = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.wholesale || 0) : 0;
   const chainCostFieldVal = parseFloat(document.getElementById('af-chain-cost-' + id)?.value);
-  const chainCost = chainPickerWholesale > 0 ? chainPickerWholesale : (isNaN(chainCostFieldVal) ? (q.chainCost || 0) : chainCostFieldVal);
+  const chainCost = chainPickerWholesale > 0 ? chainPickerWholesale : (isNaN(chainCostFieldVal) ? 0 : chainCostFieldVal);
 
   // Recalculate retail for single-piece use
   const stoneRetail = stoneCost * stoneMarkupProject(stoneCost);
