@@ -9193,20 +9193,37 @@ function renderStoneInventory() {
       
       archivedStones.forEach(s => {
         const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
-        const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : s.status === 'archived-with-project' ? (s.archiveLabel || 'Project archived') : 'Sold by dealer';
+        const _giaUrlNum = String(s.gia || '').replace(/\D/g, '');
+        const giaLink = _giaUrlNum
+          ? `<a href="javascript:void(0)" onclick="openGiaReport('${_giaUrlNum}',event)" style="color:var(--teal-dim);font-size:13px;text-decoration:none;cursor:pointer">GIA ${s.gia} ↗</a>`
+          : '';
+        const soldLabel = s.status === 'sold-by-ef' ? 'Sold by EF' : s.status === 'archived-with-project' ? (s.archiveLabel || 'Archived with project') : 'Sold by dealer';
         const soldColor = s.status === 'sold-by-ef' ? 'var(--teal-dim)' : s.status === 'archived-with-project' ? 'var(--text-dim)' : '#8B6914';
+        const extraDetails = [
+          s.dimensions ? s.dimensions : '',
+          s.fluorescence ? 'Fluorescence: ' + s.fluorescence : '',
+        ].filter(Boolean).join(' · ');
 
         const card = document.createElement('div');
-        card.style.cssText = 'padding:10px 14px;border-bottom:1px solid var(--border);opacity:0.7';
-        card.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:flex-start">'
-          + '<div style="flex:1"><div style="font-size:13px;color:var(--text)">' + (desc || 'Stone') + '</div>'
-          + '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + (s.dealer || '') + (s.soldDate ? ' · ' + s.soldDate : '') + '</div>'
-          + (s.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:2px">' + s.notes + '</div>' : '') + '</div>'
+        card.style.cssText = 'background:var(--surface1);padding:12px 14px;margin-bottom:8px;cursor:pointer;opacity:0.7';
+        card.onclick = () => jumpToStone(s.id);
+        card.onmouseenter = () => card.style.opacity = '0.85';
+        card.onmouseleave = () => card.style.opacity = '0.7';
+        
+        let html = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
+          + '<div style="flex:1"><div style="font-size:14px;color:var(--text);font-weight:500">' + (desc || 'Stone') + '</div>'
+          + (s.dealer ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">Dealer: ' + s.dealer + '</div>' : '')
+          + (giaLink ? '<div style="margin-top:4px">' + giaLink + '</div>' : '')
+          + (extraDetails ? '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">' + extraDetails + '</div>' : '')
+          + (s.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:3px;padding:4px 0">' + s.notes + '</div>' : '')
+          + '</div>'
           + '<div style="text-align:right">'
-          + (s.cost ? '<div style="font-size:13px;color:var(--text-dim)">cost $' + Number(s.cost).toLocaleString() + '</div>' : '')
-          + '<div style="font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:2px">' + soldLabel + '</div>'
+          + (s.cost ? '<div style="font-size:14px;color:var(--text)">$' + Number(s.cost).toLocaleString() + '</div>' : '')
+          + '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:4px">' + soldLabel + '</div>'
+          + (s.soldDate ? '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">' + s.soldDate + '</div>' : '')
           + '</div></div>';
         
+        card.innerHTML = html;
         archiveContainer.appendChild(card);
       });
       list.appendChild(archiveContainer);
