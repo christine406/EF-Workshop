@@ -7554,6 +7554,7 @@ function updateCosts(id, e, pieceIdx) {
       <div style="display:flex;align-items:center;gap:8px;padding:4px 0 6px">
         <div id="af-chain-label-${id}" style="font-size:14px;color:var(--gold);font-style:italic">${q.chainName || 'None selected'}</div>
         <button id="af-chain-tree-${id}-toggle" onclick="document.getElementById('af-chain-tree-${id}').style.display='block';this.style.display='none'" style="background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Browse</button>
+        ${q.chainName ? '<button onclick="clearChainFromActuals(' + id + ')" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;padding:3px 7px;border-radius:0;cursor:pointer;text-transform:uppercase">Clear</button>' : ''}
       </div>
       <div id="af-chain-tree-${id}" style="border:1px solid var(--border);border-radius:0;overflow:hidden;display:none;max-height:200px;overflow-y:auto"></div>
     </div>
@@ -7683,6 +7684,20 @@ function startSemiCustom(id, e) {
   showToast('Semi-custom project created for ' + clientName);
 }
 
+function clearChainFromActuals(id) {
+  const labelEl = document.getElementById('af-chain-label-' + id);
+  const hiddenEl = document.getElementById('af-chain-' + id);
+  const chainCostField = document.getElementById('af-chain-cost-' + id);
+  if (labelEl) labelEl.textContent = 'None selected';
+  if (labelEl) labelEl.style.fontStyle = 'italic';
+  if (hiddenEl) hiddenEl.value = '';
+  if (chainCostField) chainCostField.value = '';
+  calcCostsLive(id);
+  // Hide the clear button itself
+  const clearBtn = event.target;
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+
 function saveActuals(id) {
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === id);
@@ -7764,8 +7779,8 @@ function saveActuals(id) {
     q.actualDesignFee = designFee;
     q.actualMeleeCost = meleeCost;
     q.castingCompany = castingCompany;
-    q.chainCost = chainCost;
-    q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : (q.chainName || '');
+    q.chainCost = chainCost || 0;
+    q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : '';
     q.clientPrice = clientPrice;
     q.actualTotal = clientPrice > 0 ? clientPrice : recalcRetail;
     // Free-text reminder
