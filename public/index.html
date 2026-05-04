@@ -12795,7 +12795,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
 
     if(pushMode==='add'){
       var field=fieldSel.value;
-      if(q.isMultiPiece&&q.pieces&&q.pieces.length>1){
+      if(q.isMultiPiece&&q.pieces&&q.pieces.length>=1){
         var pieceOverlay=document.createElement('div');pieceOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
         var pieceModal=document.createElement('div');pieceModal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
         var pt=document.createElement('div');pt.style.cssText='font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px';pt.textContent='Which piece?';pieceModal.appendChild(pt);
