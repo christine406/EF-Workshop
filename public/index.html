@@ -12792,9 +12792,16 @@ function pushLineItemToProject(invoiceId,lineItemId){
 
     var projId=destId;
     var q=quotes.find(function(q){return q.id===projId;});if(!q)return;
+    console.log('[invoice push] Selected project:', q.client);
+    console.log('[invoice push] q.isMultiPiece:', q.isMultiPiece);
+    console.log('[invoice push] q.pieces:', q.pieces);
+    console.log('[invoice push] q.pieces?.length:', q.pieces?.length);
+    console.log('[invoice push] pushMode:', pushMode);
 
     if(pushMode==='add'){
       var field=fieldSel.value;
+      console.log('[invoice push] field:', field);
+      console.log('[invoice push] Checking condition: isMultiPiece=', q.isMultiPiece, 'pieces=', q.pieces, 'length>=1=', q.pieces&&q.pieces.length>=1);
       if(q.isMultiPiece&&q.pieces&&q.pieces.length>=1){
         var pieceOverlay=document.createElement('div');pieceOverlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px';
         var pieceModal=document.createElement('div');pieceModal.style.cssText='background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:360px';
