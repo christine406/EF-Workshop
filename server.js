@@ -286,6 +286,7 @@ app.post('/api/jotform-webhook', (req, res) => {
     let pieceType, sourcingStone, stoneType, budget, processStage, howLearnProcess,
         designNotes, wearerInvolved, ringSize, needByYesNo, needBy, howFound, stoneView, occasion, notes;
     let inspirationImages = [];
+    let antiqueFields = null;
 
     if (formType === 'antique-diamond') {
       // ANTIQUE DIAMOND SOURCING FORM - all fields mapped separately
