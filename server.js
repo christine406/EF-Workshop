@@ -389,14 +389,15 @@ app.post('/api/jotform-webhook', (req, res) => {
         } else if (typeof uploadRaw === 'string') {
           try {
             const parsed = JSON.parse(uploadRaw);
-          if (Array.isArray(parsed)) {
-            inspirationImages = parsed.filter(u => typeof u === 'string' && u.startsWith('http'));
-          } else if (typeof parsed === 'string' && parsed.startsWith('http')) {
-            inspirationImages = [parsed];
+            if (Array.isArray(parsed)) {
+              inspirationImages = parsed.filter(u => typeof u === 'string' && u.startsWith('http'));
+            } else if (typeof parsed === 'string' && parsed.startsWith('http')) {
+              inspirationImages = [parsed];
+            }
+          } catch(e) {
+            // If it's not JSON but is a URL, keep it
+            if (uploadRaw.startsWith('http')) inspirationImages = [uploadRaw];
           }
-        } catch(e) {
-          // If it's not JSON but is a URL, keep it
-          if (uploadRaw.startsWith('http')) inspirationImages = [uploadRaw];
         }
       }
     }
