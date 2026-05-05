@@ -285,8 +285,61 @@ app.post('/api/jotform-webhook', (req, res) => {
     // Form-specific field mapping (confirmed from JotForm submissions)
     let pieceType, sourcingStone, stoneType, budget, processStage, howLearnProcess,
         designNotes, wearerInvolved, ringSize, needByYesNo, needBy, howFound, stoneView, occasion, notes;
+    let inspirationImages = [];
 
-    if (formType === 'bespoke') {
+    if (formType === 'antique-diamond') {
+      // ANTIQUE DIAMOND SOURCING FORM
+      const phone         = dget('q31_phone');          // Phone number
+      howFound            = dget('q32_howDid');         // "How did you find Elvie Fine?"
+      budget              = dget('q34_whatIs');         // "What is your stone budget?"
+      const shapesPref    = dget('q35_whatDiamond');    // Diamond shapes (array)
+      const caratRange    = dget('q37_whatIs37');       // Carat range
+      const colorPref     = dget('q38_whatIs38');       // Color preference (array)
+      const clarityPref   = dget('q41_whatIs41');       // Clarity preference
+      const stoneIdeal    = dget('q43_howWould');       // Stone ideal (array - depth preference)
+      occasion            = dget('q45_isThis');         // "Is this diamond for a specific occasion?"
+      const occasionOther = dget('q46_isThere');        // Hard-need date if "Other" selected
+      const designWith    = dget('q48_doYou');          // "Do you intend to work with us on designing..."
+      const readyDeposit  = dget('q50_areYou');         // "Are you ready to place the sourcing deposit..."
+      stoneView           = dget('q52_howWill');        // "How will you prefer to view stone options?"
+      const inspiration   = dget('pleaseUpload');       // Uploaded inspiration images
+      
+      // Construct notes field from all the details
+      notes = [
+        phone ? `Phone: ${phone}` : '',
+        shapesPref ? `Shapes: ${shapesPref}` : '',
+        caratRange ? `Carat range: ${caratRange}` : '',
+        colorPref ? `Color: ${colorPref}` : '',
+        clarityPref ? `Clarity: ${clarityPref}` : '',
+        stoneIdeal ? `Depth preference: ${stoneIdeal}` : '',
+        occasionOther ? `Hard-need date: ${occasionOther}` : '',
+        designWith ? `Design work: ${designWith}` : '',
+        readyDeposit ? `Ready for deposit: ${readyDeposit}` : '',
+      ].filter(Boolean).join('\n');
+      
+      pieceType = 'Antique Diamond Sourcing';
+      sourcingStone = 'Yes';
+      stoneType = shapesPref;
+      processStage = readyDeposit;
+      howLearnProcess = stoneView;
+      designNotes = '';
+      wearerInvolved = '';
+      ringSize = '';
+      needByYesNo = occasion === 'Other' ? 'Yes' : '';
+      needBy = occasionOther || '';
+      
+      // Inspiration images
+      if (inspiration) {
+        try {
+          const urls = Array.isArray(inspiration) ? inspiration : JSON.parse(inspiration);
+          inspirationImages = urls.filter(Boolean);
+        } catch(e) {
+          if (typeof inspiration === 'string' && inspiration.startsWith('http')) {
+            inspirationImages = [inspiration];
+          }
+        }
+      }
+    } else if (formType === 'bespoke') {
       // BESPOKE FORM — confirmed field IDs
       pieceType       = dget('q31_whatType');       // "What type of piece..."
       sourcingStone   = dget('q32_willWe');         // "Will we be sourcing a stone..."
@@ -325,16 +378,17 @@ app.post('/api/jotform-webhook', (req, res) => {
     const design      = designNotes;
     const submissionId = raw.submissionID || Date.now().toString();
 
-    // Inspiration images (bespoke form only — from the file upload field)
+    // Inspiration images (bespoke and antique-diamond forms — from the file upload field)
     // JotForm sends these as a stringified JSON array of URLs
-    let inspirationImages = [];
-    const uploadRaw = data['pleaseUpload'] || data['q41_pleaseUpload'];
-    if (uploadRaw) {
-      if (Array.isArray(uploadRaw)) {
-        inspirationImages = uploadRaw.filter(u => typeof u === 'string' && u.startsWith('http'));
-      } else if (typeof uploadRaw === 'string') {
-        try {
-          const parsed = JSON.parse(uploadRaw);
+    // For antique-diamond, already handled above, so only process if not set
+    if (formType !== 'antique-diamond' && inspirationImages.length === 0) {
+      const uploadRaw = data['pleaseUpload'] || data['q41_pleaseUpload'];
+      if (uploadRaw) {
+        if (Array.isArray(uploadRaw)) {
+          inspirationImages = uploadRaw.filter(u => typeof u === 'string' && u.startsWith('http'));
+        } else if (typeof uploadRaw === 'string') {
+          try {
+            const parsed = JSON.parse(uploadRaw);
           if (Array.isArray(parsed)) {
             inspirationImages = parsed.filter(u => typeof u === 'string' && u.startsWith('http'));
           } else if (typeof parsed === 'string' && parsed.startsWith('http')) {
