@@ -10878,24 +10878,29 @@ function renderInquiries() {
     var isArchived = inq.status === 'archived';
     var statusColor = isArchived ? 'var(--text-dim)' : (inq.status === 'new' ? '#741435' : inq.status === 'converted' ? 'var(--teal-dim)' : 'var(--text-dim)');
     var statusLabel = isArchived ? 'archived' : (inq.status === 'new' ? '✨ new ✨' : (inq.status || 'new'));
-    var formPillColor = inq.formType === 'bespoke' ? '#741435' : '#4a7a7d';
-    var formPillLabel = inq.formType === 'bespoke' ? 'Bespoke' : 'Semi-custom';
+    var formPillColor = inq.formType === 'bespoke' ? '#741435' : inq.formType === 'antique-diamond' ? '#4a7a7d' : '#4a7a7d';
+    var formPillLabel = inq.formType === 'bespoke' ? 'Bespoke' : inq.formType === 'antique-diamond' ? 'Antique Diamond' : 'Semi-custom';
     if (isArchived) card.style.opacity = '0.7';
     var fields = [
       inq.email ? ['Email', '<a href="mailto:' + inq.email + '" style="color:var(--teal-dim)">' + inq.email + '</a>'] : null,
+      inq.notes ? ['Phone', inq.notes] : null, // For antique-diamond, notes = phone
+      inq.howFound ? ['How did you find Elvie Fine?', inq.howFound] : null,
       inq.budget ? ['Budget', inq.budget] : null,
-      inq.sourcingStone ? ['Sourcing stone?', inq.sourcingStone] : null,
-      inq.stoneType ? ['Stone preference', inq.stoneType] : null,
-      inq.ringSize ? ['Ring size', inq.ringSize] : null,
+      inq.stoneType ? ['Diamond shapes', inq.stoneType] : null,
+      inq.caratRange ? ['Carat range', inq.caratRange] : null,
+      inq.colorPref ? ['Color preference', inq.colorPref] : null,
+      inq.clarityPref ? ['Clarity preference', inq.clarityPref] : null,
+      inq.stoneIdeal ? ['Ideal stone', inq.stoneIdeal] : null,
       inq.occasion ? ['Occasion', inq.occasion] : null,
-      inq.processStage ? ['Where in process', inq.processStage] : null,
-      inq.howLearnProcess ? ['How they want to learn', inq.howLearnProcess] : null,
-      inq.designNotes ? ['Design notes', inq.designNotes] : null,
+      inq.needBy ? ['Hard need-by date', inq.needBy] : null,
+      inq.designNotes ? ['Design work', inq.designNotes] : null,
+      inq.processStage ? ['Ready for deposit', inq.processStage] : null,
+      inq.stoneView ? ['Stone viewing preference', inq.stoneView] : null,
+      // Legacy fields for bespoke/semi-custom
+      inq.sourcingStone && inq.formType !== 'antique-diamond' ? ['Sourcing stone?', inq.sourcingStone] : null,
+      inq.ringSize ? ['Ring size', inq.ringSize] : null,
+      inq.howLearnProcess && inq.formType !== 'antique-diamond' ? ['How they want to learn', inq.howLearnProcess] : null,
       inq.wearerInvolved ? ['Wearer involved?', inq.wearerInvolved] : null,
-      inq.needBy ? ['Need by', inq.needBy] : null,
-      inq.stoneView ? ['Stone viewing pref', inq.stoneView] : null,
-      inq.howFound ? ['How they found Elvie', inq.howFound] : null,
-      inq.notes ? ['Additional notes', inq.notes] : null,
     ].filter(Boolean);
 
     var imagesLinkHtml = '';

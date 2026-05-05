@@ -288,45 +288,39 @@ app.post('/api/jotform-webhook', (req, res) => {
     let inspirationImages = [];
 
     if (formType === 'antique-diamond') {
-      // ANTIQUE DIAMOND SOURCING FORM
-      const phone         = dget('q31_phone');          // Phone number
-      howFound            = dget('q32_howDid');         // "How did you find Elvie Fine?"
-      budget              = dget('q34_whatIs');         // "What is your stone budget?"
-      const shapesPref    = dget('q35_whatDiamond');    // Diamond shapes (array)
-      const caratRange    = dget('q37_whatIs37');       // Carat range
-      const colorPref     = dget('q38_whatIs38');       // Color preference (array)
-      const clarityPref   = dget('q41_whatIs41');       // Clarity preference
-      const stoneIdeal    = dget('q43_howWould');       // Stone ideal (array - depth preference)
-      occasion            = dget('q45_isThis');         // "Is this diamond for a specific occasion?"
-      const occasionOther = dget('q46_isThere');        // Hard-need date if "Other" selected
-      const designWith    = dget('q48_doYou');          // "Do you intend to work with us on designing..."
-      const readyDeposit  = dget('q50_areYou');         // "Are you ready to place the sourcing deposit..."
-      stoneView           = dget('q52_howWill');        // "How will you prefer to view stone options?"
+      // ANTIQUE DIAMOND SOURCING FORM - all fields mapped separately
+      const phone         = dget('q31_phone');          // Phone
+      howFound            = dget('q32_howDid');         // How did you find Elvie Fine?
+      budget              = dget('q34_whatIs');         // What is your stone budget?
+      stoneType           = dget('q35_whatDiamond');    // What diamond shapes are you most interested in?
+      const caratRange    = dget('q37_whatIs37');       // What is your preferred carat range?
+      const colorPref     = dget('q38_whatIs38');       // What is your preferred color range?
+      const clarityPref   = dget('q41_whatIs41');       // What is your preferred clarity?
+      const stoneIdeal    = dget('q43_howWould');       // How would you describe your ideal stone?
+      occasion            = dget('q45_isThis');         // Is this diamond for a specific occasion?
+      needBy              = dget('q46_isThere');        // Is there a hard need-by date?
+      const designWith    = dget('q48_doYou');          // Do you intend to work with us on designing the piece as well?
+      processStage        = dget('q50_areYou');         // Are you ready to place the sourcing deposit and begin the search?
+      stoneView           = dget('q52_howWill');        // How will you prefer to view stone options?
       const inspiration   = dget('pleaseUpload');       // Uploaded inspiration images
       
-      // Construct notes field from all the details
-      notes = [
-        phone ? `Phone: ${phone}` : '',
-        shapesPref ? `Shapes: ${shapesPref}` : '',
-        caratRange ? `Carat range: ${caratRange}` : '',
-        colorPref ? `Color: ${colorPref}` : '',
-        clarityPref ? `Clarity: ${clarityPref}` : '',
-        stoneIdeal ? `Depth preference: ${stoneIdeal}` : '',
-        occasionOther ? `Hard-need date: ${occasionOther}` : '',
-        designWith ? `Design work: ${designWith}` : '',
-        readyDeposit ? `Ready for deposit: ${readyDeposit}` : '',
-      ].filter(Boolean).join('\n');
-      
+      // Set standard fields
       pieceType = 'Antique Diamond Sourcing';
       sourcingStone = 'Yes';
-      stoneType = shapesPref;
-      processStage = readyDeposit;
       howLearnProcess = stoneView;
-      designNotes = '';
+      designNotes = designWith || '';
       wearerInvolved = '';
       ringSize = '';
-      needByYesNo = occasion === 'Other' ? 'Yes' : '';
-      needBy = occasionOther || '';
+      needByYesNo = needBy ? 'Yes' : '';
+      notes = phone || '';
+      
+      // Create custom fields object for all the antique diamond specific fields
+      const antiqueFields = {
+        caratRange,
+        colorPref,
+        clarityPref,
+        stoneIdeal,
+      };
       
       // Inspiration images
       if (inspiration) {
@@ -425,6 +419,13 @@ app.post('/api/jotform-webhook', (req, res) => {
       wearerInvolved,
       notes,
       inspirationImages,
+      // Antique diamond specific fields
+      ...(formType === 'antique-diamond' && antiqueFields ? {
+        caratRange: antiqueFields.caratRange,
+        colorPref: antiqueFields.colorPref,
+        clarityPref: antiqueFields.clarityPref,
+        stoneIdeal: antiqueFields.stoneIdeal,
+      } : {}),
     };
 
     // Save to Firebase via authenticated helper. The client's security rules
