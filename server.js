@@ -315,8 +315,8 @@ app.post('/api/jotform-webhook', (req, res) => {
       needByYesNo = needBy ? 'Yes' : '';
       notes = phone || '';
       
-      // Create custom fields object for all the antique diamond specific fields
-      const antiqueFields = {
+      // Store antique-specific fields directly (not in nested object)
+      antiqueFields = {
         caratRange,
         colorPref,
         clarityPref,
