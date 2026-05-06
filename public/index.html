@@ -6315,18 +6315,18 @@ function buildQuoteCard(q) {
   const archived = ['archived-quote','archived-project','archived-collection'];
   // Suggested retail from current costs; fall back to original total if no costs are set yet
   const suggestedRetail = calcSuggestedRetail(q) || q.total || 0;
-  // Main card $: clientPrice if set, otherwise suggested retail from current costs
-  const bestPrice = q.clientPrice > 0 ? q.clientPrice : suggestedRetail;
+  // Main card $: clientPrice if set (and greater than 0), otherwise suggested retail from current costs
+  const bestPrice = (q.clientPrice != null && q.clientPrice > 0) ? q.clientPrice : suggestedRetail;
   const discBase = bestPrice;
   const discAmt = q.discountValue ? (q.discountType === 'pct' ? Math.round(discBase * q.discountValue / 100) : q.discountValue) : 0;
   const discountedPrice = discBase - discAmt;
-  const clientPrice = discAmt > 0 ? discountedPrice : bestPrice;
+  const finalPrice = discAmt > 0 ? discountedPrice : bestPrice;
   const stoneCost = q.actualStoneCost !== undefined ? q.actualStoneCost : (q.stones ? q.stones.reduce((s,st) => s + (st.cost||0), 0) : 0);
   const metalCost = q.actualMetalCost !== undefined ? q.actualMetalCost : (q.metalEstimate || 0);
   const laborCost = q.actualLabor !== undefined ? q.actualLabor : (q.laborEst || 0);
   const cost = stoneCost + metalCost + laborCost + (q.chainCost || 0) + (q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0));
   const profitBefore = bestPrice - cost;
-  const profitAtClientPrice = clientPrice - cost;
+  const profitAtClientPrice = finalPrice - cost;
   const statusClass = (q.status === 'project' || q.status === 'collection') ? 'status-project'
     : archived.includes(q.status) ? 'status-archived'
     : q.status === 'completed' ? 'status-project'
@@ -6349,7 +6349,7 @@ function buildQuoteCard(q) {
   const occasionTag = q.occasion ? ' <span style="font-size:13px;color:var(--text-dim)">· ' + q.occasion + '</span>' : '';
   const pieceTag = q.pieceType ? '<span>' + q.pieceType + '</span>' : (q.grams ? '<span>' + q.grams + 'g</span>' : '');
   // Large number = final price (after discount if any, else bestPrice)
-  const displayAmount = discAmt > 0 ? discountedPrice : bestPrice;
+  const displayAmount = finalPrice;
   const displayAmountStr = displayAmount ? '$' + displayAmount.toLocaleString() : 'Not determined';
   const displayAmountColor = displayAmount ? '' : 'color:var(--text-dim);font-size:14px';
   // Smaller line underneath shows what the price was before
@@ -6420,9 +6420,8 @@ function buildQuoteCard(q) {
     html += '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:4px;padding-top:4px;border-top:1px dashed var(--border)">Told client: ' + q.quotedToClient.replace(/</g,'&lt;') + '</div>';
   }
   if (cost > 0) {
-    const finalProfit = discAmt > 0 ? (discountedPrice - cost) : (q.clientPrice > 0 ? profitAtClientPrice : profitBefore);
     html += '<div style="display:flex;justify-content:space-between;border-top:1px solid var(--border);padding-top:6px;margin-top:4px"><span style="color:var(--text-dim)">Est. profit</span>';
-    html += '<span style="color:' + (finalProfit >= 0 ? 'var(--green-bright)' : 'var(--red)') + '">$' + finalProfit.toLocaleString() + '</span></div>';
+    html += '<span style="color:' + (profitAtClientPrice >= 0 ? 'var(--green-bright)' : 'var(--red)') + '">$' + profitAtClientPrice.toLocaleString() + '</span></div>';
   }
   html += '</div>';
 
@@ -7801,8 +7800,9 @@ function saveActuals(id) {
     q.castingCompany = castingCompany;
     q.chainCost = chainCost || 0;
     q.chainName = chainIdx !== '' ? (CHAINS[parseInt(chainIdx)]?.name || '') : '';
-    q.clientPrice = clientPrice;
-    q.actualTotal = clientPrice > 0 ? clientPrice : recalcRetail;
+    // Save client price as a number (or null if not set)
+    q.clientPrice = (clientPrice !== null && clientPrice > 0) ? clientPrice : null;
+    q.actualTotal = (clientPrice !== null && clientPrice > 0) ? clientPrice : recalcRetail;
     // Free-text reminder
     const quotedField = document.getElementById('af-quoted-' + id);
     if (quotedField) q.quotedToClient = quotedField.value || '';
