@@ -9552,6 +9552,25 @@ function setProjectStage(qid, newStage) {
   if (!meta) return;
   const old = getProjectStage(q);
   if (old === newStage) return;
+  
+  // If moving to completed and this is an engagement ring, ask about adding to proposals tracker
+  if (newStage === 'completed') {
+    const occ = (q.occasion || '').toLowerCase();
+    const isEngagement = occ.includes('engagement');
+    if (isEngagement) {
+      const list = getProposals();
+      const alreadyAdded = list.some(p => p.projectId === q.id);
+      if (!alreadyAdded) {
+        const shouldAdd = confirm('This is an engagement ring. Add to "Awaiting Proposals" tracker?');
+        if (shouldAdd) {
+          autoAddProposalFromProject(q);
+          // Render proposals to update the display
+          if (typeof renderProposals === 'function') renderProposals();
+        }
+      }
+    }
+  }
+  
   // Stage history: append on every transition.
   if (!Array.isArray(q.stageHistory)) q.stageHistory = [];
   q.stageHistory.push({ stage: newStage, enteredAt: Date.now(), from: old || null });
