@@ -5579,8 +5579,21 @@ function markProjectStatus(id, newStatus, e) {
   const quotes = getSavedQuotes();
   const q = quotes.find(q => q.id === id);
   if (q) {
+    const oldStatus = q.status;
     q.status = newStatus;
     if (newStatus === 'completed') q.completedDate = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    
+    // If reopening a completed project (moving back from completed to project), remove from proposals
+    if (oldStatus === 'completed' && (newStatus === 'project' || newStatus === 'collection')) {
+      const proposals = getProposals();
+      const proposalMatch = proposals.find(p => p.projectId === id);
+      if (proposalMatch) {
+        window._proposals = proposals.filter(p => p.id !== proposalMatch.id);
+        persistProposals();
+        if (typeof renderProposals === 'function') renderProposals();
+      }
+    }
+    
     // Sync pipeline stage so the Kanban + forecast reflect this transition.
     if (newStatus === 'completed' || newStatus === 'abandoned') {
       if (!Array.isArray(q.stageHistory)) q.stageHistory = [];
@@ -10712,7 +10725,7 @@ function renderProposals() {
     html += '<div style="font-size:15px;color:var(--text);font-weight:500">' + (p.names || '').replace(/</g,'&lt;') + '</div>';
     html += '<div style="display:flex;gap:6px;flex-shrink:0">';
     html += '<button onclick="editProposal(' + p.id + ')" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Edit</button>';
-    html += '<button onclick="deleteProposal(' + p.id + ')" style="background:none;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Proposed ✓</button>';
+    html += '<button onclick="deleteProposal(' + p.id + ')" style="background:none;border:1px solid #741435;color:#741435;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Remove</button>';
     html += '</div>';
     html += '</div>';
     if (p.ring) html += '<div style="font-size:13px;color:var(--text-dim);margin-bottom:4px">' + p.ring.replace(/</g,'&lt;') + '</div>';
