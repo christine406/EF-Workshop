@@ -2298,6 +2298,14 @@
     </div>
   </div>
 
+  <!-- Payment Suggestions Section -->
+  <div class="screen" id="screen-payments">
+    <div class="section">
+      <div class="section-label">💰 Payment Suggestions</div>
+      <div id="paymentSuggestionsList"></div>
+    </div>
+  </div>
+
   <div class="screen" id="screen-inquiries">
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
@@ -10696,6 +10704,94 @@ function renderProposals() {
 }
 
 
+// ═══ PAYMENT SUGGESTIONS ═══
+function getPayments() { return window._payments || []; }
+
+function renderPaymentSuggestions() {
+  const el = document.getElementById('paymentSuggestionsList');
+  if (!el) return;
+  
+  const payments = getPayments().filter(p => !p.linked); // Only show unlinked payments
+  
+  if (!payments.length) {
+    el.innerHTML = '<div style="text-align:center;padding:30px 14px;color:var(--text-dim);font-size:13px;border:1px dashed var(--border)">No unlinked payments. HoneyBook invoice payments will appear here if they need to be matched to a project.</div>';
+    return;
+  }
+  
+  let html = '';
+  payments.forEach(p => {
+    const amtStr = p.amountPaid ? '$' + Math.round(p.amountPaid).toLocaleString() : '';
+    const invStr = p.invoiceNumber ? ' (Invoice #' + p.invoiceNumber + ')' : '';
+    const typeIcon = p.manuallyMarked ? '✓' : '💰';
+    
+    html += '<div style="background:#fafaf7;border:1px solid var(--border);border-left:3px solid var(--gold);padding:12px 14px;margin-bottom:10px">';
+    html += '<div style="font-size:14px;color:var(--text);font-weight:500;margin-bottom:4px">';
+    html += typeIcon + ' ' + (p.clientName || 'Unknown Client').replace(/</g,'&lt;') + ' paid ' + amtStr + invStr;
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:8px">' + (p.datePaid ? new Date(p.datePaid).toLocaleDateString() : 'Recently') + '</div>';
+    
+    if (p.matchConfidence === 'partial' && p.suggestedMatches && p.suggestedMatches.length === 1) {
+      const match = p.suggestedMatches[0];
+      html += '<div style="background:#fdf6d8;border:1px solid #ccc07a;padding:8px 10px;margin-bottom:8px">';
+      html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Possible match:</div>';
+      html += '<div style="font-size:13px;color:var(--text);margin-bottom:6px">' + match.client.replace(/</g,'&lt;') + '</div>';
+      html += '<div style="display:flex;gap:6px">';
+      html += '<button onclick="linkPaymentToProject(' + p.id + ',' + match.id + ')" style="flex:1;background:var(--green-bright);color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px;cursor:pointer">✓ Link to this project</button>';
+      html += '<button onclick="dismissPaymentSuggestion(' + p.id + ')" style="background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;cursor:pointer">✕ Not a match</button>';
+      html += '</div>';
+      html += '</div>';
+    } else if (p.matchConfidence === 'multiple' && p.suggestedMatches && p.suggestedMatches.length > 1) {
+      html += '<div style="background:#fdf6d8;border:1px solid #ccc07a;padding:8px 10px;margin-bottom:8px">';
+      html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">Multiple possible matches:</div>';
+      p.suggestedMatches.forEach(match => {
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)">';
+        html += '<span style="font-size:13px;color:var(--text)">' + match.client.replace(/</g,'&lt;') + '</span>';
+        html += '<button onclick="linkPaymentToProject(' + p.id + ',' + match.id + ')" style="background:var(--green-bright);color:#fff;border:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Link</button>';
+        html += '</div>';
+      });
+      html += '</div>';
+    } else {
+      html += '<div style="font-size:12px;color:var(--text-dim);font-style:italic">No automatic match found. Check manually.</div>';
+    }
+    
+    html += '</div>';
+  });
+  
+  el.innerHTML = html;
+}
+
+function linkPaymentToProject(paymentId, projectId) {
+  const payments = getPayments();
+  const payment = payments.find(p => p.id === paymentId);
+  if (!payment) return;
+  
+  payment.projectId = projectId;
+  payment.linked = true;
+  payment.linkedAt = Date.now();
+  
+  window._payments = payments;
+  firebasePut('/invoicePayments/' + paymentId, payment).then(() => {
+    showToast('Payment linked to project');
+    renderPaymentSuggestions();
+  }).catch(e => console.error('Link payment error:', e));
+}
+
+function dismissPaymentSuggestion(paymentId) {
+  const payments = getPayments();
+  const payment = payments.find(p => p.id === paymentId);
+  if (!payment) return;
+  
+  payment.linked = true; // Mark as "handled" even though not linked
+  payment.dismissed = true;
+  
+  window._payments = payments;
+  firebasePut('/invoicePayments/' + paymentId, payment).then(() => {
+    showToast('Suggestion dismissed');
+    renderPaymentSuggestions();
+  }).catch(e => console.error('Dismiss payment error:', e));
+}
+
+
 var _inquiryFilter = 'all';
 var _inquirySearch = '';
 function getInquiries() { return window._inquiries || []; }
@@ -14622,6 +14718,12 @@ function startProdOrder(specId) {
     const val = snap.val();
     window._proposals = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     if (typeof renderProposals === 'function') renderProposals();
+  });
+
+  onValue(ref(db, 'invoicePayments'), snap => {
+    const val = snap.val();
+    window._payments = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderPaymentSuggestions === 'function') renderPaymentSuggestions();
   });
 
   onValue(ref(db, 'devNotes'), snap => {

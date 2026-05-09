@@ -460,6 +460,55 @@ app.post('/api/honeybook-invoice', async (req, res) => {
       manual: manuallyMarked
     });
 
+    // Try to find matching project by client name
+    let matchedProjectId = null;
+    let matchConfidence = 'none'; // 'exact', 'partial', 'multiple', 'none'
+    let suggestedMatches = [];
+
+    if (clientName) {
+      try {
+        const quotes = await firebaseGet('/quotes');
+        if (quotes) {
+          const quoteList = Array.isArray(quotes) ? quotes : Object.values(quotes);
+          const normalizedPaymentName = clientName.toLowerCase().trim();
+          
+          // First try exact match
+          const exactMatch = quoteList.find(q => 
+            q && q.client && q.client.toLowerCase().trim() === normalizedPaymentName
+          );
+          
+          if (exactMatch) {
+            matchedProjectId = exactMatch.id;
+            matchConfidence = 'exact';
+            console.log('Exact project match found:', exactMatch.client);
+          } else {
+            // Try partial match (payment name contains project name OR project name contains payment name)
+            const partialMatches = quoteList.filter(q => {
+              if (!q || !q.client) return false;
+              const projectName = q.client.toLowerCase().trim();
+              // Check if either name contains the other
+              return normalizedPaymentName.includes(projectName) || projectName.includes(normalizedPaymentName);
+            });
+            
+            if (partialMatches.length === 1) {
+              // Single partial match - suggest it
+              matchedProjectId = null; // Don't auto-link, require confirmation
+              matchConfidence = 'partial';
+              suggestedMatches = [{ id: partialMatches[0].id, client: partialMatches[0].client }];
+              console.log('Partial project match found:', partialMatches[0].client);
+            } else if (partialMatches.length > 1) {
+              // Multiple matches - show all for user to choose
+              matchConfidence = 'multiple';
+              suggestedMatches = partialMatches.map(p => ({ id: p.id, client: p.client }));
+              console.log('Multiple project matches found:', suggestedMatches.length);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Project matching error:', e);
+      }
+    }
+
     // Save to Firebase under /invoicePayments
     const payment = {
       clientName: clientName || '',
@@ -469,20 +518,27 @@ app.post('/api/honeybook-invoice', async (req, res) => {
       datePaid: datePaid || new Date().toISOString(),
       manuallyMarked: manuallyMarked === true || manuallyMarked === 'true',
       receivedAt: Date.now(),
+      // Matching data
+      projectId: matchedProjectId, // Only set for exact matches
+      matchConfidence: matchConfidence,
+      suggestedMatches: suggestedMatches, // For partial/multiple matches
+      linked: matchedProjectId ? true : false, // True if auto-linked
     };
 
     const paymentId = Date.now();
     await firebasePut('/invoicePayments/' + paymentId, payment);
-    console.log('Payment saved to Firebase:', paymentId);
+    console.log('Payment saved to Firebase:', paymentId, 'match:', matchConfidence);
 
     // Send push notification
     const paymentType = payment.manuallyMarked ? '✓ Marked Paid' : '💰 Payment Received';
+    const matchNote = matchConfidence === 'exact' ? ' (linked to project)' : 
+                      matchConfidence === 'partial' || matchConfidence === 'multiple' ? ' (needs confirmation)' : '';
     await pushBadgeToAll(
       paymentType,
-      `${clientName || 'Client'} paid ${invoiceNumber ? 'invoice #' + invoiceNumber : 'invoice'}`
+      `${clientName || 'Client'} paid ${invoiceNumber ? 'invoice #' + invoiceNumber : 'invoice'}${matchNote}`
     );
 
-    res.status(200).json({ ok: true, id: paymentId });
+    res.status(200).json({ ok: true, id: paymentId, matched: matchConfidence });
   } catch (e) {
     console.error('HoneyBook webhook error:', e);
     res.status(200).json({ ok: true }); // Always return 200 so Zapier doesn't retry
