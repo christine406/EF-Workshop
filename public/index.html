@@ -14907,7 +14907,12 @@ function startProdOrder(specId) {
       savePayments: (data) => {
         // Convert array back to object with timestamp keys
         const obj = {};
-        data.forEach(p => { if (p.id) obj[p.id] = { ...p }; delete obj[p.id].id; });
+        data.forEach(p => { 
+          if (p && p.id) {
+            const { id, ...rest } = p; // Remove id from the object
+            obj[id] = rest;
+          }
+        });
         return set(ref(db, 'invoicePayments'), obj);
       },
     };
