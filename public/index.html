@@ -10965,7 +10965,11 @@ function linkPaymentToProject(paymentId, projectId) {
   window._payments = payments;
   if (window._fb) window._fb.savePayments(payments);
   showToast('Payment linked to project');
-  renderPaymentSuggestions();
+  
+  // Immediately refresh all views
+  if (typeof renderPaymentSuggestions === 'function') renderPaymentSuggestions();
+  if (typeof renderSaved === 'function') renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
 }
 
 function dismissPaymentSuggestion(paymentId) {
@@ -10990,13 +10994,17 @@ function unlinkPaymentFromProject(paymentId, event) {
   
   payment.projectId = null;
   payment.linked = false;
+  payment.dismissed = false; // Ensure it reappears in HoneyBook Payments
   delete payment.linkedAt;
   
   window._payments = payments;
   if (window._fb) window._fb.savePayments(payments);
   showToast('Payment unlinked');
-  renderPaymentSuggestions();
+  
+  // Immediately refresh both views
+  if (typeof renderPaymentSuggestions === 'function') renderPaymentSuggestions();
   if (typeof renderSaved === 'function') renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
 }
 
 
