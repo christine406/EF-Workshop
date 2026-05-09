@@ -1360,6 +1360,10 @@
       <div class="cc-btn-icon">💍</div>
       <div class="cc-btn-label">Awaiting Proposals <span id="prop-badge-wrap" style="display:none;margin-left:4px;font-size:11px;color:var(--text-dim)">(<span id="prop-badge">0</span>)</span></div>
     </button>
+    <button class="cc-btn" onclick="showScreen('payments')">
+      <div class="cc-btn-icon">💰</div>
+      <div class="cc-btn-label">Payment Suggestions <span id="payment-badge-wrap" style="display:none;margin-left:4px;font-size:11px;color:var(--text-dim)">(<span id="payment-badge">0</span>)</span></div>
+    </button>
     <button id="cc-inquiries-btn" class="cc-btn" onclick="showScreen('inquiries')">
       <div class="cc-btn-icon">💌</div>
       <div class="cc-btn-label">Inquiries <span id="inq-badge-wrap" style="display:none;margin-left:4px;font-size:13px">✨<span id="inq-badge" style="background:none;color:#951d5f;border:1px solid #951d5f;font-size:11px;padding:2px 6px;border-radius:2px;vertical-align:middle">0</span>✨</span></div>
@@ -10712,6 +10716,14 @@ function renderPaymentSuggestions() {
   if (!el) return;
   
   const payments = getPayments().filter(p => !p.linked); // Only show unlinked payments
+  
+  // Update Command Center badge count
+  const badgeWrap = document.getElementById('payment-badge-wrap');
+  const badge = document.getElementById('payment-badge');
+  if (badgeWrap && badge) {
+    if (payments.length > 0) { badgeWrap.style.display = ''; badge.textContent = payments.length; }
+    else { badgeWrap.style.display = 'none'; }
+  }
   
   if (!payments.length) {
     el.innerHTML = '<div style="text-align:center;padding:30px 14px;color:var(--text-dim);font-size:13px;border:1px dashed var(--border)">No unlinked payments. HoneyBook invoice payments will appear here if they need to be matched to a project.</div>';
