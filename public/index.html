@@ -10779,7 +10779,7 @@ function renderPaymentSuggestions() {
     html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Or select project manually:</div>';
     html += '<div style="display:flex;gap:6px">';
     html += '<input type="text" id="payment-search-' + p.id + '" placeholder="Search projects..." onkeyup="filterPaymentProjects(' + p.id + ')" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;outline:none">';
-    html += '<select id="payment-project-' + p.id + '" style="flex:2;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;outline:none">';
+    html += '<select id="payment-project-' + p.id + '" onchange="handlePaymentProjectChange(' + p.id + ')" style="flex:2;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;outline:none">';
     html += '<option value="">— Select project —</option>';
     html += '</select>';
     html += '<button onclick="linkPaymentToSelectedProject(' + p.id + ')" style="background:var(--green-bright);color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;cursor:pointer;white-space:nowrap">Link</button>';
@@ -10797,16 +10797,52 @@ function renderPaymentSuggestions() {
     if (select) {
       const quotes = getSavedQuotes();
       console.log('Available quotes for payment dropdown:', quotes.length);
-      const projects = quotes.filter(q => q && q.client && q.id).sort((a, b) => {
+      
+      // Split into active and archived
+      const activeProjects = quotes.filter(q => 
+        q && q.client && q.id && 
+        q.status !== 'completed' && 
+        q.status !== 'abandoned' && 
+        !q.archived
+      ).sort((a, b) => {
         return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
       });
-      console.log('Filtered projects:', projects.length);
-      projects.forEach(q => {
+      
+      const archivedProjects = quotes.filter(q => 
+        q && q.client && q.id && 
+        (q.status === 'completed' || q.status === 'abandoned' || q.archived)
+      ).sort((a, b) => {
+        return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
+      });
+      
+      console.log('Active projects:', activeProjects.length, 'Archived:', archivedProjects.length);
+      
+      // Add active projects
+      activeProjects.forEach(q => {
         const opt = document.createElement('option');
         opt.value = q.id;
         opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
         select.appendChild(opt);
       });
+      
+      // Add "show archived" option if there are archived projects
+      if (archivedProjects.length > 0) {
+        const divider = document.createElement('option');
+        divider.disabled = true;
+        divider.textContent = '─────────────────';
+        select.appendChild(divider);
+        
+        const showArchived = document.createElement('option');
+        showArchived.value = 'SHOW_ARCHIVED';
+        showArchived.textContent = '— Show archived projects —';
+        showArchived.style.fontStyle = 'italic';
+        showArchived.style.color = 'var(--text-dim)';
+        select.appendChild(showArchived);
+        
+        // Store archived projects for later
+        select.dataset.paymentId = p.id;
+        select.dataset.hasArchived = 'true';
+      }
     }
   });
 }
@@ -10818,21 +10854,71 @@ function filterPaymentProjects(paymentId) {
   
   const searchTerm = searchInput.value.toLowerCase();
   const quotes = getSavedQuotes();
-  const projects = quotes.filter(q => q && q.client).sort((a, b) => {
+  
+  // Filter to active projects only (unless already showing archived)
+  const showArchived = select.dataset.showingArchived === 'true';
+  const projects = quotes.filter(q => {
+    if (!q || !q.client || !q.id) return false;
+    const isArchived = q.status === 'completed' || q.status === 'abandoned' || q.archived;
+    if (!showArchived && isArchived) return false;
+    const clientName = (q.client || '').toLowerCase();
+    return !searchTerm || clientName.includes(searchTerm);
+  }).sort((a, b) => {
     return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
   });
   
   // Clear and repopulate dropdown with filtered projects
   select.innerHTML = '<option value="">— Select project —</option>';
   projects.forEach(q => {
-    const clientName = (q.client || '').toLowerCase();
-    if (!searchTerm || clientName.includes(searchTerm)) {
+    const opt = document.createElement('option');
+    opt.value = q.id;
+    opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
+    select.appendChild(opt);
+  });
+  
+  // Re-add "show archived" option if not already showing
+  if (!showArchived && select.dataset.hasArchived === 'true') {
+    const divider = document.createElement('option');
+    divider.disabled = true;
+    divider.textContent = '─────────────────';
+    select.appendChild(divider);
+    
+    const showArchivedOpt = document.createElement('option');
+    showArchivedOpt.value = 'SHOW_ARCHIVED';
+    showArchivedOpt.textContent = '— Show archived projects —';
+    showArchivedOpt.style.fontStyle = 'italic';
+    select.appendChild(showArchivedOpt);
+  }
+}
+
+function handlePaymentProjectChange(paymentId) {
+  const select = document.getElementById('payment-project-' + paymentId);
+  if (!select) return;
+  
+  // Check if user selected "Show archived"
+  if (select.value === 'SHOW_ARCHIVED') {
+    select.dataset.showingArchived = 'true';
+    // Clear search and re-populate with all projects
+    const searchInput = document.getElementById('payment-search-' + paymentId);
+    if (searchInput) searchInput.value = '';
+    
+    const quotes = getSavedQuotes();
+    const allProjects = quotes.filter(q => q && q.client && q.id).sort((a, b) => {
+      return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
+    });
+    
+    select.innerHTML = '<option value="">— Select project —</option>';
+    allProjects.forEach(q => {
       const opt = document.createElement('option');
       opt.value = q.id;
-      opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
+      const statusTag = q.status === 'completed' ? ' [Completed]' : 
+                        q.status === 'abandoned' ? ' [Abandoned]' : 
+                        q.archived ? ' [Archived]' : '';
+      opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '') + statusTag;
+      if (statusTag) opt.style.color = 'var(--text-dim)';
       select.appendChild(opt);
-    }
-  });
+    });
+  }
 }
 
 function linkPaymentToSelectedProject(paymentId) {
