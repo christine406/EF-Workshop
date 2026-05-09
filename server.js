@@ -447,6 +447,45 @@ app.post('/api/jotform-webhook', (req, res) => {
   });
 });
 
+// ─── HoneyBook Invoice Payment Webhook ────────────────────────────────────────
+app.post('/api/honeybook-invoice', async (req, res) => {
+  try {
+    const { clientName, invoiceNumber, amountPaid, netAmount, datePaid } = req.body;
+    
+    console.log('HoneyBook payment received:', {
+      client: clientName,
+      invoice: invoiceNumber,
+      amount: amountPaid,
+      date: datePaid
+    });
+
+    // Save to Firebase under /invoicePayments
+    const payment = {
+      clientName: clientName || '',
+      invoiceNumber: invoiceNumber || '',
+      amountPaid: parseFloat(amountPaid) || 0,
+      netAmount: parseFloat(netAmount) || 0,
+      datePaid: datePaid || new Date().toISOString(),
+      receivedAt: Date.now(),
+    };
+
+    const paymentId = Date.now();
+    await firebasePut('/invoicePayments/' + paymentId, payment);
+    console.log('Payment saved to Firebase:', paymentId);
+
+    // Send push notification
+    await pushBadgeToAll(
+      '💰 Payment Received',
+      `${clientName || 'Client'} paid ${invoiceNumber ? 'invoice #' + invoiceNumber : 'invoice'}`
+    );
+
+    res.status(200).json({ ok: true, id: paymentId });
+  } catch (e) {
+    console.error('HoneyBook webhook error:', e);
+    res.status(200).json({ ok: true }); // Always return 200 so Zapier doesn't retry
+  }
+});
+
 // Auth middleware
 // Railway password gate — DISABLED. Google Sign-In (in the client) now handles auth.
 // The old cookie-based password is no longer used. Webhook and push endpoints were always public.
