@@ -7241,23 +7241,17 @@ function chooseStoneOption(id, optIdx, e) {
   q.stoneOptions = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
   if (!q.stoneOptions[optIdx]) return;
   const opt = q.stoneOptions[optIdx];
-  if (!confirm('Lock in ' + (opt.label || 'this option') + ' as the primary stone?\n\nThe current primary stone will move into the considered list.')) return;
+  if (!confirm('Lock in ' + (opt.label || 'this option') + ' as the primary stone?')) return;
 
-  // Snapshot the current primary main stone(s) into a stoneOption so it stays in history.
+  // Get current primary stone to check if it's already in stoneOptions
   const currentMain = (Array.isArray(q.stones) ? q.stones : []).filter(s => s && !s.isSmall);
-  const archivedFromPrimary = currentMain.length ? {
-    label: 'Was primary',
-    cost: currentMain.reduce((sum, s) => sum + (s.cost || 0), 0),
-    cut: currentMain[0].cut || '',
-    carat: currentMain[0].carat || '',
-    color: currentMain[0].color || '',
-    clarity: currentMain[0].clarity || '',
-    gia: currentMain[0].gia || '',
-    dealer: currentMain[0].dealer || '',
-    antique: !!currentMain[0].antique,
-    notes: currentMain[0].desc || '',
-    previouslyChosen: true,
-  } : null;
+  const currentGia = currentMain.length && currentMain[0].gia ? String(currentMain[0].gia).replace(/\D/g, '') : null;
+  
+  // Check if current primary already exists in stoneOptions (by GIA match)
+  const currentPrimaryInOptions = currentGia ? q.stoneOptions.some((o, i) => {
+    const oGia = o.gia ? String(o.gia).replace(/\D/g, '') : null;
+    return i !== optIdx && oGia && oGia === currentGia;
+  }) : false;
 
   // Build the new primary stone from the chosen option.
   const newPrimary = {
@@ -7300,8 +7294,23 @@ function chooseStoneOption(id, optIdx, e) {
     if (o.chosen) { var copy = Object.assign({}, o); delete copy.chosen; delete copy.chosenAt; return copy; }
     return o;
   });
-  // Append the previously-primary as a new entry, if any.
-  if (archivedFromPrimary) q.stoneOptions.push(archivedFromPrimary);
+  
+  // Only archive the old primary if it's NOT already in stoneOptions
+  if (!currentPrimaryInOptions && currentMain.length) {
+    const archivedFromPrimary = {
+      label: opt.label ? 'Option ' + String.fromCharCode(65 + q.stoneOptions.length) : '',
+      cost: currentMain.reduce((sum, s) => sum + (s.cost || 0), 0),
+      cut: currentMain[0].cut || '',
+      carat: currentMain[0].carat || '',
+      color: currentMain[0].color || '',
+      clarity: currentMain[0].clarity || '',
+      gia: currentMain[0].gia || '',
+      dealer: currentMain[0].dealer || '',
+      antique: !!currentMain[0].antique,
+      notes: currentMain[0].desc || '',
+    };
+    q.stoneOptions.push(archivedFromPrimary);
+  }
 
   window._savedQuotes = quotes;
   persistQuotes();
