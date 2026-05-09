@@ -6566,7 +6566,10 @@ function buildQuoteCard(q) {
   }
 
   html += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  if (q.status === 'quote') html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+  if (q.status === 'quote') {
+    html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="convertToProject(' + q.id + ',event)">→ Convert to project</button>';
+    html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateCosts(' + q.id + ',event)">Update costs</button>';
+  }
   if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
 
   if (q.status === 'project' || q.status === 'collection' || q.status === 'collection-quote') {
