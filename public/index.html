@@ -10726,8 +10726,8 @@ function renderPaymentSuggestions() {
     if (payments.length > 0) { 
       badgeWrap.style.display = ''; 
       badge.textContent = payments.length;
-      // Highlight button light green when there are unlinked payments
-      if (btn) btn.style.background = 'var(--green-bright)';
+      // Highlight button light yellow when there are unlinked payments
+      if (btn) btn.style.background = '#fff2c4';
     } else { 
       badgeWrap.style.display = 'none';
       // Remove highlight when all payments are linked
