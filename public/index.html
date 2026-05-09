@@ -10744,7 +10744,7 @@ function renderPaymentSuggestions() {
   payments.forEach(p => {
     const amtStr = p.amountPaid ? '$' + Math.round(p.amountPaid).toLocaleString() : '';
     const invStr = p.invoiceNumber ? ' (Invoice #' + p.invoiceNumber + ')' : '';
-    const typeIcon = p.manuallyMarked ? '✓' : '💰';
+    const typeIcon = p.manuallyMarked ? '✓' : '💸';
     
     html += '<div style="background:#fafaf7;border:1px solid var(--border);border-left:3px solid var(--gold);padding:12px 14px;margin-bottom:10px">';
     html += '<div style="font-size:14px;color:var(--text);font-weight:500;margin-bottom:4px">';
