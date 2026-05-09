@@ -10854,10 +10854,9 @@ function linkPaymentToProject(paymentId, projectId) {
   payment.linkedAt = Date.now();
   
   window._payments = payments;
-  firebasePut('/invoicePayments/' + paymentId, payment).then(() => {
-    showToast('Payment linked to project');
-    renderPaymentSuggestions();
-  }).catch(e => console.error('Link payment error:', e));
+  if (window._fb) window._fb.savePayments(payments);
+  showToast('Payment linked to project');
+  renderPaymentSuggestions();
 }
 
 function dismissPaymentSuggestion(paymentId) {
@@ -10869,10 +10868,9 @@ function dismissPaymentSuggestion(paymentId) {
   payment.dismissed = true;
   
   window._payments = payments;
-  firebasePut('/invoicePayments/' + paymentId, payment).then(() => {
-    showToast('Suggestion dismissed');
-    renderPaymentSuggestions();
-  }).catch(e => console.error('Dismiss payment error:', e));
+  if (window._fb) window._fb.savePayments(payments);
+  showToast('Suggestion dismissed');
+  renderPaymentSuggestions();
 }
 
 
@@ -14772,6 +14770,7 @@ function startProdOrder(specId) {
       saveDevNotes: (data) => set(ref(db, 'devNotes'), data),
       saveInquiries: (data) => set(ref(db, 'inquiries'), data),
       saveProposals: (data) => set(ref(db, 'proposals'), data),
+      savePayments: (data) => set(ref(db, 'invoicePayments'), data),
     };
     window._chainPhotos = {};
 
