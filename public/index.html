@@ -6671,6 +6671,25 @@ function buildQuoteCard(q) {
   // Linked Field Log entries (errands, reminders, notes connected to this project).
   html += buildLinkedFieldLogSection(q.id);
 
+  // HoneyBook Payments linked to this project
+  const linkedPayments = (window._payments || []).filter(p => p.projectId === q.id && p.linked);
+  if (linkedPayments.length > 0) {
+    html += '<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">HoneyBook Payments</div>';
+    linkedPayments.forEach(p => {
+      const amtStr = p.amountPaid ? '$' + Math.round(p.amountPaid).toLocaleString() : '';
+      const invStr = p.invoiceNumber ? '#' + p.invoiceNumber : '';
+      const dateStr = p.datePaid ? new Date(p.datePaid).toLocaleDateString() : '';
+      html += '<div style="background:#e8f5e9;border:1px solid var(--green-bright);padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">';
+      html += '<div>';
+      html += '<div style="font-size:13px;color:var(--text);font-weight:500">💸 ' + amtStr + (invStr ? ' (' + invStr + ')' : '') + '</div>';
+      html += '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + dateStr + (p.manuallyMarked ? ' · Manually marked' : ' · Paid via HoneyBook') + '</div>';
+      html += '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
   html += '</div>'; // end card-body
   return html;
 }
