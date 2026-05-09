@@ -450,13 +450,14 @@ app.post('/api/jotform-webhook', (req, res) => {
 // ─── HoneyBook Invoice Payment Webhook ────────────────────────────────────────
 app.post('/api/honeybook-invoice', async (req, res) => {
   try {
-    const { clientName, invoiceNumber, amountPaid, netAmount, datePaid } = req.body;
+    const { clientName, invoiceNumber, amountPaid, netAmount, datePaid, manuallyMarked } = req.body;
     
     console.log('HoneyBook payment received:', {
       client: clientName,
       invoice: invoiceNumber,
       amount: amountPaid,
-      date: datePaid
+      date: datePaid,
+      manual: manuallyMarked
     });
 
     // Save to Firebase under /invoicePayments
@@ -466,6 +467,7 @@ app.post('/api/honeybook-invoice', async (req, res) => {
       amountPaid: parseFloat(amountPaid) || 0,
       netAmount: parseFloat(netAmount) || 0,
       datePaid: datePaid || new Date().toISOString(),
+      manuallyMarked: manuallyMarked === true || manuallyMarked === 'true',
       receivedAt: Date.now(),
     };
 
@@ -474,8 +476,9 @@ app.post('/api/honeybook-invoice', async (req, res) => {
     console.log('Payment saved to Firebase:', paymentId);
 
     // Send push notification
+    const paymentType = payment.manuallyMarked ? '✓ Marked Paid' : '💰 Payment Received';
     await pushBadgeToAll(
-      '💰 Payment Received',
+      paymentType,
       `${clientName || 'Client'} paid ${invoiceNumber ? 'invoice #' + invoiceNumber : 'invoice'}`
     );
 
