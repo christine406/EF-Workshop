@@ -14852,6 +14852,7 @@ function startProdOrder(specId) {
     if (fixedAny) { if (window._fb) window._fb.saveQuotes(window._savedQuotes); }
     if (typeof fixInventoryStoneStatuses === 'function') fixInventoryStoneStatuses();
     if (typeof renderSaved === 'function') renderSaved();
+    if (typeof renderPaymentSuggestions === 'function') renderPaymentSuggestions();
   });
 
   onValue(ref(db, 'fieldLog'), snap => {
