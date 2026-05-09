@@ -6681,10 +6681,11 @@ function buildQuoteCard(q) {
       const invStr = p.invoiceNumber ? '#' + p.invoiceNumber : '';
       const dateStr = p.datePaid ? new Date(p.datePaid).toLocaleDateString() : '';
       html += '<div style="background:#e8f5e9;border:1px solid var(--green-bright);padding:8px 10px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">';
-      html += '<div>';
+      html += '<div style="flex:1">';
       html += '<div style="font-size:13px;color:var(--text);font-weight:500">💸 ' + amtStr + (invStr ? ' (' + invStr + ')' : '') + '</div>';
       html += '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">' + dateStr + (p.manuallyMarked ? ' · Manually marked' : ' · Paid via HoneyBook') + '</div>';
       html += '</div>';
+      html += '<button onclick="unlinkPaymentFromProject(' + p.id + ',event)" style="background:var(--text-dim);color:#fff;border:none;font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;cursor:pointer">Unlink</button>';
       html += '</div>';
     });
     html += '</div>';
@@ -10840,7 +10841,8 @@ function renderPaymentSuggestions() {
       activeProjects.forEach(q => {
         const opt = document.createElement('option');
         opt.value = q.id;
-        opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
+        const stage = q.pipelineStage || (q.status === 'quote' ? 'Quote' : 'Project');
+        opt.textContent = q.client + ' - ' + stage;
         select.appendChild(opt);
       });
       
@@ -10891,7 +10893,8 @@ function filterPaymentProjects(paymentId) {
   projects.forEach(q => {
     const opt = document.createElement('option');
     opt.value = q.id;
-    opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
+    const stage = q.pipelineStage || (q.status === 'quote' ? 'Quote' : 'Project');
+    opt.textContent = q.client + ' - ' + stage;
     select.appendChild(opt);
   });
   
@@ -10930,10 +10933,11 @@ function handlePaymentProjectChange(paymentId) {
     allProjects.forEach(q => {
       const opt = document.createElement('option');
       opt.value = q.id;
+      const stage = q.pipelineStage || (q.status === 'quote' ? 'Quote' : 'Project');
       const statusTag = q.status === 'completed' ? ' [Completed]' : 
                         q.status === 'abandoned' ? ' [Abandoned]' : 
                         q.archived ? ' [Archived]' : '';
-      opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '') + statusTag;
+      opt.textContent = q.client + ' - ' + stage + statusTag;
       if (statusTag) opt.style.color = 'var(--text-dim)';
       select.appendChild(opt);
     });
@@ -10976,6 +10980,23 @@ function dismissPaymentSuggestion(paymentId) {
   if (window._fb) window._fb.savePayments(payments);
   showToast('Suggestion dismissed');
   renderPaymentSuggestions();
+}
+
+function unlinkPaymentFromProject(paymentId, event) {
+  if (event) event.stopPropagation();
+  const payments = getPayments();
+  const payment = payments.find(p => p.id === paymentId);
+  if (!payment) return;
+  
+  payment.projectId = null;
+  payment.linked = false;
+  delete payment.linkedAt;
+  
+  window._payments = payments;
+  if (window._fb) window._fb.savePayments(payments);
+  showToast('Payment unlinked');
+  renderPaymentSuggestions();
+  if (typeof renderSaved === 'function') renderSaved();
 }
 
 
@@ -14875,7 +14896,12 @@ function startProdOrder(specId) {
       saveDevNotes: (data) => set(ref(db, 'devNotes'), data),
       saveInquiries: (data) => set(ref(db, 'inquiries'), data),
       saveProposals: (data) => set(ref(db, 'proposals'), data),
-      savePayments: (data) => set(ref(db, 'invoicePayments'), data),
+      savePayments: (data) => {
+        // Convert array back to object with timestamp keys
+        const obj = {};
+        data.forEach(p => { if (p.id) obj[p.id] = { ...p }; delete obj[p.id].id; });
+        return set(ref(db, 'invoicePayments'), obj);
+      },
     };
     window._chainPhotos = {};
 
@@ -14910,7 +14936,12 @@ function startProdOrder(specId) {
 
   onValue(ref(db, 'invoicePayments'), snap => {
     const val = snap.val();
-    window._payments = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (val) {
+      // Convert Firebase object to array, preserving the timestamp keys as payment IDs
+      window._payments = Object.entries(val).map(([id, payment]) => ({ ...payment, id: parseInt(id) }));
+    } else {
+      window._payments = [];
+    }
     if (typeof renderPaymentSuggestions === 'function') renderPaymentSuggestions();
   });
 
