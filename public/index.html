@@ -10796,9 +10796,11 @@ function renderPaymentSuggestions() {
     const select = document.getElementById('payment-project-' + p.id);
     if (select) {
       const quotes = getSavedQuotes();
-      const projects = quotes.filter(q => q && q.client).sort((a, b) => {
+      console.log('Available quotes for payment dropdown:', quotes.length);
+      const projects = quotes.filter(q => q && q.client && q.id).sort((a, b) => {
         return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
       });
+      console.log('Filtered projects:', projects.length);
       projects.forEach(q => {
         const opt = document.createElement('option');
         opt.value = q.id;
