@@ -10841,8 +10841,7 @@ function renderPaymentSuggestions() {
       activeProjects.forEach(q => {
         const opt = document.createElement('option');
         opt.value = q.id;
-        const stage = q.pipelineStage || (q.status === 'quote' ? 'Quote' : 'Project');
-        opt.textContent = q.client + ' - ' + stage;
+        opt.textContent = q.client;
         select.appendChild(opt);
       });
       
@@ -10893,8 +10892,7 @@ function filterPaymentProjects(paymentId) {
   projects.forEach(q => {
     const opt = document.createElement('option');
     opt.value = q.id;
-    const stage = q.pipelineStage || (q.status === 'quote' ? 'Quote' : 'Project');
-    opt.textContent = q.client + ' - ' + stage;
+    opt.textContent = q.client;
     select.appendChild(opt);
   });
   
@@ -10933,11 +10931,10 @@ function handlePaymentProjectChange(paymentId) {
     allProjects.forEach(q => {
       const opt = document.createElement('option');
       opt.value = q.id;
-      const stage = q.pipelineStage || (q.status === 'quote' ? 'Quote' : 'Project');
       const statusTag = q.status === 'completed' ? ' [Completed]' : 
                         q.status === 'abandoned' ? ' [Abandoned]' : 
                         q.archived ? ' [Archived]' : '';
-      opt.textContent = q.client + ' - ' + stage + statusTag;
+      opt.textContent = q.client + statusTag;
       if (statusTag) opt.style.color = 'var(--text-dim)';
       select.appendChild(opt);
     });
