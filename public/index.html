@@ -1360,7 +1360,7 @@
       <div class="cc-btn-icon">💍</div>
       <div class="cc-btn-label">Awaiting Proposals <span id="prop-badge-wrap" style="display:none;margin-left:4px;font-size:11px;color:var(--text-dim)">(<span id="prop-badge">0</span>)</span></div>
     </button>
-    <button class="cc-btn" onclick="showScreen('payments')">
+    <button id="cc-payments-btn" class="cc-btn" onclick="showScreen('payments')">
       <div class="cc-btn-icon">💰</div>
       <div class="cc-btn-label">Payment Suggestions <span id="payment-badge-wrap" style="display:none;margin-left:4px;font-size:11px;color:var(--text-dim)">(<span id="payment-badge">0</span>)</span></div>
     </button>
@@ -10720,9 +10720,19 @@ function renderPaymentSuggestions() {
   // Update Command Center badge count
   const badgeWrap = document.getElementById('payment-badge-wrap');
   const badge = document.getElementById('payment-badge');
+  const btn = document.getElementById('cc-payments-btn');
+  
   if (badgeWrap && badge) {
-    if (payments.length > 0) { badgeWrap.style.display = ''; badge.textContent = payments.length; }
-    else { badgeWrap.style.display = 'none'; }
+    if (payments.length > 0) { 
+      badgeWrap.style.display = ''; 
+      badge.textContent = payments.length;
+      // Highlight button light green when there are unlinked payments
+      if (btn) btn.style.background = 'var(--green-bright)';
+    } else { 
+      badgeWrap.style.display = 'none';
+      // Remove highlight when all payments are linked
+      if (btn) btn.style.background = '';
+    }
   }
   
   if (!payments.length) {
