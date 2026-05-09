@@ -10762,14 +10762,74 @@ function renderPaymentSuggestions() {
         html += '</div>';
       });
       html += '</div>';
-    } else {
-      html += '<div style="font-size:12px;color:var(--text-dim);font-style:italic">No automatic match found. Check manually.</div>';
     }
+    
+    // Always show manual project selector
+    html += '<div style="margin-top:8px">';
+    html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Or select project manually:</div>';
+    html += '<div style="display:flex;gap:6px">';
+    html += '<input type="text" id="payment-search-' + p.id + '" placeholder="Search projects..." onkeyup="filterPaymentProjects(' + p.id + ')" style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;outline:none">';
+    html += '<select id="payment-project-' + p.id + '" style="flex:2;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:12px;padding:6px 8px;outline:none">';
+    html += '<option value="">— Select project —</option>';
+    html += '</select>';
+    html += '<button onclick="linkPaymentToSelectedProject(' + p.id + ')" style="background:var(--green-bright);color:#fff;border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 12px;cursor:pointer;white-space:nowrap">Link</button>';
+    html += '</div>';
+    html += '</div>';
     
     html += '</div>';
   });
   
   el.innerHTML = html;
+  
+  // Populate all project dropdowns with alphabetically sorted projects
+  payments.forEach(p => {
+    const select = document.getElementById('payment-project-' + p.id);
+    if (select) {
+      const quotes = getSavedQuotes();
+      const projects = quotes.filter(q => q && q.client).sort((a, b) => {
+        return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
+      });
+      projects.forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q.id;
+        opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
+        select.appendChild(opt);
+      });
+    }
+  });
+}
+
+function filterPaymentProjects(paymentId) {
+  const searchInput = document.getElementById('payment-search-' + paymentId);
+  const select = document.getElementById('payment-project-' + paymentId);
+  if (!searchInput || !select) return;
+  
+  const searchTerm = searchInput.value.toLowerCase();
+  const quotes = getSavedQuotes();
+  const projects = quotes.filter(q => q && q.client).sort((a, b) => {
+    return (a.client || '').toLowerCase().localeCompare((b.client || '').toLowerCase());
+  });
+  
+  // Clear and repopulate dropdown with filtered projects
+  select.innerHTML = '<option value="">— Select project —</option>';
+  projects.forEach(q => {
+    const clientName = (q.client || '').toLowerCase();
+    if (!searchTerm || clientName.includes(searchTerm)) {
+      const opt = document.createElement('option');
+      opt.value = q.id;
+      opt.textContent = q.client + (q.quoteType ? ' - ' + q.quoteType : '');
+      select.appendChild(opt);
+    }
+  });
+}
+
+function linkPaymentToSelectedProject(paymentId) {
+  const select = document.getElementById('payment-project-' + paymentId);
+  if (!select || !select.value) {
+    showToast('Please select a project');
+    return;
+  }
+  linkPaymentToProject(paymentId, parseInt(select.value));
 }
 
 function linkPaymentToProject(paymentId, projectId) {
