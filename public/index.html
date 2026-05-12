@@ -11335,7 +11335,9 @@ function renderInquiries() {
     if (isArchived) card.style.opacity = '0.7';
     var fields = [
       inq.email ? ['Email', '<a href="mailto:' + inq.email + '" style="color:var(--teal-dim)">' + inq.email + '</a>'] : null,
-      inq.notes ? ['Phone', inq.notes] : null, // For antique-diamond, notes = phone
+      inq.notes && inq.formType === 'antique-diamond' ? ['Phone', inq.notes] : null, // For antique-diamond, notes = phone
+      inq.notes && inq.formType !== 'antique-diamond' ? ['Anything you\'d like me to know', inq.notes] : null, // For other forms, notes = notes
+      inq.pieceType && inq.formType === 'semi-custom' ? ['Signature designs interested in', inq.pieceType] : null,
       inq.howFound ? ['How did you find Elvie Fine?', inq.howFound] : null,
       inq.budget ? ['Budget', inq.budget] : null,
       inq.stoneType ? ['Diamond shapes', inq.stoneType] : null,
