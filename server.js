@@ -237,6 +237,20 @@ app.post('/api/jotform-webhook', (req, res) => {
         });
         console.log('=== END FIELDS ===');
       }
+      
+      // Log ALL fields for semi-custom form so we can map them
+      if (formType === 'semi-custom') {
+        console.log('=== SEMI-CUSTOM FORM - ALL FIELDS ===');
+        Object.keys(data).forEach(k => {
+          const v = data[k];
+          if (typeof v === 'string' && v.length < 200) {
+            console.log(`${k}: ${v}`);
+          } else if (typeof v === 'object') {
+            console.log(`${k}:`, JSON.stringify(v));
+          }
+        });
+        console.log('=== END FIELDS ===');
+      }
 
       const get = (keys) => {
         for (const k of keys) {
