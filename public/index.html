@@ -8744,6 +8744,46 @@ function saveInventoryStone() {
       if (s.photoUrl) s.photoUrl = s.photoUrl; // preserve existing photo
       if (category === 'owned-reserved') s.status = 'unavailable';
       else if (s.status === 'unavailable' && category !== 'owned-reserved') s.status = 'available';
+      
+      // Sync changes to any projects using this stone
+      if (s.usedInProjectId) {
+        const quotes = getSavedQuotes();
+        const project = quotes.find(q => String(q.id) === String(s.usedInProjectId));
+        if (project) {
+          // Update project's main stones array
+          if (project.stones && Array.isArray(project.stones)) {
+            project.stones.forEach(pStone => {
+              if (String(pStone.inventoryId) === String(s.id)) {
+                pStone.cut = s.cut;
+                pStone.carat = s.carat;
+                pStone.color = s.color;
+                pStone.clarity = s.clarity;
+                pStone.gia = s.gia;
+                pStone.dealer = s.dealer;
+                pStone.cost = s.cost;
+              }
+            });
+          }
+          // Update stone options if this stone is in there
+          if (project.stoneOptions && Array.isArray(project.stoneOptions)) {
+            project.stoneOptions.forEach(opt => {
+              if (String(opt.inventoryId) === String(s.id)) {
+                opt.cut = s.cut;
+                opt.carat = s.carat;
+                opt.color = s.color;
+                opt.clarity = s.clarity;
+                opt.gia = s.gia;
+                opt.dealer = s.dealer;
+                opt.cost = s.cost;
+              }
+            });
+          }
+          window._savedQuotes = quotes;
+          persistQuotes();
+          if (typeof renderSaved === 'function') renderSaved();
+          if (typeof renderPipeline === 'function') renderPipeline();
+        }
+      }
     }
     window._inventory = inv;
     persistInventory();
@@ -12830,7 +12870,8 @@ function toggleInvoiceInventoryPicker() {
 function renderInvoiceInventoryPicker() {
   const list = document.getElementById('invInvoicePickerList');
   if (!list) return;
-  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'in-use', 'unavailable'];
+  // Show stones that are in-use (linked to projects) and on-memo since those are the ones being purchased
+  const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'unavailable'];
   const searchQuery = document.getElementById('invInvoicePickerSearch')?.value || '';
   const available = getInventory().filter(s =>
     !archivedStatuses.includes(s.status) &&
