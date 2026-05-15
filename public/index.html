@@ -1992,17 +1992,13 @@
         <div class="field-row">
           <div class="field">
             <div class="field-label">Vendor</div>
-            <select id="si-dealer" onchange="toggleOtherDealer()">
-              <option>American Gem Corp</option>
-              <option>Virat</option>
-              <option>Galapo</option>
-              <option>Julius Klein</option>
-              <option value="other">Other</option>
+            <select id="si-dealer" onchange="handleVendorChange(this,document.getElementById('si-dealer-other'))" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+              <!-- Populated by buildVendorOptions -->
             </select>
           </div>
-          <div class="field" id="si-other-dealer-field" style="display:none">
+          <div class="field" id="si-dealer-other-field" style="display:none">
             <div class="field-label">Vendor name</div>
-            <input type="text" id="si-other-dealer" placeholder="Enter dealer">
+            <input type="text" id="si-dealer-other" placeholder="Enter new vendor name">
           </div>
         </div>
         <div class="field-row">
@@ -8611,6 +8607,9 @@ function populateAddStoneCutDropdown(selectedValue) {
 
 function openAddStoneForm() {
   populateAddStoneCutDropdown();
+  // Populate vendor dropdown
+  const dealerSel = document.getElementById('si-dealer');
+  if (dealerSel) dealerSel.innerHTML = buildVendorOptions('', true);
   document.getElementById('addStoneForm').style.display = 'block';
   document.getElementById('addStoneBtnLabel').textContent = '− Cancel add';
 }
@@ -8664,16 +8663,11 @@ function editInventoryStone(id) {
   document.getElementById('si-return-by').value = s.returnBy || '';
   document.getElementById('si-antique').checked = !!s.antique;
 
-  // Handle dealer
-  const knownDealers = ['American Gem Corp', 'Virat', 'Galapo', 'Julius Klein'];
-  if (knownDealers.includes(s.dealer)) {
-    document.getElementById('si-dealer').value = s.dealer;
-    document.getElementById('si-other-dealer-field').style.display = 'none';
-  } else {
-    document.getElementById('si-dealer').value = 'other';
-    document.getElementById('si-other-dealer').value = s.dealer || '';
-    document.getElementById('si-other-dealer-field').style.display = 'flex';
-  }
+  // Populate vendor dropdown
+  const dealerSel = document.getElementById('si-dealer');
+  dealerSel.innerHTML = buildVendorOptions(s.dealer || '', true);
+  const dealerOtherField = document.getElementById('si-dealer-other-field');
+  if (dealerOtherField) dealerOtherField.style.display = 'none';
 
   toggleMemoFields();
 
@@ -8699,7 +8693,9 @@ function saveInventoryStone() {
   const dimensions = document.getElementById('si-dimensions')?.value?.trim() || '';
   const passedReason = document.getElementById('si-passed-reason')?.value?.trim() || '';
   const dealerSel = document.getElementById('si-dealer').value;
-  const dealer = dealerSel === 'other' ? (document.getElementById('si-other-dealer').value.trim() || 'Other') : dealerSel;
+  const dealerOther = document.getElementById('si-dealer-other')?.value?.trim() || '';
+  const dealer = dealerSel === '__new__' ? dealerOther : dealerSel;
+  if (dealerSel === '__new__' && dealerOther) addVendor(dealerOther);
   const cost = parseFloat(document.getElementById('si-cost').value) || 0;
   const notes = document.getElementById('si-notes').value.trim();
   const returnBy = document.getElementById('si-return-by').value.trim();
