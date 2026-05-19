@@ -1368,6 +1368,10 @@
       <div class="cc-btn-icon">💌</div>
       <div class="cc-btn-label">Inquiries <span id="inq-badge-wrap" style="display:none;margin-left:4px;font-size:13px">✨<span id="inq-badge" style="background:none;color:#951d5f;border:1px solid #951d5f;font-size:11px;padding:2px 6px;border-radius:2px;vertical-align:middle">0</span>✨</span></div>
     </button>
+    <button class="cc-btn" onclick="runInventoryDiagnostic()">
+      <div class="cc-btn-icon">🔧</div>
+      <div class="cc-btn-label">Fix Broken Inventory Links</div>
+    </button>
   </div>
 
   <!-- Home screen badge toggle + sign out -->
@@ -12904,12 +12908,11 @@ function toggleInvoiceInventoryPicker() {
 function renderInvoiceInventoryPicker() {
   const list = document.getElementById('invInvoicePickerList');
   if (!list) return;
-  // Show stones that are in-use (linked to projects) and on-memo since those are the ones being purchased
+  // Show ALL stones in inventory regardless of status - user might need to invoice any stone
   const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project', 'unavailable'];
   const searchQuery = document.getElementById('invInvoicePickerSearch')?.value || '';
   const available = getInventory().filter(s =>
     !archivedStatuses.includes(s.status) &&
-    s.category !== 'owned-reserved' &&
     stoneMatchesSearch(s, searchQuery)
   );
   if (!available.length) {
@@ -15490,6 +15493,177 @@ function startProdOrder(specId) {
   window.addEventListener('scroll', toggleBtn, { passive: true });
   toggleBtn();
 })();
+
+// ========== INVENTORY DIAGNOSTIC ==========
+function runInventoryDiagnostic() {
+  const quotes = getQuotes();
+  const inventory = getInventory();
+  const broken = [];
+
+  // Scan all projects for stones with inventoryId
+  quotes.forEach(q => {
+    // Check main stones array
+    if (q.stones && Array.isArray(q.stones)) {
+      q.stones.forEach(stone => {
+        if (stone.inventoryId) {
+          // Check if this inventory stone exists
+          const exists = inventory.find(s => s.id === stone.inventoryId);
+          if (!exists) {
+            broken.push({
+              projectId: q.id,
+              projectClient: q.client,
+              stone: stone,
+              location: 'stones'
+            });
+          }
+        }
+      });
+    }
+
+    // Check stoneOptions array
+    if (q.stoneOptions && Array.isArray(q.stoneOptions)) {
+      q.stoneOptions.forEach(opt => {
+        if (opt.inventoryId) {
+          const exists = inventory.find(s => s.id === opt.inventoryId);
+          if (!exists) {
+            broken.push({
+              projectId: q.id,
+              projectClient: q.client,
+              stone: opt,
+              location: 'stoneOptions'
+            });
+          }
+        }
+      });
+    }
+
+    // Check multi-piece sets
+    if (q.pieces && Array.isArray(q.pieces)) {
+      q.pieces.forEach((piece, pieceIdx) => {
+        if (piece.stones && Array.isArray(piece.stones)) {
+          piece.stones.forEach(stone => {
+            if (stone.inventoryId) {
+              const exists = inventory.find(s => s.id === stone.inventoryId);
+              if (!exists) {
+                broken.push({
+                  projectId: q.id,
+                  projectClient: q.client,
+                  stone: stone,
+                  location: `pieces[${pieceIdx}].stones`,
+                  pieceName: piece.name
+                });
+              }
+            }
+          });
+        }
+        if (piece.stoneOptions && Array.isArray(piece.stoneOptions)) {
+          piece.stoneOptions.forEach(opt => {
+            if (opt.inventoryId) {
+              const exists = inventory.find(s => s.id === opt.inventoryId);
+              if (!exists) {
+                broken.push({
+                  projectId: q.id,
+                  projectClient: q.client,
+                  stone: opt,
+                  location: `pieces[${pieceIdx}].stoneOptions`,
+                  pieceName: piece.name
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+  });
+
+  if (!broken.length) {
+    showToast('✅ All inventory links are valid');
+    return;
+  }
+
+  // Show results in modal
+  let html = '<div style="padding:16px">';
+  html += '<div style="font-size:16px;font-weight:500;color:var(--text);margin-bottom:12px">Found ' + broken.length + ' broken inventory link' + (broken.length === 1 ? '' : 's') + '</div>';
+  html += '<div style="font-size:13px;color:var(--text-dim);margin-bottom:16px">These stones exist on project cards but are missing from Stone Inventory:</div>';
+  
+  broken.forEach((item, idx) => {
+    const desc = [
+      item.stone.carat ? parseFloat(item.stone.carat).toFixed(2) + 'ct' : '',
+      item.stone.cut,
+      item.stone.color,
+      item.stone.clarity
+    ].filter(Boolean).join(' · ');
+    
+    html += '<div style="background:#fafaf7;border:1px solid var(--border);padding:12px;margin-bottom:10px">';
+    html += '<div style="font-size:13px;color:var(--text);font-weight:500">' + (desc || 'Stone') + '</div>';
+    html += '<div style="font-size:11px;color:var(--text-dim);margin-top:4px">Project: ' + item.projectClient + '</div>';
+    if (item.stone.gia) html += '<div style="font-size:11px;color:var(--text-dim)">GIA: ' + item.stone.gia + '</div>';
+    if (item.stone.cost) html += '<div style="font-size:11px;color:var(--text-dim)">Cost: $' + item.stone.cost.toLocaleString() + '</div>';
+    if (item.stone.dealer) html += '<div style="font-size:11px;color:var(--text-dim)">Dealer: ' + item.stone.dealer + '</div>';
+    html += '<button onclick="recreateInventoryStone(' + idx + ')" style="margin-top:8px;background:var(--gold);color:#fafaf7;border:none;padding:6px 12px;font-family:var(--font-mono);font-size:11px;cursor:pointer">Recreate in Inventory</button>';
+    html += '</div>';
+  });
+  
+  html += '</div>';
+  
+  showModal('Broken Inventory Links', html);
+  
+  // Store broken items for recreation function
+  window._brokenInventoryItems = broken;
+}
+
+function recreateInventoryStone(idx) {
+  const item = window._brokenInventoryItems[idx];
+  if (!item) return;
+  
+  const inventory = getInventory();
+  const newId = Math.max(0, ...inventory.map(s => s.id || 0)) + 1;
+  
+  // Create new inventory stone from project stone data
+  const newStone = {
+    id: newId,
+    carat: item.stone.carat || '',
+    cut: item.stone.cut || '',
+    color: item.stone.color || '',
+    clarity: item.stone.clarity || '',
+    gia: item.stone.gia || '',
+    dimensions: item.stone.dimensions || '',
+    antique: item.stone.antique || false,
+    dealer: item.stone.dealer || '',
+    cost: item.stone.cost || 0,
+    notes: item.stone.notes || '',
+    status: 'active',
+    category: 'owned-reserved', // Mark as reserved since it's linked to a project
+    dateAdded: new Date().toISOString(),
+    usedInProjectId: item.projectId
+  };
+  
+  inventory.push(newStone);
+  
+  // Save to Firebase
+  window._db.ref('inventory').set(inventory).then(() => {
+    showToast('✅ Recreated stone in inventory (ID: ' + newId + ')');
+    
+    // Update project to use correct inventoryId
+    const quotes = getQuotes();
+    const project = quotes.find(q => q.id === item.projectId);
+    if (!project) return;
+    
+    // Update the stone's inventoryId
+    item.stone.inventoryId = newId;
+    
+    window._savedQuotes = quotes;
+    persistQuotes();
+    renderSaved();
+    if (typeof renderPipeline === 'function') renderPipeline();
+    
+    // Re-run diagnostic to see if more issues remain
+    setTimeout(() => {
+      closeModal();
+      runInventoryDiagnostic();
+    }, 500);
+  });
+}
 
 </script>
 </body>
