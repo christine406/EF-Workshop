@@ -508,7 +508,7 @@
     margin-top: 4px;
   }
   .kanban-card-stuck {
-    background: #fff2c4;
+    background: #fef7c3;
     color: #7a5c3a;
     font-family: var(--font-mono);
     font-size: 9px;
@@ -571,13 +571,13 @@
     transition: all 0.15s;
   }
   .priority-toggle.armed {
-    background: #fff2c4;
+    background: #fef7c3;
     border-color: #ccc07a;
     color: #7a5c3a;
   }
 
   .dd-items li.priority {
-    background: #fff2c4;
+    background: #fef7c3;
     margin: 0 -8px;
     padding-left: 8px;
     padding-right: 8px;
@@ -8961,7 +8961,7 @@ function jumpToStone(stoneId) {
       card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       const origBg = card.style.background;
       card.style.transition = 'background 0.6s';
-      card.style.background = '#fff2c4';
+      card.style.background = '#fef7c3';
       setTimeout(() => { card.style.background = origBg; }, 1200);
     }
   }, 80);
@@ -10053,7 +10053,7 @@ function renderPipelineForecast() {
   html += '<div style="background:#fff;border:1px solid var(--border);padding:10px;margin-bottom:10px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">Stuck projects</span><span style="font-family:var(--font-mono);font-size:11px;color:' + (stuckList.length ? '#7a5c3a' : 'var(--text-dim)') + '">' + stuckList.length + '</span></div>';
   if (stuckList.length) {
-    html += '<div style="background:#fff2c4;padding:6px 8px">';
+    html += '<div style="background:#fef7c3;padding:6px 8px">';
     stuckList.slice(0, 8).forEach(q => {
       const stage = getStageMeta(getProjectStage(q));
       const days = daysInCurrentStage(q);
@@ -10832,7 +10832,7 @@ function renderPaymentSuggestions() {
       badgeWrap.style.display = ''; 
       badge.textContent = payments.length;
       // Highlight button light yellow when there are unlinked payments
-      if (btn) btn.style.background = '#fff2c4';
+      if (btn) btn.style.background = '#fef7c3';
     } else { 
       badgeWrap.style.display = 'none';
       // Remove highlight when all payments are linked
@@ -11306,7 +11306,7 @@ function updateInquiryBadge() {
   var wrap = document.getElementById('inq-badge-wrap');
   if (wrap) wrap.style.display = newCount > 0 ? 'inline' : 'none';
   var btn = document.getElementById('cc-inquiries-btn');
-  if (btn) btn.style.background = newCount > 0 ? '#fff2c4' : '';
+  if (btn) btn.style.background = newCount > 0 ? '#fef7c3' : '';
   // Sync the home screen badge count with the in-app count
   if ('setAppBadge' in navigator) {
     if (newCount > 0) navigator.setAppBadge(newCount).catch(function(){});
