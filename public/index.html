@@ -7235,7 +7235,7 @@ function addStoneOptionFromInventory(projectId, stoneId) {
   q.stoneOptions = Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : []);
   
   // Generate label from stone details
-  const label = [stone.carat ? stone.carat + 'ct' : '', stone.cut, stone.color, stone.clarity].filter(Boolean).join(' ') || 'Option ' + String.fromCharCode(65 + q.stoneOptions.length);
+  const label = [stone.carat ? parseFloat(stone.carat).toFixed(2) + 'ct' : '', stone.cut, stone.color, stone.clarity].filter(Boolean).join(' ') || 'Option ' + String.fromCharCode(65 + q.stoneOptions.length);
   
   q.stoneOptions.push({
     label: label,
