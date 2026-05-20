@@ -885,6 +885,538 @@ app.post('/api/scan-gia', async (req, res) => {
   proxyReq.end();
 });
 
+// ─── GOOGLE SHEETS BACKUP SYSTEM ──────────────────────────────────────────────
+const { google } = require('googleapis');
+
+const SHEETS_CREDENTIALS = process.env.GOOGLE_SHEETS_CREDENTIALS ? JSON.parse(process.env.GOOGLE_SHEETS_CREDENTIALS) : null;
+const SHEETS_TOKEN = process.env.GOOGLE_SHEETS_TOKEN ? JSON.parse(process.env.GOOGLE_SHEETS_TOKEN) : null;
+const SPREADSHEET_ID = process.env.SPREADSHEET_ID || '';
+
+let sheetsAuth = null;
+let sheets = null;
+
+// Initialize Google Sheets API client
+function initSheetsClient() {
+  if (!SHEETS_CREDENTIALS || !SHEETS_TOKEN) {
+    console.warn('Google Sheets NOT configured — set GOOGLE_SHEETS_CREDENTIALS, GOOGLE_SHEETS_TOKEN, SPREADSHEET_ID');
+    return false;
+  }
+  
+  try {
+    const { client_id, client_secret, redirect_uris } = SHEETS_CREDENTIALS.installed || SHEETS_CREDENTIALS.web;
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    oAuth2Client.setCredentials(SHEETS_TOKEN);
+    
+    sheetsAuth = oAuth2Client;
+    sheets = google.sheets({ version: 'v4', auth: oAuth2Client });
+    console.log('Google Sheets configured');
+    return true;
+  } catch (e) {
+    console.error('Sheets init error:', e.message);
+    return false;
+  }
+}
+
+initSheetsClient();
+
+// OAuth authorization URL for first-time setup
+app.get('/api/sheets/auth-url', (req, res) => {
+  if (!SHEETS_CREDENTIALS) {
+    return res.status(500).json({ error: 'GOOGLE_SHEETS_CREDENTIALS not configured' });
+  }
+  
+  const { client_id, client_secret, redirect_uris } = SHEETS_CREDENTIALS.installed || SHEETS_CREDENTIALS.web;
+  const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  
+  const authUrl = oAuth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: ['https://www.googleapis.com/auth/spreadsheets']
+  });
+  
+  res.json({ authUrl });
+});
+
+// Exchange OAuth code for token
+app.post('/api/sheets/auth-callback', async (req, res) => {
+  if (!SHEETS_CREDENTIALS) {
+    return res.status(500).json({ error: 'GOOGLE_SHEETS_CREDENTIALS not configured' });
+  }
+  
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Missing code' });
+  
+  try {
+    const { client_id, client_secret, redirect_uris } = SHEETS_CREDENTIALS.installed || SHEETS_CREDENTIALS.web;
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    
+    const { tokens } = await oAuth2Client.getToken(code);
+    
+    res.json({ 
+      success: true, 
+      token: tokens,
+      message: 'Save this token as GOOGLE_SHEETS_TOKEN environment variable'
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Helper: Get sheet ID by title
+async function getSheetIdByTitle(title) {
+  if (!sheets) return null;
+  try {
+    const response = await sheets.spreadsheets.get({
+      spreadsheetId: SPREADSHEET_ID
+    });
+    const sheet = response.data.sheets.find(s => s.properties.title === title);
+    return sheet ? sheet.properties.sheetId : null;
+  } catch (e) {
+    console.error('Get sheet ID error:', e.message);
+    return null;
+  }
+}
+
+// Helper: Create sheet if it doesn't exist
+async function ensureSheetExists(title, headers) {
+  if (!sheets) return false;
+  
+  try {
+    const sheetId = await getSheetIdByTitle(title);
+    
+    if (!sheetId) {
+      // Create new sheet
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        resource: {
+          requests: [{
+            addSheet: {
+              properties: { title }
+            }
+          }]
+        }
+      });
+      
+      // Add headers
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${title}!A1`,
+        valueInputOption: 'RAW',
+        resource: {
+          values: [headers]
+        }
+      });
+      
+      console.log(`Created sheet: ${title}`);
+    }
+    
+    return true;
+  } catch (e) {
+    console.error(`Ensure sheet error (${title}):`, e.message);
+    return false;
+  }
+}
+
+// Sync Projects to Google Sheets
+async function syncProjects() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const quotes = await firebaseGet('/quotes');
+    if (!quotes) return;
+    
+    const list = Array.isArray(quotes) ? quotes : Object.values(quotes);
+    
+    // Filter out archived/completed/abandoned projects
+    const active = list.filter(q => {
+      const stage = q.stage || '';
+      return !stage.includes('completed') && !stage.includes('abandoned') && !stage.includes('archived');
+    });
+    
+    const headers = ['Client Name', 'Piece Name', 'Stage', 'Type', 'Budget', 'Metal Type', 'Metal Weight', 
+                     'Metal Cost', 'Stone Cost', 'Labor Cost', 'Design Fee', 'Overhead', 'Total Cost', 
+                     'Suggested Retail', 'Client Price', 'Discount', 'Profit', 'Date Created', 'Date Updated', 'Notes'];
+    
+    await ensureSheetExists('Projects', headers);
+    
+    const rows = [];
+    
+    active.forEach(q => {
+      if (q.pieces && Array.isArray(q.pieces)) {
+        // Multi-piece set - one row per piece
+        q.pieces.forEach(p => {
+          rows.push([
+            q.client || '',
+            p.name || '',
+            q.stage || '',
+            q.type || '',
+            q.budget || '',
+            p.metal || '',
+            p.metalWeight || '',
+            p.metalCost || '',
+            p.stoneCost || '',
+            p.laborCost || '',
+            p.designFee || '',
+            p.overhead || '',
+            p.totalCost || '',
+            p.suggestedRetail || '',
+            p.clientPrice || q.clientPrice || '',
+            q.discount || '',
+            p.profit || '',
+            q.createdAt || '',
+            q.updatedAt || '',
+            (q.notes || '') + ' ' + (p.notes || '')
+          ]);
+        });
+      } else {
+        // Single piece
+        rows.push([
+          q.client || '',
+          '',
+          q.stage || '',
+          q.type || '',
+          q.budget || '',
+          q.metal || '',
+          q.metalWeight || '',
+          q.metalCost || '',
+          q.stoneCost || '',
+          q.laborCost || '',
+          q.designFee || '',
+          q.overhead || '',
+          q.totalCost || '',
+          q.suggestedRetail || '',
+          q.clientPrice || '',
+          q.discount || '',
+          q.profit || '',
+          q.createdAt || '',
+          q.updatedAt || '',
+          q.notes || ''
+        ]);
+      }
+    });
+    
+    // Clear sheet and write new data
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Projects!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Projects!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} projects to Sheets`);
+  } catch (e) {
+    console.error('Sync projects error:', e.message);
+  }
+}
+
+// Sync Stone Inventory to Google Sheets
+async function syncInventory() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const inventory = await firebaseGet('/inventory');
+    if (!inventory) return;
+    
+    const list = Array.isArray(inventory) ? inventory : Object.values(inventory);
+    
+    const headers = ['ID', 'Carat', 'Cut', 'Color', 'Clarity', 'GIA', 'Dimensions', 'Antique', 
+                     'Dealer', 'Cost', 'Notes', 'Status', 'Category', 'Date Added', 'Used In Project'];
+    
+    await ensureSheetExists('Stone Inventory', headers);
+    
+    const rows = list.map(s => [
+      s.id || '',
+      s.carat || '',
+      s.cut || '',
+      s.color || '',
+      s.clarity || '',
+      s.gia || '',
+      s.dimensions || '',
+      s.antique ? 'Yes' : 'No',
+      s.dealer || '',
+      s.cost || '',
+      s.notes || '',
+      s.status || '',
+      s.category || '',
+      s.dateAdded || '',
+      s.usedInProjectId || ''
+    ]);
+    
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Stone Inventory!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Stone Inventory!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} stones to Sheets`);
+  } catch (e) {
+    console.error('Sync inventory error:', e.message);
+  }
+}
+
+// Sync Dealer Invoices
+async function syncInvoices() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const invoices = await firebaseGet('/invoices');
+    if (!invoices) return;
+    
+    const list = Array.isArray(invoices) ? invoices : Object.values(invoices);
+    
+    const headers = ['Invoice #', 'Dealer', 'Date', 'Stone IDs', 'Total Amount', 'Paid', 'Notes'];
+    
+    await ensureSheetExists('Dealer Invoices', headers);
+    
+    const rows = list.map(inv => [
+      inv.invoiceNumber || '',
+      inv.dealer || '',
+      inv.date || '',
+      (inv.stones || []).map(s => s.inventoryId || '').filter(Boolean).join(', '),
+      inv.totalAmount || '',
+      inv.paid ? 'Yes' : 'No',
+      inv.notes || ''
+    ]);
+    
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Dealer Invoices!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Dealer Invoices!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} invoices to Sheets`);
+  } catch (e) {
+    console.error('Sync invoices error:', e.message);
+  }
+}
+
+// Sync HoneyBook Payments
+async function syncPayments() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const payments = await firebaseGet('/invoicePayments');
+    if (!payments) return;
+    
+    const list = Object.entries(payments).map(([id, p]) => ({ ...p, id }));
+    
+    const headers = ['Payment ID', 'Client Name', 'Invoice #', 'Amount Paid', 'Net Amount', 'Date Paid', 'Linked to Project'];
+    
+    await ensureSheetExists('HoneyBook Payments', headers);
+    
+    const rows = list.map(p => [
+      p.id || '',
+      p.clientName || '',
+      p.invoiceNumber || '',
+      p.amountPaid || '',
+      p.netAmount || '',
+      p.datePaid || '',
+      p.linkedProjectId || ''
+    ]);
+    
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'HoneyBook Payments!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'HoneyBook Payments!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} payments to Sheets`);
+  } catch (e) {
+    console.error('Sync payments error:', e.message);
+  }
+}
+
+// Sync DD Tasks
+async function syncDDTasks() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const fieldLog = await firebaseGet('/fieldLog');
+    if (!fieldLog) return;
+    
+    const list = Array.isArray(fieldLog) ? fieldLog : Object.values(fieldLog);
+    const tasks = list.filter(e => e.category === 'errand' && !e.done);
+    
+    const headers = ['Task', 'Priority', 'Date', 'Completed'];
+    
+    await ensureSheetExists('Diamond District Tasks', headers);
+    
+    const rows = tasks.map(t => [
+      t.description || '',
+      t.priority ? 'Yes' : 'No',
+      t.linkedDate || t.date || '',
+      t.done ? 'Yes' : 'No'
+    ]);
+    
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Diamond District Tasks!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Diamond District Tasks!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} DD tasks to Sheets`);
+  } catch (e) {
+    console.error('Sync DD tasks error:', e.message);
+  }
+}
+
+// Sync Reminders
+async function syncReminders() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const fieldLog = await firebaseGet('/fieldLog');
+    if (!fieldLog) return;
+    
+    const list = Array.isArray(fieldLog) ? fieldLog : Object.values(fieldLog);
+    const reminders = list.filter(e => e.type === 'reminder' && !e.done);
+    
+    const headers = ['Reminder', 'Priority', 'Completed'];
+    
+    await ensureSheetExists('Reminders', headers);
+    
+    const rows = reminders.map(r => [
+      r.description || '',
+      r.priority ? 'Yes' : 'No',
+      r.done ? 'Yes' : 'No'
+    ]);
+    
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Reminders!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Reminders!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} reminders to Sheets`);
+  } catch (e) {
+    console.error('Sync reminders error:', e.message);
+  }
+}
+
+// Sync Production Specs
+async function syncProductionSpecs() {
+  if (!sheets || !SPREADSHEET_ID) return;
+  
+  try {
+    const specs = await firebaseGet('/production');
+    if (!specs) return;
+    
+    const list = Array.isArray(specs) ? specs : Object.values(specs);
+    
+    const headers = ['Name', 'Metal', 'Stone Description', 'Caster', 'Cost', 'Notes', 'Linked Project'];
+    
+    await ensureSheetExists('Production Specs', headers);
+    
+    const rows = list.map(spec => [
+      spec.name || '',
+      spec.metal || '',
+      spec.stoneDescription || '',
+      spec.caster || '',
+      spec.cost || '',
+      spec.notes || '',
+      spec.linkedProjectId || ''
+    ]);
+    
+    await sheets.spreadsheets.values.clear({
+      spreadsheetId: SPREADSHEET_ID,
+      range: 'Production Specs!A2:Z'
+    });
+    
+    if (rows.length > 0) {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: 'Production Specs!A2',
+        valueInputOption: 'RAW',
+        resource: { values: rows }
+      });
+    }
+    
+    console.log(`Synced ${rows.length} production specs to Sheets`);
+  } catch (e) {
+    console.error('Sync production specs error:', e.message);
+  }
+}
+
+// Sync everything
+async function syncAllSheets() {
+  if (!sheets || !SPREADSHEET_ID) {
+    console.log('Sheets sync skipped - not configured');
+    return;
+  }
+  
+  console.log('Starting full Sheets sync...');
+  await syncProjects();
+  await syncInventory();
+  await syncInvoices();
+  await syncPayments();
+  await syncDDTasks();
+  await syncReminders();
+  await syncProductionSpecs();
+  console.log('Full Sheets sync complete');
+}
+
+// Manual sync endpoint
+app.post('/api/sheets/sync', async (req, res) => {
+  try {
+    await syncAllSheets();
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Background sync every 5 minutes
+if (sheets && SPREADSHEET_ID) {
+  setInterval(syncAllSheets, 5 * 60 * 1000);
+  console.log('Background Sheets sync enabled (every 5 minutes)');
+}
+
 // ─── Serve app for ALL routes ─────────────────────────────────────────────────
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));

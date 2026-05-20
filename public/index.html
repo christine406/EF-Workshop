@@ -2673,10 +2673,39 @@ function stripUndefined(obj) {
 }
 function persistQuotes() {
   if (window._fb) window._fb.saveQuotes(stripUndefined(getSavedQuotes()));
+  triggerSheetsSync('projects');
 }
 function persistInventory() {
   if (window._fb) window._fb.saveInventory(stripUndefined(getInventory()));
+  triggerSheetsSync('inventory');
 }
+
+// =================== GOOGLE SHEETS SYNC ===================
+let _syncQueue = new Set();
+let _syncTimer = null;
+
+// Debounced sync - waits 2 seconds after last change before syncing
+function triggerSheetsSync(type) {
+  if (!type) return;
+  _syncQueue.add(type);
+  
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => {
+    if (_syncQueue.size === 0) return;
+    
+    // Convert queue to array and clear
+    const types = Array.from(_syncQueue);
+    _syncQueue.clear();
+    
+    // Sync in background - don't block UI
+    fetch('/api/sheets/sync', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ types })
+    }).catch(err => console.log('Sheets sync error:', err));
+  }, 2000);
+}
+
 
 // =================== GOLD ===================
 async function fetchGold() {
@@ -11124,6 +11153,7 @@ function linkPaymentToProject(paymentId, projectId) {
   
   window._payments = payments;
   if (window._fb) window._fb.savePayments(payments);
+  triggerSheetsSync('payments');
   showToast('Payment linked to project');
   
   // Immediately refresh all views
@@ -11142,6 +11172,7 @@ function dismissPaymentSuggestion(paymentId) {
   
   window._payments = payments;
   if (window._fb) window._fb.savePayments(payments);
+  triggerSheetsSync('payments');
   showToast('Suggestion dismissed');
   renderPaymentSuggestions();
 }
@@ -11159,6 +11190,7 @@ function unlinkPaymentFromProject(paymentId, event) {
   
   window._payments = payments;
   if (window._fb) window._fb.savePayments(payments);
+  triggerSheetsSync('payments');
   showToast('Payment unlinked');
   
   // Immediately refresh both views
@@ -11920,7 +11952,11 @@ function purgeOldFieldLogEntries() {
   }
 }
 
-function persistFieldLog() { if (window._fb) window._fb.saveFieldLog(window._fieldLog); }
+function persistFieldLog() { 
+  if (window._fb) window._fb.saveFieldLog(window._fieldLog);
+  triggerSheetsSync('dd-tasks');
+  triggerSheetsSync('reminders');
+}
 
 function setFieldLogCategory(category, btn) {
   window._fieldLogCategory = category;
@@ -12740,7 +12776,10 @@ function deleteCostPush(quoteId,pushId){var quotes=getSavedQuotes();var q=quotes
 if(!window._invoices)window._invoices=[];
 var _invoiceFilter='all';var _invoiceLineCounter=0;var _editingInvoiceId=null;
 function getInvoices(){return window._invoices||[];}
-function persistInvoices(){if(window._fb)window._fb.saveInvoices(window._invoices);}
+function persistInvoices(){
+  if(window._fb)window._fb.saveInvoices(window._invoices);
+  triggerSheetsSync('invoices');
+}
 function setInvoiceFilter(filter,btn){
   _invoiceFilter=filter;
   document.querySelectorAll('.inv-filter-btn').forEach(function(b){b.classList.remove('active');});
@@ -13976,7 +14015,10 @@ function renderInvoices(){
 if(!window._production)window._production=[];
 var _editingProdId=null;var _prodStoneCounter=0;var _prodFindingCounter=0;var _prodMoldCounter=0;
 function getProduction(){return window._production||[];}
-function persistProduction(){if(window._fb)window._fb.saveProduction(window._production);}
+function persistProduction(){
+  if(window._fb)window._fb.saveProduction(window._production);
+  triggerSheetsSync('production-specs');
+}
 
 function addProdMoldRow(prefill){
   var id=++_prodMoldCounter;var container=document.getElementById('prod-molds');if(!container)return;
