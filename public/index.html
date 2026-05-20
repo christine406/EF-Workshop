@@ -8772,16 +8772,45 @@ function saveInventoryStone() {
   const inv = getInventory();
 
   if (!editingId) {
+    const archivedStatuses = ['sold-by-dealer', 'sold-by-ef', 'archived-with-project'];
+    
     // Duplicate check — GIA match first, then specs match
     const giaMatch = gia && inv.find(s => s.gia && s.gia.trim() === gia);
     if (giaMatch) {
-      const msg = 'GIA ' + gia + ' is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded||'unknown') + '\n' + [giaMatch.carat ? parseFloat(giaMatch.carat).toFixed(2) + ' ct':'', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
-      if (!confirm(msg)) return;
+      const isArchived = archivedStatuses.includes(giaMatch.status);
+      
+      if (isArchived) {
+        // Stone is in archived inventory - offer to move it out
+        const archiveLabel = giaMatch.status === 'sold-by-dealer' ? 'sold by dealer' : giaMatch.status === 'sold-by-ef' ? 'sold by EF' : 'archived with project';
+        const msg = 'GIA ' + gia + ' is in ARCHIVED inventory (' + archiveLabel + ').\n\nOriginally logged: ' + (giaMatch.dateAdded||'unknown') + '\n' + [giaMatch.carat ? parseFloat(giaMatch.carat).toFixed(2) + ' ct':'', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nMove out of archive and back to active inventory?';
+        if (confirm(msg)) {
+          // Ask which category to move it to
+          showMoveOutOfArchiveDialog(giaMatch.id);
+        }
+        return;
+      } else {
+        // Stone is in active inventory
+        const msg = 'GIA ' + gia + ' is already in your inventory.\n\nOriginally logged: ' + (giaMatch.dateAdded||'unknown') + '\n' + [giaMatch.carat ? parseFloat(giaMatch.carat).toFixed(2) + ' ct':'', giaMatch.cut, giaMatch.color, giaMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+        if (!confirm(msg)) return;
+      }
     } else if (carat && color && clarity) {
       const specsMatch = inv.find(s => Math.abs((parseFloat(s.carat)||0) - carat) < 0.05 && (s.color||'').toUpperCase() === color.toUpperCase() && (s.clarity||'').toUpperCase() === clarity.toUpperCase());
       if (specsMatch) {
-        const msg = 'A similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded||'unknown') + '\n' + [specsMatch.carat ? parseFloat(specsMatch.carat).toFixed(2) + ' ct':'', specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
-        if (!confirm(msg)) return;
+        const isArchived = archivedStatuses.includes(specsMatch.status);
+        
+        if (isArchived) {
+          // Stone is in archived inventory - offer to move it out
+          const archiveLabel = specsMatch.status === 'sold-by-dealer' ? 'sold by dealer' : specsMatch.status === 'sold-by-ef' ? 'sold by EF' : 'archived with project';
+          const msg = 'A similar stone is in ARCHIVED inventory (' + archiveLabel + ').\n\nOriginally logged: ' + (specsMatch.dateAdded||'unknown') + '\n' + [specsMatch.carat ? parseFloat(specsMatch.carat).toFixed(2) + ' ct':'', specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nMove out of archive and back to active inventory?';
+          if (confirm(msg)) {
+            showMoveOutOfArchiveDialog(specsMatch.id);
+          }
+          return;
+        } else {
+          // Stone is in active inventory
+          const msg = 'A similar stone is already in your inventory.\n\nOriginally logged: ' + (specsMatch.dateAdded||'unknown') + '\n' + [specsMatch.carat ? parseFloat(specsMatch.carat).toFixed(2) + ' ct':'', specsMatch.color, specsMatch.clarity].filter(Boolean).join(' · ') + '\n\nSave anyway?';
+          if (!confirm(msg)) return;
+        }
       }
     }
 
@@ -8856,6 +8885,58 @@ function saveInventoryStone() {
     renderStoneInventory();
     showToast('Stone updated');
   }
+}
+
+// Move archived stone back to active inventory with category selection
+function showMoveOutOfArchiveDialog(stoneId) {
+  const stone = getInventory().find(s => s.id === stoneId);
+  if (!stone) return;
+  
+  const desc = [
+    stone.carat ? parseFloat(stone.carat).toFixed(2) + 'ct' : '',
+    stone.cut,
+    stone.color,
+    stone.clarity
+  ].filter(Boolean).join(' · ');
+  
+  let html = '<div style="padding:16px">';
+  html += '<div style="font-size:16px;font-weight:500;color:var(--text);margin-bottom:12px">Move Stone Out of Archive</div>';
+  html += '<div style="font-size:13px;color:var(--text);margin-bottom:4px">' + desc + '</div>';
+  if (stone.gia) html += '<div style="font-size:11px;color:var(--text-dim);margin-bottom:16px">GIA: ' + stone.gia + '</div>';
+  else html += '<div style="margin-bottom:16px"></div>';
+  
+  html += '<div style="font-size:13px;color:var(--text);margin-bottom:8px">Select category:</div>';
+  html += '<select id="move-archive-category" style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-sans);font-size:13px;padding:8px;margin-bottom:16px">';
+  html += '<option value="owned-available">Owned - Available</option>';
+  html += '<option value="owned-reserved">Owned - Reserved</option>';
+  html += '<option value="memo">On Memo</option>';
+  html += '</select>';
+  
+  html += '<div style="display:flex;gap:8px">';
+  html += '<button onclick="closeModal()" style="flex:1;background:var(--border);color:var(--text);border:none;padding:10px;font-family:var(--font-mono);font-size:11px;cursor:pointer">Cancel</button>';
+  html += '<button onclick="confirmMoveOutOfArchive(' + stoneId + ')" style="flex:1;background:var(--green-bright);color:#fafaf7;border:none;padding:10px;font-family:var(--font-mono);font-size:11px;cursor:pointer">Move to Active Inventory</button>';
+  html += '</div>';
+  html += '</div>';
+  
+  showModal('Move Stone', html);
+}
+
+function confirmMoveOutOfArchive(stoneId) {
+  const category = document.getElementById('move-archive-category').value;
+  const inv = getInventory();
+  const stone = inv.find(s => s.id === stoneId);
+  if (!stone) return;
+  
+  // Update stone category and status
+  stone.category = category;
+  stone.status = category === 'owned-reserved' ? 'unavailable' : category === 'memo' ? 'on-memo' : 'available';
+  
+  window._inventory = inv;
+  persistInventory();
+  closeModal();
+  closeAddStoneForm();
+  renderStoneInventory();
+  showToast('Stone moved to active inventory');
 }
 
 
@@ -9369,6 +9450,8 @@ function renderStoneInventory() {
           + '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:' + soldColor + ';margin-top:4px">' + soldLabel + '</div>'
           + (s.soldDate ? '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">' + s.soldDate + '</div>' : '')
           + '</div></div>';
+        
+        html += '<div style="margin-top:8px"><button onclick="event.stopPropagation();showMoveOutOfArchiveDialog(' + s.id + ')" style="background:var(--green-bright);color:#fafaf7;border:none;padding:6px 12px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase">← Move to Active Inventory</button></div>';
         
         card.innerHTML = html;
         archiveContainer.appendChild(card);
