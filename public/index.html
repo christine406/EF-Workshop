@@ -8888,6 +8888,7 @@ function saveInventoryStone() {
 }
 
 // Move archived stone back to active inventory with category selection
+// Deployment timestamp: 2026-05-20 11:57 UTC
 function showMoveOutOfArchiveDialog(stoneId) {
   const stone = getInventory().find(s => s.id === stoneId);
   if (!stone) return;
