@@ -2507,6 +2507,21 @@
         <div class="result-value" id="looseProfitDisplay" style="color:var(--green-bright)">—</div>
       </div>
     </div>
+    <div class="result-panel" style="margin: 12px 16px">
+      <div class="result-panel-header">Reverse: Client budget to stone budget</div>
+      <div style="margin-bottom: 12px">
+        <div class="field-label" style="margin-bottom: 6px">Client's loose stone budget</div>
+        <input type="number" id="looseClientBudget" min="0" placeholder="0" oninput="calcLooseReverse()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
+      </div>
+      <div class="result-row">
+        <div class="result-label">Your stone budget</div>
+        <div class="result-value" id="looseStoneBudgetDisplay">—</div>
+      </div>
+      <div class="result-row" style="font-size:12px;color:var(--text-dim);padding:8px 0;border-top:1px solid var(--border-light)">
+        <div style="flex:1">Based on tiered markup</div>
+        <div id="looseReverseMultDisplay" style="text-align:right;font-family:var(--font-mono)">—</div>
+      </div>
+    </div>
     <div id="looseMarkSoldWrap" style="padding:0 16px 16px">
       <button onclick="markLooseStoneSold()" style="width:100%;background:var(--red);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:12px;cursor:pointer;border-radius:0">Mark as sold — record in P&amp;L</button>
     </div>
@@ -9648,6 +9663,29 @@ function calcLoose() {
     profitRow.style.display = 'flex';
     document.getElementById('looseProfitDisplay').textContent = '$' + profit.toLocaleString();
   }
+}
+
+function calcLooseReverse() {
+  const clientBudget = parseFloat(document.getElementById('looseClientBudget').value) || 0;
+  if (!clientBudget) {
+    document.getElementById('looseStoneBudgetDisplay').textContent = '—';
+    document.getElementById('looseReverseMultDisplay').textContent = '—';
+    return;
+  }
+
+  // Determine multiplier based on client budget
+  let mult;
+  if (clientBudget <= 2000) mult = 2.2;
+  else if (clientBudget <= 5000) mult = 1.85;
+  else if (clientBudget <= 10000) mult = 1.65;
+  else if (clientBudget <= 20000) mult = 1.45;
+  else mult = 1.35;
+
+  // Reverse: divide budget by multiplier
+  const stoneBudget = Math.round(clientBudget / mult);
+  
+  document.getElementById('looseStoneBudgetDisplay').textContent = '$' + stoneBudget.toLocaleString();
+  document.getElementById('looseReverseMultDisplay').textContent = '÷ ' + mult;
 }
 
 
