@@ -2507,22 +2507,27 @@
         <div class="result-value" id="looseProfitDisplay" style="color:var(--green-bright)">—</div>
       </div>
     </div>
-    <div class="result-panel" style="margin: 12px 16px">
-      <div class="result-panel-header">Reverse: Client budget to stone budget</div>
+    <div style="height: 16px"></div>
+    <div style="margin: 0 16px; padding: 16px; background: #fafaf7; border: 1px solid var(--border); border-radius: 0">
+      <div style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px">Client budget → Your stone budget</div>
       <div style="margin-bottom: 12px">
         <div class="field-label" style="margin-bottom: 6px">Client's loose stone budget</div>
         <input type="number" id="looseClientBudget" min="0" placeholder="0" oninput="calcLooseReverse()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">
       </div>
-      <div class="result-row">
-        <div class="result-label">Your stone budget</div>
-        <div class="result-value" id="looseStoneBudgetDisplay">—</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border-light);margin-bottom:8px">
+        <div style="font-size:12px;color:var(--text)">Your stone budget</div>
+        <div id="looseStoneBudgetDisplay" style="font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--text)">—</div>
       </div>
-      <div class="result-row" style="font-size:12px;color:var(--text-dim);padding:8px 0;border-top:1px solid var(--border-light)">
-        <div style="flex:1">Based on tiered markup</div>
-        <div id="looseReverseMultDisplay" style="text-align:right;font-family:var(--font-mono)">—</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-light)">
+        <div style="font-size:12px;color:var(--text-dim)">Your retail markup</div>
+        <div id="looseReverseMultDisplay" style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim)">—</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <div style="font-size:12px;color:var(--green-bright);font-weight:500">Est. profit on stone</div>
+        <div id="looseReverseProfitDisplay" style="font-family:var(--font-mono);font-size:16px;font-weight:500;color:var(--green-bright)">—</div>
       </div>
     </div>
-    <div id="looseMarkSoldWrap" style="padding:0 16px 16px">
+    <div id="looseMarkSoldWrap" style="padding:16px">
       <button onclick="markLooseStoneSold()" style="width:100%;background:var(--red);color:#fafaf7;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;padding:12px;cursor:pointer;border-radius:0">Mark as sold — record in P&amp;L</button>
     </div>
   </div>
@@ -9670,6 +9675,7 @@ function calcLooseReverse() {
   if (!clientBudget) {
     document.getElementById('looseStoneBudgetDisplay').textContent = '—';
     document.getElementById('looseReverseMultDisplay').textContent = '—';
+    document.getElementById('looseReverseProfitDisplay').textContent = '—';
     return;
   }
 
@@ -9681,11 +9687,13 @@ function calcLooseReverse() {
   else if (clientBudget <= 20000) mult = 1.45;
   else mult = 1.35;
 
-  // Reverse: divide budget by multiplier
+  // Reverse: divide budget by multiplier to get stone budget
   const stoneBudget = Math.round(clientBudget / mult);
+  const profit = clientBudget - stoneBudget;
   
   document.getElementById('looseStoneBudgetDisplay').textContent = '$' + stoneBudget.toLocaleString();
   document.getElementById('looseReverseMultDisplay').textContent = '÷ ' + mult;
+  document.getElementById('looseReverseProfitDisplay').textContent = '$' + profit.toLocaleString();
 }
 
 
