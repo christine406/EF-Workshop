@@ -9063,6 +9063,7 @@ function markStoneSoldByDealer(id) {
   if (s) {
     s.status = 'sold-by-dealer';
     s.soldDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+    s.archivedDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
     window._inventory = inv;
     persistInventory();
     renderStoneInventory();
@@ -9458,7 +9459,7 @@ function renderStoneInventory() {
         
         let html = '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">'
           + '<div style="flex:1"><div style="font-size:14px;color:var(--text);font-weight:500">' + (desc || 'Stone') + '</div>'
-          + (s.dealer ? '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">Dealer: ' + s.dealer + '</div>' : '')
+          + '<div style="font-size:12px;color:var(--text-dim);margin-top:2px">' + (s.dealer ? 'Dealer: ' + s.dealer : '') + (s.dealer && (s.dateAdded || s.archivedDate) ? ' · ' : '') + (s.dateAdded ? 'Added: ' + s.dateAdded : '') + (s.dateAdded && s.archivedDate ? ' · ' : '') + (s.archivedDate ? 'Archived: ' + s.archivedDate : '') + '</div>'
           + (giaLink ? '<div style="margin-top:4px">' + giaLink + '</div>' : '')
           + (extraDetails ? '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">' + extraDetails + '</div>' : '')
           + (s.notes ? '<div style="font-size:11px;color:var(--text-dim);font-style:italic;margin-top:3px;padding:4px 0">' + s.notes + '</div>' : '')
@@ -9633,6 +9634,7 @@ function markLooseStoneSold() {
     if (s) {
       s.status = 'sold-by-ef';
       s.soldDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      s.archivedDate = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
       window._inventory = inv;
       persistInventory();
     }
