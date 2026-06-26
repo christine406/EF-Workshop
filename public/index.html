@@ -14142,6 +14142,9 @@ function renderInvoices(){
   else if(_invoiceFilter==='paid')invoices=invoices.filter(function(i){return i.status==='paid';});
   if(!invoices.length){list.innerHTML='<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No invoices yet.</div>';return;}
   list.innerHTML='';
+  // Sort key for invoices: parse the stored date string ("May 26, 2026"); fall back
+  // to creation id (a timestamp) when the date is missing or unparseable.
+  var invDateKey=function(inv){var t=inv&&inv.date?Date.parse(inv.date):NaN;if(!isNaN(t))return t;return inv&&inv.id?inv.id:0;};
   var typeOrder=['casting','setting','dealer','findings','other'];
   var typeLabels={casting:'Casting',setting:'Setting',dealer:'Dealers',findings:'Findings',other:'Other'};
   var typeColors={casting:'#a07cc5',setting:'var(--teal-dim)',dealer:'var(--gold)',findings:'#5c7a6b',other:'var(--text-dim)'};
@@ -14154,7 +14157,7 @@ function renderInvoices(){
     var tl=document.createElement('span');tl.textContent=typeLabels[type];typeHeader.appendChild(tl);
     list.appendChild(typeHeader);
     Object.keys(vendors).sort().forEach(function(vendor){
-      var invs=vendors[vendor];var vendorTotal=invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
+      var invs=vendors[vendor].slice().sort(function(a,b){return invDateKey(b)-invDateKey(a);});var vendorTotal=invs.reduce(function(s,inv){return s+(inv.lineItems||[]).reduce(function(ss,li){return ss+(li.amount||0);},0);},0);
       var vh=document.createElement('div');vh.style.cssText='font-size:12px;letter-spacing:0.08em;color:var(--text-dim);padding:6px 0;margin-bottom:4px;display:flex;justify-content:space-between';
       var vn=document.createElement('span');vn.textContent=vendor;var vt=document.createElement('span');vt.textContent=fmt(vendorTotal);vh.appendChild(vn);vh.appendChild(vt);list.appendChild(vh);
       invs.forEach(function(inv){
