@@ -8904,10 +8904,35 @@ function saveInventoryStone() {
   }
 }
 
+// Generic modal overlay used by the archive dialog and inventory diagnostic.
+// Matches the app's existing overlay pattern: fixed backdrop, cream panel, teal border, sharp corners.
+function showModal(title, html) {
+  closeModal(); // never stack
+  const overlay = document.createElement('div');
+  overlay.id = 'app-modal-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  const panel = document.createElement('div');
+  panel.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;width:100%;max-width:460px;max-height:85vh;overflow-y:auto;box-sizing:border-box';
+  let header = '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)">';
+  header += '<div style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim)">' + (title || '') + '</div>';
+  header += '<div onclick="closeModal()" style="font-size:18px;line-height:1;color:var(--text-dim);cursor:pointer;padding:0 4px">&times;</div>';
+  header += '</div>';
+  panel.innerHTML = header + html;
+  overlay.appendChild(panel);
+  // Backdrop click (outside the panel) closes the modal.
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+}
+
+function closeModal() {
+  const existing = document.getElementById('app-modal-overlay');
+  if (existing) existing.remove();
+}
+
 // Move archived stone back to active inventory with category selection
 // Deployment timestamp: 2026-05-20 11:57 UTC
 function showMoveOutOfArchiveDialog(stoneId) {
-  const stone = getInventory().find(s => s.id === stoneId);
+  const stone = getInventory().find(s => String(s.id) === String(stoneId));
   if (!stone) return;
   
   const desc = [
@@ -8932,7 +8957,7 @@ function showMoveOutOfArchiveDialog(stoneId) {
   
   html += '<div style="display:flex;gap:8px">';
   html += '<button onclick="closeModal()" style="flex:1;background:var(--border);color:var(--text);border:none;padding:10px;font-family:var(--font-mono);font-size:11px;cursor:pointer">Cancel</button>';
-  html += '<button onclick="confirmMoveOutOfArchive(' + stoneId + ')" style="flex:1;background:var(--green-bright);color:#fafaf7;border:none;padding:10px;font-family:var(--font-mono);font-size:11px;cursor:pointer">Move to Active Inventory</button>';
+  html += '<button onclick="confirmMoveOutOfArchive(\'' + stoneId + '\')" style="flex:1;background:var(--green-bright);color:#fafaf7;border:none;padding:10px;font-family:var(--font-mono);font-size:11px;cursor:pointer">Move to Active Inventory</button>';
   html += '</div>';
   html += '</div>';
   
@@ -8942,7 +8967,7 @@ function showMoveOutOfArchiveDialog(stoneId) {
 function confirmMoveOutOfArchive(stoneId) {
   const category = document.getElementById('move-archive-category').value;
   const inv = getInventory();
-  const stone = inv.find(s => s.id === stoneId);
+  const stone = inv.find(s => String(s.id) === String(stoneId));
   if (!stone) return;
   
   // Update stone category and status
@@ -9470,7 +9495,7 @@ function renderStoneInventory() {
           + (s.soldDate ? '<div style="font-size:10px;color:var(--text-dim);margin-top:2px">' + s.soldDate + '</div>' : '')
           + '</div></div>';
         
-        html += '<div style="margin-top:8px"><button onclick="event.stopPropagation();showMoveOutOfArchiveDialog(' + s.id + ')" style="background:var(--green-bright);color:#fafaf7;border:none;padding:6px 12px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase">← Move to Active Inventory</button></div>';
+        html += '<div style="margin-top:8px"><button onclick="event.stopPropagation();showMoveOutOfArchiveDialog(\'' + s.id + '\')" style="background:var(--green-bright);color:#fafaf7;border:none;padding:6px 12px;font-family:var(--font-mono);font-size:11px;cursor:pointer;letter-spacing:0.08em;text-transform:uppercase">&larr; Move to Active Inventory</button></div>';
         
         card.innerHTML = html;
         archiveContainer.appendChild(card);
