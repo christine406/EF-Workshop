@@ -1847,6 +1847,12 @@
         <button id="sortAlphaBtn" onclick="setSavedSort('alpha')" class="saved-sort-btn">A–Z</button>
       </div>
 
+      <div style="margin-bottom:12px">
+        <input id="savedSearchInput" type="text" placeholder="Search by name" autocomplete="off"
+          oninput="window.savedSearchTerm=this.value; renderSaved();"
+          style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:0;outline:none;box-sizing:border-box" />
+      </div>
+
       <div id="plSummary" style="margin-bottom:12px"></div>
       <div id="savedList"></div>
     </div>
@@ -2141,6 +2147,13 @@
       <!-- FORECAST PANEL -->
       <div id="pipelineForecast" style="display:none;background:#fafaf7;border:1px solid var(--border);padding:12px;margin-bottom:14px">
         <div id="pipelineForecastBody"></div>
+      </div>
+
+      <!-- PROJECT NAME SEARCH -->
+      <div style="margin-bottom:12px">
+        <input id="pipelineSearchInput" type="text" placeholder="Search by name" autocomplete="off"
+          oninput="window.pipelineSearchTerm=this.value; renderPipeline();"
+          style="width:100%;background:#fafaf7;border:1px solid var(--border);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 12px;border-radius:0;outline:none;box-sizing:border-box" />
       </div>
 
       <!-- KANBAN BOARD -->
@@ -6982,8 +6995,20 @@ function renderSaved() {
     'completed': 'No completed projects yet.',
     'abandoned': 'No abandoned projects yet.',
   };
+  // Live search by project name (matches client or project name)
+  const _savedTerm = (window.savedSearchTerm || '').trim().toLowerCase();
+  if (_savedTerm) {
+    filtered = filtered.filter(q =>
+      (q.client || '').toLowerCase().includes(_savedTerm) ||
+      (q.projectName || '').toLowerCase().includes(_savedTerm)
+    );
+  }
+
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state">' + (emptyMsgs[savedFilter] || 'Nothing here.') + '</div>';
+    const emptyMsg = _savedTerm
+      ? 'No projects match &ldquo;' + _savedTerm.replace(/</g, '&lt;') + '&rdquo;.'
+      : (emptyMsgs[savedFilter] || 'Nothing here.');
+    list.innerHTML = '<div class="empty-state">' + emptyMsg + '</div>';
     return;
   }
 
@@ -9936,7 +9961,15 @@ function renderPipeline() {
   if (!board) return;
   const quotes = getSavedQuotes();
   // Collect projects with a pipeline stage. Anything with a real status that maps to a stage gets included.
-  const inPipeline = quotes.filter(q => getProjectStage(q));
+  let inPipeline = quotes.filter(q => getProjectStage(q));
+  // Live search by project name (matches client or project name)
+  const _plTerm = (window.pipelineSearchTerm || '').trim().toLowerCase();
+  if (_plTerm) {
+    inPipeline = inPipeline.filter(q =>
+      (q.client || '').toLowerCase().includes(_plTerm) ||
+      (q.projectName || '').toLowerCase().includes(_plTerm)
+    );
+  }
   // Group by stage
   const byStage = {};
   PIPELINE_STAGES.forEach(s => { byStage[s.key] = []; });
