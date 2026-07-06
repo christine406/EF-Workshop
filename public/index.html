@@ -1499,6 +1499,7 @@
             <option value="">None</option>
             <option value="Engagement ring">💍 Engagement ring</option>
             <option value="Wedding band">⚭ Wedding band</option>
+            <option value="Anniversary">👩‍❤️‍💋‍👨 Anniversary</option>
             <option value="New baby">🤰🏻 New baby</option>
             <option value="Commemorative piece">🕊️ Commemorative piece</option>
             <option value="Just because">✨ Just because</option>
@@ -2560,6 +2561,7 @@ caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 const OCCASION_EMOJIS = {
   'Engagement ring': '💍',
   'Wedding band': '⚭',
+  'Anniversary': '👩‍❤️‍💋‍👨',
   'New baby': '🤰🏻',
   'Commemorative piece': '🕊️',
   'Just because': '✨',
@@ -5317,13 +5319,14 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <option value="">— Select occasion</option>
         <option value="Engagement ring" ${(q.occasion==='Engagement ring'||q.occasion==='Engagement'||q.occasion==='engagement')?'selected':''}>💍 Engagement ring</option>
         <option value="Wedding band" ${(q.occasion==='Wedding band'||q.occasion==='wedding band')?'selected':''}>⚭ Wedding band</option>
+        <option value="Anniversary" ${(q.occasion==='Anniversary'||q.occasion==='anniversary')?'selected':''}>👩‍❤️‍💋‍👨 Anniversary</option>
         <option value="New baby" ${q.occasion==='New baby'?'selected':''}>🤰🏻 New baby</option>
         <option value="Commemorative piece" ${(q.occasion==='Commemorative piece'||q.occasion==='commemorative')?'selected':''}>🕊️ Commemorative piece</option>
         <option value="Just because" ${(q.occasion==='Just because'||q.occasion==='just because')?'selected':''}>✨ Just because</option>
         <option value="Graduation" ${(q.occasion==='Graduation'||q.occasion==='graduation')?'selected':''}>🎓 Graduation</option>
         <option value="Birthday gift" ${(q.occasion==='Birthday gift'||q.occasion==='Birthday')?'selected':''}>🎂 Birthday gift</option>
         <option value="Gift (other)" ${(q.occasion==='Gift (other)'||q.occasion==='Gift'||q.occasion==='gift')?'selected':''}>🎁 Gift (other)</option>
-        <option value="Other" ${(q.occasion==='Other'||(!['Engagement ring','Engagement','engagement','Wedding band','wedding band','New baby','Commemorative piece','commemorative','Just because','just because','Graduation','graduation','Birthday gift','Birthday','Gift (other)','Gift','gift','Other',''].includes(q.occasion||'')))?'selected':''}>💝 Other</option>
+        <option value="Other" ${(q.occasion==='Other'||(!['Engagement ring','Engagement','engagement','Wedding band','wedding band','Anniversary','anniversary','New baby','Commemorative piece','commemorative','Just because','just because','Graduation','graduation','Birthday gift','Birthday','Gift (other)','Gift','gift','Other',''].includes(q.occasion||'')))?'selected':''}>💝 Other</option>
       </select>
       <input type="text" id="eq-occasion-other-${id}" placeholder="Describe occasion..." value="${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?q.occasion||'':''}" style="display:${(!['Engagement','Wedding band','Anniversary','Birthday','New baby','Self purchase','Just because','Gift',''].includes(q.occasion||''))?'block':'none'};margin-top:6px;width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
     </div>` : ''}
@@ -13429,6 +13432,47 @@ function undoLineItemPush(invoiceId, lineItemId) {
   showToast('Push undone — you can re-push now');
 }
 
+// Reusable searchable picker for the long project/spec destination selects.
+// Keeps the native <select> as the value source (downstream reads selectEl.value);
+// renders a filterable list above it. iOS-friendly — native selects can't filter their options.
+function buildSearchableSelect(selectEl, placeholder){
+  selectEl.style.display='none';
+  var wrap=document.createElement('div');
+  var search=document.createElement('input');
+  search.type='text';search.placeholder=placeholder||'Search by name…';search.setAttribute('autocomplete','off');
+  search.style.cssText='width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px;border-radius:0;outline:none;box-sizing:border-box;margin-bottom:6px';
+  var selected=document.createElement('div');
+  selected.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:6px;min-height:15px';
+  var listBox=document.createElement('div');
+  listBox.style.cssText='max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:0;margin-bottom:14px';
+  var rows=[];
+  Array.prototype.forEach.call(selectEl.querySelectorAll('optgroup'),function(og){
+    var groupLabel=og.label||'';
+    Array.prototype.forEach.call(og.querySelectorAll('option'),function(opt){
+      if(!opt.value)return;
+      var label=opt.textContent||'';
+      var row=document.createElement('div');
+      row.dataset.search=(label+' '+groupLabel).toLowerCase();
+      row.style.cssText='padding:9px 10px;font-family:var(--font-mono);font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border)';
+      row.innerHTML='<span style="color:var(--text-dim);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;margin-right:8px">'+groupLabel+'</span>'+label.replace(/</g,'&lt;');
+      row.addEventListener('click',function(){
+        selectEl.value=opt.value;
+        selectEl.dispatchEvent(new Event('change'));
+        selected.textContent='Selected: '+label;
+        rows.forEach(function(r){r.style.background='none';});
+        row.style.background='rgba(100,140,150,0.12)';
+      });
+      listBox.appendChild(row);rows.push(row);
+    });
+  });
+  search.addEventListener('input',function(){
+    var term=search.value.trim().toLowerCase();
+    rows.forEach(function(r){r.style.display=(!term||r.dataset.search.indexOf(term)>=0)?'block':'none';});
+  });
+  wrap.appendChild(search);wrap.appendChild(selected);wrap.appendChild(listBox);
+  return wrap;
+}
+
 function pushLineItemToProject(invoiceId,lineItemId){
   var invoices=getInvoices();var inv=invoices.find(function(i){return i.id===invoiceId;});if(!inv)return;
   var li=(inv.lineItems||[]).find(function(l){return l.id===lineItemId;});if(!li)return;
@@ -13460,6 +13504,7 @@ function pushLineItemToProject(invoiceId,lineItemId){
   getProduction().forEach(function(spec){var o=document.createElement('option');o.value='prod:'+spec.id;o.textContent=spec.name;prodGroup.appendChild(o);});
   projSel.appendChild(prodGroup);
   modal.appendChild(projSel);
+  modal.appendChild(buildSearchableSelect(projSel,'Search project or spec…'));
 
   var modeLabel=document.createElement('div');modeLabel.style.cssText='font-size:12px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase';modeLabel.textContent='Connect as';modal.appendChild(modeLabel);
   var modeWrap=document.createElement('div');modeWrap.style.cssText='display:flex;gap:6px;margin-bottom:14px';
@@ -13607,6 +13652,7 @@ function pushSingleStoneToProject(inv, li, stone, invoices) {
   destSel.innerHTML = destHtml;
   modal.appendChild(destLabel);
   modal.appendChild(destSel);
+  modal.appendChild(buildSearchableSelect(destSel,'Search project or spec…'));
 
   // Stone type toggle — only relevant when pushing to a project (not prod spec)
   var stoneTypeLabel = document.createElement('div');
@@ -13754,6 +13800,7 @@ function pushInventoryStoneToProject(stoneId) {
   destSel.innerHTML = destHtml;
   modal.appendChild(destLabel);
   modal.appendChild(destSel);
+  modal.appendChild(buildSearchableSelect(destSel,'Search project or spec…'));
 
   var stoneTypeLabel = document.createElement('div');
   stoneTypeLabel.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.08em;text-transform:uppercase';
