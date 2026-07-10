@@ -1512,6 +1512,12 @@
       </div>
       <div class="field-row">
         <div class="field">
+          <div class="field-label">Need by</div>
+          <input type="date" id="needByDate" style="width:100%">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
           <div class="field-label">Purity</div>
           <select id="metalPurity" onchange="updateMetalEstimate();calculate()">
             <option value="">— select</option>
@@ -4384,6 +4390,7 @@ function saveMultiPieceSet(quoteType) {
     purity: _stagedPieces[0]?.purity || '',
     grams: _stagedPieces.reduce((s, p) => s + (p.grams || 0), 0),
     date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+    needByDate: document.getElementById('needByDate')?.value || '',
     notes: '',
     clientBudget: 0,
   };
@@ -4905,6 +4912,7 @@ function saveQuote(quoteType = 'client') {
     client,
     quoteType,
     occasion,
+    needByDate: document.getElementById('needByDate')?.value || '',
     status: quoteType === 'collection' ? 'collection-quote' : isProject ? 'project' : 'quote',
     purity,
     grams,
@@ -5084,6 +5092,7 @@ function clearQuote() {
   if (typeof updateFingerSizeVisibility === 'function') updateFingerSizeVisibility();
   if (document.getElementById('weightCategory')) document.getElementById('weightCategory').value = '';
   document.getElementById('projectOccasion').value = '';
+  if (document.getElementById('needByDate')) document.getElementById('needByDate').value = '';
   document.getElementById('laborCost').value = '';
   document.getElementById('designFee').value = '';
   document.getElementById('chainSelect').value = '';
@@ -5312,6 +5321,10 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
         <input type="number" id="eq-budget-${id}" value="${q.clientBudget||''}" placeholder="0" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
       </div>
     </div>
+    <div style="margin-bottom:8px">
+      <div class="field-label">Need by</div>
+      <input type="date" id="eq-needby-${id}" value="${q.needByDate||''}" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:7px 8px;border-radius:0;outline:none">
+    </div>
 
     ${q.quoteType !== 'collection' && q.quoteType !== 'collection-mto' && q.quoteType !== 'collection-rts' ? `<div style="margin-bottom:8px">
       <div class="field-label">Occasion</div>
@@ -5501,6 +5514,7 @@ function saveQuoteEdit(id) {
   }
   q.fingerSize = document.getElementById('eq-fingersize-' + id)?.value?.trim() || q.fingerSize || '';
   q.clientBudget = parseFloat(document.getElementById('eq-budget-' + id)?.value) || q.clientBudget || 0;
+  { const _nb = document.getElementById('eq-needby-' + id); if (_nb) q.needByDate = _nb.value || ''; }
 
   const newTypeEl = document.getElementById('eq-quotetype-' + id);
   if (newTypeEl) {
@@ -6058,6 +6072,36 @@ function savePieceEdit(setId, pieceIdx) {
   showToast('Piece updated');
 }
 
+// Format a stored need-by date (YYYY-MM-DD) for display, timezone-safe. Returns 'Unknown' if unset.
+function formatNeedBy(str) {
+  if (!str) return 'Unknown';
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str);
+  if (m) { var d = new Date(+m[1], +m[2] - 1, +m[3]); return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  return str;
+}
+
+// Prominent "Need by" strip shown at the very top of every project card.
+// Uses established palette: teal for a set date, maroon for overdue, muted gold-border for unknown.
+function needByBanner(q) {
+  var raw = (q && q.needByDate) ? q.needByDate : '';
+  var known = !!raw;
+  var label = formatNeedBy(raw);
+  var overdue = false;
+  if (known) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+    if (m) {
+      var due = new Date(+m[1], +m[2] - 1, +m[3]);
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      if (due < today) overdue = true;
+    }
+  }
+  var bg, fg, txt;
+  if (!known) { bg = 'var(--border)'; fg = 'var(--text-mid)'; txt = 'NEED BY · UNKNOWN'; }
+  else if (overdue) { bg = 'var(--gold)'; fg = 'var(--surface)'; txt = 'NEED BY · ' + label.toUpperCase() + ' · OVERDUE'; }
+  else { bg = 'var(--teal-dim)'; fg = 'var(--surface)'; txt = 'NEED BY · ' + label.toUpperCase(); }
+  return '<div style="background:' + bg + ';color:' + fg + ';font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.1em;padding:5px 10px;text-align:center;border-radius:0">' + txt + '</div>';
+}
+
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
   const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : q.status === 'quote' ? 'QUOTE' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
@@ -6090,7 +6134,7 @@ function buildMultiPieceCard(q) {
   const _mpMeta = _mpStage ? getStageMeta(_mpStage) : null;
   const setStagePill = _mpStage && _mpMeta ? '<span class="stage-pill stage-' + _mpStage + '">' + _mpMeta.label + '</span>' : '';
 
-  let html = '<div class="quote-item-header" style="cursor:pointer;align-items:flex-start" onclick="toggleCard(this)">'
+  let html = needByBanner(q) + '<div class="quote-item-header" style="cursor:pointer;align-items:flex-start" onclick="toggleCard(this)">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div>' + (q.consignment ? '<span style="font-size:10px;background:#7a5c3a;color:#fafaf7;font-family:var(--font-mono);letter-spacing:0.08em;text-transform:uppercase;padding:2px 6px;border-radius:0">Consignment' + (q.consignmentDealer ? ' · ' + q.consignmentDealer : '') + '</span>' : '') + '</div>'
     + '<div class="quote-meta"><span>' + q.date + '</span><span style="color:var(--gold);font-size:10px">✦ SET · ' + (q.pieces?.length||0) + ' pieces</span><span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + setStagePill + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:0;font-family:var(--font-mono)">Consignment</span>' : '') + '</div>'
@@ -6460,7 +6504,7 @@ function buildQuoteCard(q) {
   const stagePill = _spKey && _spMeta ? '<span class="stage-pill stage-' + _spKey + '">' + _spMeta.label + '</span>' : '';
 
   // HEADER — always visible, tap to expand
-  let html = '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
+  let html = needByBanner(q) + '<div class="quote-item-header" onclick="toggleCard(this)" style="cursor:pointer;align-items:flex-start">'
     + '<div>'
     + '<div style="display:flex;align-items:center;gap:6px">' + occasionEmoji + '<div class="quote-client">' + q.client + '</div></div>'
     + '<div class="quote-meta">' + (q.date ? '<span>' + q.date + '</span>' : '') + (q.purity ? '<span>' + q.purity + '</span>' : '') + pieceTag + (q.fingerSize ? '<span>size ' + q.fingerSize + '</span>' : '') + '<span class="quote-status ' + statusClass + '">' + statusLabel + '</span>' + stagePill + (q.consignment ? '<span style="background:#5c7a6b;color:#fafaf7;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:2px 5px;border-radius:0;font-family:var(--font-mono)">Consignment</span>' : '') + occasionTag + '</div>'
@@ -10058,7 +10102,8 @@ function renderPipeline() {
       let pieceTag = '';
       if (q.isMultiPiece) pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · SET</span>';
       else if (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts') pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · COLLECTION</span>';
-      card.innerHTML = '<div class="kanban-card-client">' + (q.client || 'Unnamed').replace(/</g,'&lt;') + pieceTag + '</div>'
+      card.innerHTML = needByBanner(q)
+        + '<div class="kanban-card-client" style="margin-top:6px">' + (q.client || 'Unnamed').replace(/</g,'&lt;') + pieceTag + '</div>'
         + '<div class="kanban-card-meta">' + days + 'd in stage</div>'
         + (amt ? '<div class="kanban-card-amount">$' + amt.toLocaleString() + '</div>' : '')
         + (stuck ? '<div class="kanban-card-stuck">⚠ stuck</div>' : '');
