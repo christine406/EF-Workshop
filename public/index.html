@@ -507,17 +507,7 @@
     color: var(--gold);
     margin-top: 4px;
   }
-  .kanban-card-stuck {
-    background: #fef7c3;
-    color: #7a5c3a;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 1px 5px;
-    margin-top: 4px;
-    display: inline-block;
-  }
+  .kanban-card-stuck { display: none; }
 
   /* Stage-colored full border on Saved Projects cards */
   .quote-item[data-stage] {
@@ -6098,8 +6088,37 @@ function needByBanner(q) {
   var bg, fg, txt;
   if (!known) { bg = 'var(--border)'; fg = 'var(--text-mid)'; txt = 'NEED BY · UNKNOWN'; }
   else if (overdue) { bg = 'var(--gold)'; fg = 'var(--surface)'; txt = 'NEED BY · ' + label.toUpperCase() + ' · OVERDUE'; }
-  else { bg = 'var(--teal-dim)'; fg = 'var(--surface)'; txt = 'NEED BY · ' + label.toUpperCase(); }
-  return '<div style="background:' + bg + ';color:' + fg + ';font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.1em;padding:5px 10px;text-align:center;border-radius:0">' + txt + '</div>';
+  else { bg = '#fef7c3'; fg = '#7a5c3a'; txt = 'NEED BY · ' + label.toUpperCase(); }
+  var qid = (q && q.id != null) ? q.id : '';
+  return '<div onclick="editNeedBy(\'' + qid + '\',event)" title="Tap to set or change the need-by date" style="background:' + bg + ';color:' + fg + ';font-family:var(--font-mono);font-size:11px;font-weight:700;letter-spacing:0.1em;padding:5px 10px;text-align:center;border-radius:0;cursor:pointer">' + txt + ' ✎</div>';
+}
+
+// Tap a card's need-by banner to set, change, or clear the date on an existing project.
+function editNeedBy(id, e) {
+  if (e) e.stopPropagation();
+  var q = getSavedQuotes().find(function(x){ return String(x.id) === String(id); });
+  if (!q) return;
+  var cur = q.needByDate || '';
+  var html = '<div style="padding:16px">'
+    + '<div style="font-size:13px;color:var(--text);margin-bottom:10px">Need by date for <strong>' + (q.client || 'this project').replace(/</g,'&lt;') + '</strong></div>'
+    + '<input type="date" id="need-by-edit-input" value="' + cur + '" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px;border-radius:0;outline:none;box-sizing:border-box">'
+    + '<div style="display:flex;gap:8px;margin-top:14px">'
+    + '<button onclick="saveNeedBy(\'' + id + '\',false)" style="flex:1;background:var(--gold);color:var(--surface);border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;padding:9px;cursor:pointer">Save</button>'
+    + '<button onclick="saveNeedBy(\'' + id + '\',true)" style="flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;padding:9px;cursor:pointer">Clear</button>'
+    + '</div></div>';
+  showModal('Need by date', html);
+}
+
+function saveNeedBy(id, clear) {
+  var q = getSavedQuotes().find(function(x){ return String(x.id) === String(id); });
+  if (!q) return;
+  var input = document.getElementById('need-by-edit-input');
+  q.needByDate = clear ? '' : (input ? input.value : '');
+  persistQuotes();
+  closeModal();
+  renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
+  showToast(q.needByDate ? 'Need-by date updated' : 'Need-by date cleared');
 }
 
 function buildMultiPieceCard(q) {
@@ -9986,12 +10005,7 @@ function daysInCurrentStage(q) {
   return Math.floor((Date.now() - entered) / (1000 * 60 * 60 * 24));
 }
 
-function isStuck(q) {
-  const stage = getProjectStage(q);
-  const meta = getStageMeta(stage);
-  if (!meta || !meta.stuckDays) return false;
-  return daysInCurrentStage(q) > meta.stuckDays;
-}
+// Stuck-project detection removed — no longer alerting on projects that haven't moved.
 
 // Display amount for a project on the pipeline card — prefer client price, then suggested retail, then total.
 function pipelineCardAmount(q) {
@@ -10028,11 +10042,9 @@ function renderPipeline() {
     const stage = getProjectStage(q);
     if (byStage[stage]) byStage[stage].push(q);
   });
-  // Sort within each column: stuck first, then most recently entered stage.
+  // Sort within each column: most recently entered stage first.
   Object.keys(byStage).forEach(k => {
     byStage[k].sort((a, b) => {
-      const aStuck = isStuck(a), bStuck = isStuck(b);
-      if (aStuck !== bStuck) return aStuck ? -1 : 1;
       return daysInCurrentStage(b) - daysInCurrentStage(a);
     });
   });
@@ -10102,15 +10114,13 @@ function renderPipeline() {
       });
       const amt = pipelineCardAmount(q);
       const days = daysInCurrentStage(q);
-      const stuck = !stage.terminal && stage.key !== 'paused' && isStuck(q);
       let pieceTag = '';
       if (q.isMultiPiece) pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · SET</span>';
       else if (q.quoteType === 'collection' || q.quoteType === 'collection-mto' || q.quoteType === 'collection-rts') pieceTag = '<span style="color:var(--gold);font-size:9px;letter-spacing:0.08em"> · COLLECTION</span>';
       card.innerHTML = needByBanner(q)
         + '<div class="kanban-card-client" style="margin-top:6px">' + (q.client || 'Unnamed').replace(/</g,'&lt;') + pieceTag + '</div>'
         + '<div class="kanban-card-meta">' + days + 'd in stage</div>'
-        + (amt ? '<div class="kanban-card-amount">$' + amt.toLocaleString() + '</div>' : '')
-        + (stuck ? '<div class="kanban-card-stuck">⚠ stuck</div>' : '');
+        + (amt ? '<div class="kanban-card-amount">$' + amt.toLocaleString() + '</div>' : '');
       body.appendChild(card);
     });
 
@@ -10289,8 +10299,6 @@ function renderPipelineForecast() {
       }
     }
   });
-  // === Stuck projects ===
-  const stuckList = active.filter(isStuck);
   // === Monthly close: last calendar month's completed ===
   const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const lastMonthCompleted = _completedInMonth(quotes, lastMonthDate.getFullYear(), lastMonthDate.getMonth());
@@ -10320,24 +10328,6 @@ function renderPipelineForecast() {
     + '<div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--text-dim)">Balances paid in</span><span style="color:var(--green-bright);font-weight:500">$' + Math.round(cashInThis).toLocaleString() + '</span></div>'
     + '<div style="font-size:10px;color:var(--text-dim);margin-top:4px;font-style:italic">Estimate based on 50% balance assumption</div>'
     + '</div>';
-  html += '</div>';
-  // Stuck projects
-  html += '<div style="background:#fff;border:1px solid var(--border);padding:10px;margin-bottom:10px">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">Stuck projects</span><span style="font-family:var(--font-mono);font-size:11px;color:' + (stuckList.length ? '#7a5c3a' : 'var(--text-dim)') + '">' + stuckList.length + '</span></div>';
-  if (stuckList.length) {
-    html += '<div style="background:#fef7c3;padding:6px 8px">';
-    stuckList.slice(0, 8).forEach(q => {
-      const stage = getStageMeta(getProjectStage(q));
-      const days = daysInCurrentStage(q);
-      html += '<div style="font-size:11px;color:#5a3a0a;margin-bottom:2px">'
-        + (q.client || 'Unnamed').replace(/</g,'&lt;')
-        + ' <span style="color:#7a5c3a">— ' + (stage ? stage.label : '') + ', ' + days + 'd</span></div>';
-    });
-    if (stuckList.length > 8) html += '<div style="font-size:10px;color:#7a5c3a;font-style:italic;margin-top:4px">+' + (stuckList.length - 8) + ' more</div>';
-    html += '</div>';
-  } else {
-    html += '<div style="font-size:11px;color:var(--text-dim);font-style:italic">Nothing stuck — all projects within thresholds.</div>';
-  }
   html += '</div>';
   // Monthly close — last month
   html += '<div style="background:#fff;border:1px solid var(--border);padding:10px">'
