@@ -1310,6 +1310,10 @@
       <div class="cc-btn-icon">💰</div>
       <div class="cc-btn-label">Quote Builder</div>
     </button>
+    <button class="cc-btn accent-gold" onclick="openBoloBuilder()">
+      <div class="cc-btn-icon">📿</div>
+      <div class="cc-btn-label">Bolo Builder</div>
+    </button>
     <button class="cc-btn accent-teal" onclick="showScreen('pipeline')">
       <div class="cc-btn-icon">⏳</div>
       <div class="cc-btn-label">Pipeline</div>
@@ -1440,6 +1444,11 @@
         <button class="toggle-btn active" id="modeToggleSingle" onclick="setQuoteMode('single',this)">Single piece</button>
         <button class="toggle-btn" id="modeToggleMulti" onclick="setQuoteMode('multi',this)">Multi-piece set</button>
       </div>
+    </div>
+
+    <!-- BOLO QUICK BUILDER -->
+    <div style="padding:10px 16px 0">
+      <button onclick="openBoloBuilder()" style="width:100%;background:var(--gold);color:#fff;border:none;font-family:var(--font-mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;border-radius:0;cursor:pointer">📿 New bolo necklace</button>
     </div>
 
     <div class="client-input-wrap">
@@ -15294,6 +15303,170 @@ function startProdOrder(specId) {
     updateCosts(now, fakeEvent);
   }, 400);
   showToast('Order started for ' + clientName);
+}
+
+// =================== BOLO QUICK BUILDER ===================
+// Dedicated builder for the bolo necklace. Maps the piece's variable parts onto the
+// standard quote model: pendant grams + purity drive metal, the center stone uses the
+// tiered stone markup, gemstone beads price at the melee ×1.75 rate, and labor is the
+// sum of the jeweler's setting work and the stringer. Saves into the same shape as
+// saveQuote so cards, pipeline, and P&L all read it normally.
+function openBoloBuilder() {
+  closeBoloBuilder();
+  var inputStyle = 'background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box;width:100%';
+  var labelStyle = 'font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px';
+  var sectionStyle = 'font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin:14px 0 8px';
+  var overlay = document.createElement('div');
+  overlay.id = 'boloOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
+  overlay.onclick = function(e){ if (e.target === overlay) closeBoloBuilder(); };
+  var purityOpts = [['18k','18k Yellow'],['18kw','18k White'],['14k','14k Yellow'],['14kw','14k White'],['plat','Platinum']]
+    .map(function(o){return '<option value="'+o[0]+'">'+o[1]+'</option>';}).join('');
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-top:3px solid var(--gold);border-radius:0;padding:20px;width:100%;max-width:420px;margin:auto';
+  modal.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    +   '<div style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold)">📿 Bolo builder</div>'
+    +   '<button onclick="closeBoloBuilder()" style="background:none;border:none;color:var(--text-dim);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--text-dim);margin-bottom:12px">Only the parts that change on a bolo. Everything else uses your standard markups.</div>'
+    + '<div style="'+labelStyle+'">Client name</div>'
+    + '<input id="bolo-client" type="text" placeholder="e.g. Sarah M." style="'+inputStyle+'">'
+    + '<div style="'+labelStyle+';margin-top:10px">Need-by date (optional)</div>'
+    + '<input id="bolo-needby" type="date" oninput="boloRecalc()" style="'+inputStyle+'">'
+    + '<div style="'+sectionStyle+'">Gemstone beads (priced like melee, ×1.75)</div>'
+    + '<div style="'+labelStyle+'">Bead description</div>'
+    + '<input id="bolo-bead-desc" type="text" placeholder="e.g. sapphire beads, 17in strand" style="'+inputStyle+'">'
+    + '<div style="'+labelStyle+';margin-top:8px">Bead cost ($)</div>'
+    + '<input id="bolo-bead-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
+    + '<div style="'+sectionStyle+'">Pendant metal</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +   '<div><div style="'+labelStyle+'">Purity</div><select id="bolo-purity" onchange="boloRecalc()" style="'+inputStyle+';appearance:none">'+purityOpts+'</select></div>'
+    +   '<div><div style="'+labelStyle+'">Pendant weight (g)</div><input id="bolo-grams" type="number" min="0" step="0.01" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
+    + '</div>'
+    + '<div style="'+sectionStyle+'">Center stone (tiered markup)</div>'
+    + '<div style="'+labelStyle+'">Stone description</div>'
+    + '<input id="bolo-center-desc" type="text" placeholder="e.g. 1.20ct OMC" style="'+inputStyle+'">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
+    +   '<div><div style="'+labelStyle+'">Stone cost ($)</div><input id="bolo-center-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
+    +   '<div><div style="'+labelStyle+'">GIA # (optional)</div><input id="bolo-center-gia" type="text" placeholder="" style="'+inputStyle+'"></div>'
+    + '</div>'
+    + '<div style="'+sectionStyle+'">Labor</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +   '<div><div style="'+labelStyle+'">Setting (jeweler) $</div><input id="bolo-setting" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
+    +   '<div><div style="'+labelStyle+'">Stringing $</div><input id="bolo-stringing" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
+    + '</div>'
+    + '<div id="bolo-labor-sum" style="font-size:11px;color:var(--text-dim);margin-top:6px">Total labor: $0</div>'
+    + '<div style="'+labelStyle+';margin-top:10px">Design fee (optional) $</div>'
+    + '<input id="bolo-design" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
+    + '<div style="'+labelStyle+';margin-top:10px">Notes (optional)</div>'
+    + '<textarea id="bolo-notes" rows="2" style="'+inputStyle+';font-size:12px"></textarea>'
+    + '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:12px;display:flex;justify-content:space-between;align-items:baseline">'
+    +   '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">Suggested retail</div>'
+    +   '<div id="bolo-retail" style="font-size:22px;color:var(--gold);font-weight:600">$0</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">'
+    +   '<button onclick="saveBolo(\'quote\')" style="background:#fafaf7;color:var(--text-dim);border:1px solid var(--border);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:12px 6px;border-radius:0;cursor:pointer">Save as quote</button>'
+    +   '<button onclick="saveBolo(\'semi-custom\')" style="background:var(--gold);color:#fff;border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:12px 6px;border-radius:0;cursor:pointer">Save as project</button>'
+    + '</div>';
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  var pel = document.getElementById('bolo-purity'); if (pel) pel.value = '18k';
+  boloRecalc();
+}
+
+function closeBoloBuilder() {
+  var el = document.getElementById('boloOverlay');
+  if (el) el.remove();
+}
+
+// Build a standard quote object from the bolo form. quoteType 'semi-custom' => saved as a
+// project (with actual* cost fields); anything else => saved as a plain quote.
+function _boloBuildObj(quoteType) {
+  var val = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
+  var num = function(id){ return parseFloat(val(id)) || 0; };
+  var beadCost = num('bolo-bead-cost');
+  var purity = val('bolo-purity') || '18k';
+  var grams = num('bolo-grams');
+  var centerCost = num('bolo-center-cost');
+  var setting = num('bolo-setting');
+  var stringing = num('bolo-stringing');
+  var designFee = num('bolo-design');
+  var labor = setting + stringing;
+  var beadDesc = (val('bolo-bead-desc') || '').trim();
+  var centerDesc = (val('bolo-center-desc') || '').trim();
+  var gia = (val('bolo-center-gia') || '').trim();
+  var isProject = quoteType === 'semi-custom';
+  // Raw metal cost before the ×1.35 materials markup (casting ×1.25, sprue ×1.05).
+  var metalRaw = grams * goldPerGram(purity) * 1.25 * 1.05;
+  var centerStone = { id: Date.now(), cost: centerCost, desc: centerDesc || 'Center stone',
+    isSmall: false, gia: gia, carat: '', color: '', clarity: '', cut: '', dealer: '', antique: false, detailsOpen: false };
+  var q = {
+    id: Date.now(),
+    client: (val('bolo-client') || '').trim() || 'Unnamed client',
+    quoteType: quoteType,
+    occasion: '',
+    pieceType: 'bolo necklace',
+    isBolo: true,
+    boloMeta: { beadDesc: beadDesc, setting: setting, stringing: stringing },
+    needByDate: val('bolo-needby') || '',
+    status: isProject ? 'project' : 'quote',
+    purity: purity,
+    grams: grams,
+    laborEst: labor,
+    stones: centerCost ? [centerStone] : [],
+    stoneCost: centerCost,
+    meleeCost: beadCost,
+    chainName: '',
+    chainCost: 0,
+    designFee: designFee,
+    discountValue: 0,
+    discountType: 'pct',
+    clientPrice: 0,
+    total: 0,
+    fingerSize: '',
+    clientBudget: 0,
+    metalEstimate: Math.round(metalRaw * 1.35),
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    actualLabor: null,
+    actualStones: null,
+    stoneOptions: [],
+    notes: (val('bolo-notes') || '').trim(),
+  };
+  if (isProject) {
+    q.actualStoneCost = centerCost;
+    q.actualMeleeCost = beadCost;
+    q.actualMetalCost = Math.round(metalRaw);
+    q.actualLabor = labor;
+    q.actualDesignFee = designFee;
+    q.actualChainCost = 0;
+  }
+  q.total = calcSuggestedRetail(q);
+  return q;
+}
+
+function boloRecalc() {
+  var settingEl = document.getElementById('bolo-setting');
+  var stringingEl = document.getElementById('bolo-stringing');
+  var setting = settingEl ? (parseFloat(settingEl.value) || 0) : 0;
+  var stringing = stringingEl ? (parseFloat(stringingEl.value) || 0) : 0;
+  var sumEl = document.getElementById('bolo-labor-sum');
+  if (sumEl) sumEl.textContent = 'Total labor: ' + fmt(setting + stringing);
+  var q = _boloBuildObj('quote');
+  var retailEl = document.getElementById('bolo-retail');
+  if (retailEl) retailEl.textContent = fmt(calcSuggestedRetail(q));
+}
+
+function saveBolo(quoteType) {
+  var q = _boloBuildObj(quoteType);
+  if (!q.total) { showToast('Add costs for the bolo first'); return; }
+  window._savedQuotes = [q].concat(getSavedQuotes());
+  persistQuotes();
+  try { renderSaved(); } catch(e) {}
+  try { renderPipeline(); } catch(e) {}
+  closeBoloBuilder();
+  showToast(quoteType === 'semi-custom' ? 'Bolo project saved' : 'Bolo quote saved');
+  showScreen('saved');
 }
 
 
