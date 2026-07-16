@@ -15305,6 +15305,62 @@ function startProdOrder(specId) {
   showToast('Order started for ' + clientName);
 }
 
+// =================== BEAD TYPES (bolo builder) ===================
+// Saved gemstone-bead options with a default price each. Persisted to Firebase
+// (never localStorage) under the 'beadTypes' node, same pattern as vendors.
+if (!window._beadTypes) window._beadTypes = [];
+function getBeadTypes() { return window._beadTypes || []; }
+function persistBeadTypes() { if (window._fb && window._fb.saveBeadTypes) window._fb.saveBeadTypes(getBeadTypes()); }
+// Add a bead type, or update its default price if the name already exists and the
+// price changed. Keeps the master list current as bead prices move over time.
+function addOrUpdateBeadType(name, price) {
+  var nm = (name || '').trim();
+  if (!nm) return;
+  price = parseFloat(price) || 0;
+  var list = getBeadTypes();
+  var found = list.find(function(b){ return b && b.name && b.name.toLowerCase() === nm.toLowerCase(); });
+  if (found) {
+    if (price > 0 && price !== found.price) { found.price = price; window._beadTypes = list; persistBeadTypes(); }
+  } else {
+    list.push({ name: nm, price: price });
+    window._beadTypes = list.slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+    persistBeadTypes();
+  }
+}
+// Rebuild the bead dropdown in the open bolo modal, preserving the current selection.
+function renderBoloBeadOptions() {
+  var sel = document.getElementById('bolo-bead-sel');
+  if (!sel) return;
+  var prev = sel.value;
+  var opts = '<option value="">— select bead —</option>';
+  getBeadTypes().forEach(function(b){
+    if (b && b.name) opts += '<option value="' + b.name.replace(/"/g,'&quot;') + '">' + b.name + ' ($' + (Math.round(b.price)||0) + ')</option>';
+  });
+  opts += '<option value="__new__">＋ Add new bead type</option>';
+  sel.innerHTML = opts;
+  sel.value = prev || '';
+}
+// When the bead dropdown changes: reveal the add-new fields, or prefill the price
+// (still editable per-piece) from the chosen bead's saved default.
+function boloBeadSelChanged() {
+  var sel = document.getElementById('bolo-bead-sel');
+  var newWrap = document.getElementById('bolo-bead-new-wrap');
+  var costEl = document.getElementById('bolo-bead-cost');
+  if (!sel) return;
+  if (sel.value === '__new__') {
+    if (newWrap) newWrap.style.display = 'block';
+    if (costEl) costEl.value = '';
+    var nn = document.getElementById('bolo-bead-new-name'); if (nn) nn.focus();
+  } else {
+    if (newWrap) newWrap.style.display = 'none';
+    if (sel.value) {
+      var b = getBeadTypes().find(function(x){ return x && x.name === sel.value; });
+      if (b && costEl) costEl.value = b.price || 0;
+    }
+  }
+  boloRecalc();
+}
+
 // =================== BOLO QUICK BUILDER ===================
 // Dedicated builder for the bolo necklace. Maps the piece's variable parts onto the
 // standard quote model: pendant grams + purity drive metal, the center stone uses the
@@ -15335,9 +15391,15 @@ function openBoloBuilder() {
     + '<div style="'+labelStyle+';margin-top:10px">Need-by date (optional)</div>'
     + '<input id="bolo-needby" type="date" oninput="boloRecalc()" style="'+inputStyle+'">'
     + '<div style="'+sectionStyle+'">Gemstone beads (priced like melee, ×1.75)</div>'
-    + '<div style="'+labelStyle+'">Bead description</div>'
-    + '<input id="bolo-bead-desc" type="text" placeholder="e.g. sapphire beads, 17in strand" style="'+inputStyle+'">'
-    + '<div style="'+labelStyle+';margin-top:8px">Bead cost ($)</div>'
+    + '<div style="'+labelStyle+'">Bead type</div>'
+    + '<select id="bolo-bead-sel" onchange="boloBeadSelChanged()" style="'+inputStyle+';appearance:none"></select>'
+    + '<div id="bolo-bead-new-wrap" style="display:none;margin-top:8px">'
+    +   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +     '<div><div style="'+labelStyle+'">New bead name</div><input id="bolo-bead-new-name" type="text" placeholder="e.g. sapphire beads" style="'+inputStyle+'"></div>'
+    +     '<div><div style="'+labelStyle+'">Default price ($)</div><input id="bolo-bead-new-price" type="number" min="0" placeholder="0" oninput="var c=document.getElementById(\'bolo-bead-cost\');if(c)c.value=this.value;boloRecalc()" style="'+inputStyle+'"></div>'
+    +   '</div>'
+    + '</div>'
+    + '<div style="'+labelStyle+';margin-top:8px">Bead cost for this piece ($)</div>'
     + '<input id="bolo-bead-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
     + '<div style="'+sectionStyle+'">Pendant metal</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
@@ -15372,6 +15434,7 @@ function openBoloBuilder() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   var pel = document.getElementById('bolo-purity'); if (pel) pel.value = '18k';
+  renderBoloBeadOptions();
   boloRecalc();
 }
 
@@ -15386,6 +15449,8 @@ function _boloBuildObj(quoteType) {
   var val = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
   var num = function(id){ return parseFloat(val(id)) || 0; };
   var beadCost = num('bolo-bead-cost');
+  var beadSelVal = val('bolo-bead-sel');
+  var beadName = beadSelVal === '__new__' ? (val('bolo-bead-new-name') || '').trim() : (beadSelVal || '');
   var purity = val('bolo-purity') || '18k';
   var grams = num('bolo-grams');
   var centerCost = num('bolo-center-cost');
@@ -15393,7 +15458,7 @@ function _boloBuildObj(quoteType) {
   var stringing = num('bolo-stringing');
   var designFee = num('bolo-design');
   var labor = setting + stringing;
-  var beadDesc = (val('bolo-bead-desc') || '').trim();
+  var beadDesc = beadName;
   var centerDesc = (val('bolo-center-desc') || '').trim();
   var gia = (val('bolo-center-gia') || '').trim();
   var isProject = quoteType === 'semi-custom';
@@ -15458,6 +15523,18 @@ function boloRecalc() {
 }
 
 function saveBolo(quoteType) {
+  // Save/update the bead type so it's available (with current price) next time.
+  var beadSel = document.getElementById('bolo-bead-sel');
+  var beadCostEl = document.getElementById('bolo-bead-cost');
+  var beadPrice = beadCostEl ? (parseFloat(beadCostEl.value) || 0) : 0;
+  if (beadSel) {
+    if (beadSel.value === '__new__') {
+      var nm = (document.getElementById('bolo-bead-new-name') || {}).value || '';
+      if (nm.trim()) addOrUpdateBeadType(nm, beadPrice);
+    } else if (beadSel.value) {
+      addOrUpdateBeadType(beadSel.value, beadPrice);
+    }
+  }
   var q = _boloBuildObj(quoteType);
   if (!q.total) { showToast('Add costs for the bolo first'); return; }
   window._savedQuotes = [q].concat(getSavedQuotes());
@@ -15584,6 +15661,7 @@ function saveBolo(quoteType) {
       saveRemovedChains: (data) => set(ref(db, 'removedChains'), data),
       saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
       saveVendors: (data) => set(ref(db, 'vendors'), data),
+      saveBeadTypes: (data) => set(ref(db, 'beadTypes'), data),
       saveInvoices: (data) => set(ref(db, 'invoices'), data),
       saveProduction: (data) => set(ref(db, 'production'), data),
       saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
@@ -15715,6 +15793,12 @@ function saveBolo(quoteType) {
     const val = snap.val();
     window._production = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     if (typeof renderProduction === 'function') renderProduction();
+  });
+
+  onValue(ref(db, 'beadTypes'), snap => {
+    const val = snap.val();
+    window._beadTypes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (typeof renderBoloBeadOptions === 'function' && document.getElementById('bolo-bead-sel')) renderBoloBeadOptions();
   });
 
 
