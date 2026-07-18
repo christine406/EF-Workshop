@@ -15361,6 +15361,36 @@ function boloBeadSelChanged() {
   boloRecalc();
 }
 
+// =================== BOLO PENDANT SHAPES ===================
+// Fixed pendant weights by shape and gold purity. White-gold variants share the
+// yellow-gold weight (same alloy density). Platinum has no standard weight — entered manually.
+var BOLO_PENDANT_WEIGHTS = {
+  elongated: { '18k': 7.45, '18kw': 7.45, '14k': 6.5, '14kw': 6.5 },
+  standard:  { '18k': 7.75, '18kw': 7.75, '14k': 6.8, '14kw': 6.8 }
+};
+function boloPendantWeight(shape, purity) {
+  var m = BOLO_PENDANT_WEIGHTS[shape];
+  return m ? m[purity] : undefined;
+}
+// When shape or purity changes, auto-fill the pendant weight (still editable) so the
+// metal cost is computed from the fixed weight against the current gold price.
+function boloShapeOrPurityChanged() {
+  var shapeEl = document.getElementById('bolo-shape');
+  var purityEl = document.getElementById('bolo-purity');
+  var gramsEl = document.getElementById('bolo-grams');
+  var note = document.getElementById('bolo-shape-note');
+  var shape = shapeEl ? shapeEl.value : '';
+  var purity = purityEl ? (purityEl.value || '18k') : '18k';
+  var w = boloPendantWeight(shape, purity);
+  if (w != null && gramsEl) {
+    gramsEl.value = w;
+    if (note) note.textContent = (shape === 'elongated' ? 'Elongated' : 'Standard') + ' in ' + purity + ': ' + w + 'g (standard weight)';
+  } else if (note) {
+    note.textContent = (shape && purity === 'plat') ? 'No standard weight for platinum — enter the pendant weight manually.' : '';
+  }
+  boloRecalc();
+}
+
 // =================== BOLO QUICK BUILDER ===================
 // Dedicated builder for the bolo necklace. Maps the piece's variable parts onto the
 // standard quote model: pendant grams + purity drive metal, the center stone uses the
@@ -15402,10 +15432,13 @@ function openBoloBuilder() {
     + '<div style="'+labelStyle+';margin-top:8px">Bead cost for this piece ($)</div>'
     + '<input id="bolo-bead-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
     + '<div style="'+sectionStyle+'">Pendant metal</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
-    +   '<div><div style="'+labelStyle+'">Purity</div><select id="bolo-purity" onchange="boloRecalc()" style="'+inputStyle+';appearance:none">'+purityOpts+'</select></div>'
+    + '<div style="'+labelStyle+'">Pendant shape</div>'
+    + '<select id="bolo-shape" onchange="boloShapeOrPurityChanged()" style="'+inputStyle+';appearance:none"><option value="">— select shape —</option><option value="elongated">Elongated</option><option value="standard">Standard</option></select>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
+    +   '<div><div style="'+labelStyle+'">Purity</div><select id="bolo-purity" onchange="boloShapeOrPurityChanged()" style="'+inputStyle+';appearance:none">'+purityOpts+'</select></div>'
     +   '<div><div style="'+labelStyle+'">Pendant weight (g)</div><input id="bolo-grams" type="number" min="0" step="0.01" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
     + '</div>'
+    + '<div id="bolo-shape-note" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>'
     + '<div style="'+sectionStyle+'">Center stone (tiered markup)</div>'
     + '<div style="'+labelStyle+'">Stone description</div>'
     + '<input id="bolo-center-desc" type="text" placeholder="e.g. 1.20ct OMC" style="'+inputStyle+'">'
@@ -15452,6 +15485,7 @@ function _boloBuildObj(quoteType) {
   var beadSelVal = val('bolo-bead-sel');
   var beadName = beadSelVal === '__new__' ? (val('bolo-bead-new-name') || '').trim() : (beadSelVal || '');
   var purity = val('bolo-purity') || '18k';
+  var shape = val('bolo-shape') || '';
   var grams = num('bolo-grams');
   var centerCost = num('bolo-center-cost');
   var setting = num('bolo-setting');
@@ -15473,7 +15507,7 @@ function _boloBuildObj(quoteType) {
     occasion: '',
     pieceType: 'bolo necklace',
     isBolo: true,
-    boloMeta: { beadDesc: beadDesc, setting: setting, stringing: stringing },
+    boloMeta: { beadDesc: beadDesc, setting: setting, stringing: stringing, shape: shape },
     needByDate: val('bolo-needby') || '',
     status: isProject ? 'project' : 'quote',
     purity: purity,
