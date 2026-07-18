@@ -15481,17 +15481,38 @@ function setBoloChainPrice(purity, price) {
   }
 }
 var BOLO_PURITY_LABELS = { '14k': '14k yellow', '18k': '18k yellow', '18kw': '18k white', '14kw': '14k white', 'plat': 'platinum' };
-// Prefill the gold bead chain cost from the pendant purity's wholesale price (still editable).
-function boloFillChainCost() {
-  if (boloStrandType() !== 'chain') return;
+// Populate the bead-chain dropdown with the four wholesale options, preserving any selection.
+function renderBoloChainOptions() {
+  var sel = document.getElementById('bolo-chain-sel');
+  if (!sel) return;
+  var prev = sel.value;
+  var m = getBoloChainPrices();
+  var order = ['14k', '18k', '18kw', '14kw'];
+  var opts = '';
+  order.forEach(function(p){
+    if (m[p] != null) opts += '<option value="' + p + '">' + (BOLO_PURITY_LABELS[p] || p) + ' ($' + (Math.round(m[p]) || 0).toLocaleString() + ')</option>';
+  });
+  sel.innerHTML = opts;
+  var pend = (document.getElementById('bolo-purity') || {}).value;
+  sel.value = prev || (order.indexOf(pend) !== -1 ? pend : '18k');
+}
+// Prefill the chain cost from the chosen bead chain (still editable).
+function boloChainSelChanged() {
+  var sel = document.getElementById('bolo-chain-sel');
   var costEl = document.getElementById('bolo-goldchain-cost');
   var noteEl = document.getElementById('bolo-goldchain-note');
-  var purity = (document.getElementById('bolo-purity') || {}).value || '18k';
-  var price = boloChainPriceFor(purity);
-  if (costEl) costEl.value = price ? price : (costEl.value || '');
-  if (noteEl) noteEl.textContent = price
-    ? ((BOLO_PURITY_LABELS[purity] || purity) + ' bead chain: ' + fmt(price) + ' wholesale (from pendant purity)')
-    : 'No preset for this purity — enter the chain cost manually.';
+  if (!sel) return;
+  var p = sel.value;
+  var price = boloChainPriceFor(p);
+  if (costEl) costEl.value = price ? price : '';
+  if (noteEl) noteEl.textContent = price ? ((BOLO_PURITY_LABELS[p] || p) + ' bead chain: ' + fmt(price) + ' wholesale') : '';
+  boloRecalc();
+}
+// Build the dropdown and prefill its cost when the chain strand is shown.
+function boloFillChainCost() {
+  if (boloStrandType() !== 'chain') return;
+  renderBoloChainOptions();
+  boloChainSelChanged();
 }
 
 // Strand is either gemstone beads (melee ×1.75) or a gold bead chain (findings ×1.35) — never both.
@@ -15536,7 +15557,6 @@ function boloShapeOrPurityChanged() {
   } else if (note) {
     note.textContent = (shape && purity === 'plat') ? 'No standard weight for platinum — enter the pendant weight manually.' : '';
   }
-  if (boloStrandType() === 'chain') boloFillChainCost();  // chain price follows the pendant purity
   boloRecalc();
 }
 
@@ -15593,9 +15613,11 @@ function openBoloBuilder() {
     + '</div>'
     + '</div>'
     + '<div id="bolo-strand-chain-wrap" style="display:none;margin-top:8px">'
-    +   '<div style="'+labelStyle+'">Gold bead chain — description (optional)</div>'
-    +   '<input id="bolo-goldchain-desc" type="text" placeholder="e.g. 1.5mm gold bead chain, 17in" style="'+inputStyle+'">'
-    +   '<div style="'+labelStyle+';margin-top:8px">Gold bead chain cost ($)</div>'
+    +   '<div style="'+labelStyle+'">Bead chain</div>'
+    +   '<select id="bolo-chain-sel" onchange="boloChainSelChanged()" style="'+inputStyle+';appearance:none"></select>'
+    +   '<div style="'+labelStyle+';margin-top:8px">Description (optional)</div>'
+    +   '<input id="bolo-goldchain-desc" type="text" placeholder="e.g. 1.5mm bead chain, 17in" style="'+inputStyle+'">'
+    +   '<div style="'+labelStyle+';margin-top:8px">Chain cost ($)</div>'
     +   '<input id="bolo-goldchain-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
     +   '<div id="bolo-goldchain-note" style="font-size:11px;color:var(--text-dim);margin-top:4px"></div>'
     + '</div>'
@@ -15821,7 +15843,8 @@ function saveBolo(quoteType) {
   }
   // If this is a gold bead chain, remember the (possibly edited) wholesale price for its purity.
   if (boloStrandType() === 'chain') {
-    var chPurity = (document.getElementById('bolo-purity') || {}).value || '18k';
+    var chSel = document.getElementById('bolo-chain-sel');
+    var chPurity = chSel ? chSel.value : '18k';
     var chCostEl = document.getElementById('bolo-goldchain-cost');
     setBoloChainPrice(chPurity, chCostEl ? chCostEl.value : 0);
   }
