@@ -15598,10 +15598,9 @@ function closeBoloBuilder() {
 function _boloBuildObj(quoteType) {
   var val = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
   var num = function(id){ return parseFloat(val(id)) || 0; };
-  var beadCost = num('bolo-bead-cost');
-  var goldBeadCost = boloGoldBeadCost();
+  var beadCost = num('bolo-bead-cost');            // gemstone beads → melee ×1.75
+  var goldBeadCost = boloGoldBeadCost();           // gold beads → findings ×1.35
   var goldBeadQty = boloGoldBeadQty();
-  var meleeTotal = beadCost + goldBeadCost;
   var beadSelVal = val('bolo-bead-sel');
   var beadName = beadSelVal === '__new__' ? (val('bolo-bead-new-name') || '').trim() : (beadSelVal || '');
   var purity = val('bolo-purity') || '18k';
@@ -15637,9 +15636,9 @@ function _boloBuildObj(quoteType) {
     laborEst: labor,
     stones: centerCost ? [centerStone] : [],
     stoneCost: centerCost,
-    meleeCost: meleeTotal,
-    chainName: '',
-    chainCost: 0,
+    meleeCost: beadCost,
+    chainName: goldBeadQty ? (goldBeadQty + ' × 2.5mm gold beads') : '',
+    chainCost: goldBeadCost,
     designFee: designFee,
     discountValue: 0,
     discountType: 'pct',
@@ -15656,11 +15655,11 @@ function _boloBuildObj(quoteType) {
   };
   if (isProject) {
     q.actualStoneCost = centerCost;
-    q.actualMeleeCost = meleeTotal;
+    q.actualMeleeCost = beadCost;
     q.actualMetalCost = Math.round(metalRaw);
     q.actualLabor = labor;
     q.actualDesignFee = designFee;
-    q.actualChainCost = 0;
+    q.actualChainCost = goldBeadCost;
   }
   q.total = calcSuggestedRetail(q);
   return q;
@@ -15681,15 +15680,13 @@ function boloRecalc() {
   var gpg = goldPerGram(purity) || 0;
   var gemBeadCost = parseFloat((document.getElementById('bolo-bead-cost') || {}).value) || 0;
   var goldBeadCost = boloGoldBeadCost();
-  var meleeTotal = gemBeadCost + goldBeadCost;         // == q.meleeCost
   var metalRetail = Math.round(grams * gpg * 1.25 * 1.05 * 1.35);
-  var meleeRetail = Math.round(meleeTotal * 1.75);
-  var gemRetail = Math.round(gemBeadCost * 1.75);
-  var goldRetail = meleeRetail - gemRetail;            // split so the two lines sum to meleeRetail
+  var meleeRetail = Math.round(gemBeadCost * 1.75);    // gemstone beads → melee
+  var goldRetail = Math.round(goldBeadCost * 1.35);    // gold beads → findings
   var laborRetail = Math.round(labor * 1.4);
   var mk = stoneMarkupProject(centerCost);
   var stoneRetail = Math.round(centerCost * mk);
-  var rest = metalRetail + laborRetail + meleeRetail + designFee;
+  var rest = metalRetail + goldRetail + laborRetail + meleeRetail + designFee;
   var overhead = Math.round(rest * 0.13);
   var total = calcSuggestedRetail(q);
 
@@ -15709,12 +15706,12 @@ function boloRecalc() {
   }
   var rows = [];
   if (centerCost)   rows.push(row('Center stone', fmt(centerCost) + ' × ' + mk, stoneRetail));
-  if (gemBeadCost)  rows.push(row('Beads', fmt(gemBeadCost) + ' × 1.75', gemRetail));
-  if (goldBeadCost) rows.push(row('Gold beads', boloGoldBeadQty() + ' × $' + boloGoldBeadUnit(purity).toFixed(2) + ' × 1.75', goldRetail));
+  if (gemBeadCost)  rows.push(row('Beads', fmt(gemBeadCost) + ' × 1.75', meleeRetail));
+  if (goldBeadCost) rows.push(row('Gold beads', boloGoldBeadQty() + ' × $' + boloGoldBeadUnit(purity).toFixed(2) + ' × 1.35 (findings)', goldRetail));
   if (grams)        rows.push(row('Metal', grams + 'g × $' + gpg.toFixed(2) + '/g × 1.25 × 1.05 × 1.35', metalRetail));
   if (labor)      rows.push(row('Labor', fmt(labor) + ' × 1.4', laborRetail));
   if (designFee)  rows.push(row('Design fee', 'no markup', designFee));
-  if (overhead)   rows.push(row('Overhead', '13% on beads, metal, labor, design', overhead));
+  if (overhead)   rows.push(row('Overhead', '13% on beads, gold beads, metal, labor, design', overhead));
 
   var bd = document.getElementById('bolo-breakdown');
   if (bd) {
