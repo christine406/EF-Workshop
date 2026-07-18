@@ -15308,8 +15308,20 @@ function startProdOrder(specId) {
 // =================== BEAD TYPES (bolo builder) ===================
 // Saved gemstone-bead options with a default price each. Persisted to Firebase
 // (never localStorage) under the 'beadTypes' node, same pattern as vendors.
-if (!window._beadTypes) window._beadTypes = [];
-function getBeadTypes() { return window._beadTypes || []; }
+// Preset gemstone-bead options with default wholesale costs, seeded on first use.
+function boloDefaultBeadTypes() {
+  return [
+    { name: 'Turquoise, less matrix', price: 225 },
+    { name: 'Turquoise, more matrix', price: 125 },
+    { name: 'Rice pearl, single strand', price: 50 },
+    { name: 'Rice pearl, double strand', price: 100 },
+    { name: 'Carnelian', price: 100 },
+    { name: 'Aquamarine', price: 225 }
+  ];
+}
+function getBeadTypes() {
+  return (window._beadTypes && window._beadTypes.length) ? window._beadTypes : boloDefaultBeadTypes();
+}
 function persistBeadTypes() { if (window._fb && window._fb.saveBeadTypes) window._fb.saveBeadTypes(getBeadTypes()); }
 // Add a bead type, or update its default price if the name already exists and the
 // price changed. Keeps the master list current as bead prices move over time.
@@ -15425,6 +15437,29 @@ function boloStoneSelChanged() {
   boloRecalc();
 }
 
+// =================== BOLO GOLD BEADS ===================
+// Optional 2.5mm gold beads on the strand. Priced per piece by the pendant purity:
+// $2.45/bead in 18k, $1.64/bead in 14k. Platinum falls back to the 18k price.
+function boloGoldBeadUnit(purity) { return (purity && purity.indexOf('14k') === 0) ? 1.64 : 2.45; }
+function boloGoldBeadQty() {
+  var t = document.getElementById('bolo-goldbead-toggle');
+  if (!t || !t.checked) return 0;
+  var qtyEl = document.getElementById('bolo-goldbead-qty');
+  return qtyEl ? (parseInt(qtyEl.value, 10) || 0) : 0;
+}
+function boloGoldBeadCost() {
+  var qty = boloGoldBeadQty();
+  if (!qty) return 0;
+  var purity = (document.getElementById('bolo-purity') || {}).value || '18k';
+  return qty * boloGoldBeadUnit(purity);
+}
+function boloGoldBeadToggle() {
+  var wrap = document.getElementById('bolo-goldbead-wrap');
+  var t = document.getElementById('bolo-goldbead-toggle');
+  if (wrap) wrap.style.display = (t && t.checked) ? 'block' : 'none';
+  boloRecalc();
+}
+
 // =================== BOLO PENDANT SHAPES ===================
 // Fixed pendant weights by shape and gold purity. White-gold variants share the
 // yellow-gold weight (same alloy density). Platinum has no standard weight — entered manually.
@@ -15495,6 +15530,15 @@ function openBoloBuilder() {
     + '</div>'
     + '<div style="'+labelStyle+';margin-top:8px">Bead cost for this piece ($)</div>'
     + '<input id="bolo-bead-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
+    + '<div style="margin-top:10px;display:flex;align-items:center;gap:8px">'
+    +   '<input id="bolo-goldbead-toggle" type="checkbox" onchange="boloGoldBeadToggle()" style="width:16px;height:16px;accent-color:var(--gold)">'
+    +   '<label for="bolo-goldbead-toggle" style="font-size:12px;color:var(--text);cursor:pointer">Add gold beads to strand?</label>'
+    + '</div>'
+    + '<div id="bolo-goldbead-wrap" style="display:none;margin-top:8px">'
+    +   '<div style="'+labelStyle+'">How many gold beads (2.5mm)</div>'
+    +   '<input id="bolo-goldbead-qty" type="number" min="0" step="1" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
+    +   '<div id="bolo-goldbead-note" style="font-size:11px;color:var(--text-dim);margin-top:4px">Priced from the pendant purity: $2.45/bead in 18k, $1.64 in 14k.</div>'
+    + '</div>'
     + '<div style="'+sectionStyle+'">Pendant metal</div>'
     + '<div style="'+labelStyle+'">Pendant shape</div>'
     + '<select id="bolo-shape" onchange="boloShapeOrPurityChanged()" style="'+inputStyle+';appearance:none"><option value="">— select shape —</option><option value="elongated">Elongated</option><option value="standard">Standard</option></select>'
@@ -15555,6 +15599,9 @@ function _boloBuildObj(quoteType) {
   var val = function(id){ var el = document.getElementById(id); return el ? el.value : ''; };
   var num = function(id){ return parseFloat(val(id)) || 0; };
   var beadCost = num('bolo-bead-cost');
+  var goldBeadCost = boloGoldBeadCost();
+  var goldBeadQty = boloGoldBeadQty();
+  var meleeTotal = beadCost + goldBeadCost;
   var beadSelVal = val('bolo-bead-sel');
   var beadName = beadSelVal === '__new__' ? (val('bolo-bead-new-name') || '').trim() : (beadSelVal || '');
   var purity = val('bolo-purity') || '18k';
@@ -15582,7 +15629,7 @@ function _boloBuildObj(quoteType) {
     occasion: '',
     pieceType: 'bolo necklace',
     isBolo: true,
-    boloMeta: { beadDesc: beadDesc, setting: setting, stringing: stringing, shape: shape },
+    boloMeta: { beadDesc: beadDesc, setting: setting, stringing: stringing, shape: shape, goldBeadQty: goldBeadQty, goldBeadCost: goldBeadCost },
     needByDate: val('bolo-needby') || '',
     status: isProject ? 'project' : 'quote',
     purity: purity,
@@ -15590,7 +15637,7 @@ function _boloBuildObj(quoteType) {
     laborEst: labor,
     stones: centerCost ? [centerStone] : [],
     stoneCost: centerCost,
-    meleeCost: beadCost,
+    meleeCost: meleeTotal,
     chainName: '',
     chainCost: 0,
     designFee: designFee,
@@ -15609,7 +15656,7 @@ function _boloBuildObj(quoteType) {
   };
   if (isProject) {
     q.actualStoneCost = centerCost;
-    q.actualMeleeCost = beadCost;
+    q.actualMeleeCost = meleeTotal;
     q.actualMetalCost = Math.round(metalRaw);
     q.actualLabor = labor;
     q.actualDesignFee = designFee;
@@ -15629,17 +15676,30 @@ function boloRecalc() {
 
   var q = _boloBuildObj('quote');
   // Recompute the same components calcSuggestedRetail uses, so every line reconciles to the total.
-  var beadCost = q.meleeCost || 0, centerCost = q.stoneCost || 0, labor = q.laborEst || 0, designFee = q.designFee || 0;
+  var centerCost = q.stoneCost || 0, labor = q.laborEst || 0, designFee = q.designFee || 0;
   var grams = q.grams || 0, purity = q.purity || '18k';
   var gpg = goldPerGram(purity) || 0;
+  var gemBeadCost = parseFloat((document.getElementById('bolo-bead-cost') || {}).value) || 0;
+  var goldBeadCost = boloGoldBeadCost();
+  var meleeTotal = gemBeadCost + goldBeadCost;         // == q.meleeCost
   var metalRetail = Math.round(grams * gpg * 1.25 * 1.05 * 1.35);
-  var meleeRetail = Math.round(beadCost * 1.75);
+  var meleeRetail = Math.round(meleeTotal * 1.75);
+  var gemRetail = Math.round(gemBeadCost * 1.75);
+  var goldRetail = meleeRetail - gemRetail;            // split so the two lines sum to meleeRetail
   var laborRetail = Math.round(labor * 1.4);
   var mk = stoneMarkupProject(centerCost);
   var stoneRetail = Math.round(centerCost * mk);
   var rest = metalRetail + laborRetail + meleeRetail + designFee;
   var overhead = Math.round(rest * 0.13);
   var total = calcSuggestedRetail(q);
+
+  // Live gold-bead note
+  var gbNote = document.getElementById('bolo-goldbead-note');
+  if (gbNote) {
+    var gq = boloGoldBeadQty(), gu = boloGoldBeadUnit(purity);
+    gbNote.textContent = gq ? (gq + ' × $' + gu.toFixed(2) + ' = ' + fmt(gq * gu) + ' (' + purity + ' rate)')
+                            : '$2.45/bead in 18k, $1.64 in 14k.';
+  }
 
   function row(label, detail, amount) {
     return '<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:2px">'
@@ -15648,9 +15708,10 @@ function boloRecalc() {
       + '<span style="white-space:nowrap">' + fmt(amount) + '</span></div>';
   }
   var rows = [];
-  if (centerCost) rows.push(row('Center stone', fmt(centerCost) + ' × ' + mk, stoneRetail));
-  if (beadCost)   rows.push(row('Beads', fmt(beadCost) + ' × 1.75', meleeRetail));
-  if (grams)      rows.push(row('Metal', grams + 'g × $' + gpg.toFixed(2) + '/g × 1.25 × 1.05 × 1.35', metalRetail));
+  if (centerCost)   rows.push(row('Center stone', fmt(centerCost) + ' × ' + mk, stoneRetail));
+  if (gemBeadCost)  rows.push(row('Beads', fmt(gemBeadCost) + ' × 1.75', gemRetail));
+  if (goldBeadCost) rows.push(row('Gold beads', boloGoldBeadQty() + ' × $' + boloGoldBeadUnit(purity).toFixed(2) + ' × 1.75', goldRetail));
+  if (grams)        rows.push(row('Metal', grams + 'g × $' + gpg.toFixed(2) + '/g × 1.25 × 1.05 × 1.35', metalRetail));
   if (labor)      rows.push(row('Labor', fmt(labor) + ' × 1.4', laborRetail));
   if (designFee)  rows.push(row('Design fee', 'no markup', designFee));
   if (overhead)   rows.push(row('Overhead', '13% on beads, metal, labor, design', overhead));
@@ -15953,7 +16014,8 @@ function saveBolo(quoteType) {
 
   onValue(ref(db, 'beadTypes'), snap => {
     const val = snap.val();
-    window._beadTypes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    const saved = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    window._beadTypes = saved.length ? saved : (typeof boloDefaultBeadTypes === 'function' ? boloDefaultBeadTypes() : []);
     if (typeof renderBoloBeadOptions === 'function' && document.getElementById('bolo-bead-sel')) renderBoloBeadOptions();
   });
 
