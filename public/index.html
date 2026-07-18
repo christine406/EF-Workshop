@@ -15457,6 +15457,43 @@ function boloGoldBeadToggle() {
   if (wrap) wrap.style.display = (t && t.checked) ? 'block' : 'none';
   boloRecalc();
 }
+// Gold bead chain wholesale prices by purity. Editable and persisted to 'boloChainPrices'.
+// 14k white is an estimate (was sold out) — update all of these as gold spot moves.
+function boloDefaultChainPrices() {
+  return { '14k': 1493, '18k': 2279, '18kw': 1961, '14kw': 1285 };
+}
+function getBoloChainPrices() {
+  return (window._boloChainPrices && typeof window._boloChainPrices === 'object') ? window._boloChainPrices : boloDefaultChainPrices();
+}
+function boloChainPriceFor(purity) {
+  var m = getBoloChainPrices();
+  return m[purity];
+}
+function setBoloChainPrice(purity, price) {
+  price = parseFloat(price) || 0;
+  if (!purity || !price) return;
+  var m = getBoloChainPrices();
+  var next = { '14k': m['14k'], '18k': m['18k'], '18kw': m['18kw'], '14kw': m['14kw'] };
+  if (next[purity] !== price) {
+    next[purity] = price;
+    window._boloChainPrices = next;
+    if (window._fb && window._fb.saveBoloChainPrices) window._fb.saveBoloChainPrices(next);
+  }
+}
+var BOLO_PURITY_LABELS = { '14k': '14k yellow', '18k': '18k yellow', '18kw': '18k white', '14kw': '14k white', 'plat': 'platinum' };
+// Prefill the gold bead chain cost from the pendant purity's wholesale price (still editable).
+function boloFillChainCost() {
+  if (boloStrandType() !== 'chain') return;
+  var costEl = document.getElementById('bolo-goldchain-cost');
+  var noteEl = document.getElementById('bolo-goldchain-note');
+  var purity = (document.getElementById('bolo-purity') || {}).value || '18k';
+  var price = boloChainPriceFor(purity);
+  if (costEl) costEl.value = price ? price : (costEl.value || '');
+  if (noteEl) noteEl.textContent = price
+    ? ((BOLO_PURITY_LABELS[purity] || purity) + ' bead chain: ' + fmt(price) + ' wholesale (from pendant purity)')
+    : 'No preset for this purity — enter the chain cost manually.';
+}
+
 // Strand is either gemstone beads (melee ×1.75) or a gold bead chain (findings ×1.35) — never both.
 function boloStrandType() {
   var el = document.getElementById('bolo-strand-type');
@@ -15468,6 +15505,7 @@ function boloStrandTypeChanged() {
   var chainWrap = document.getElementById('bolo-strand-chain-wrap');
   if (beadsWrap) beadsWrap.style.display = isChain ? 'none' : 'block';
   if (chainWrap) chainWrap.style.display = isChain ? 'block' : 'none';
+  if (isChain) boloFillChainCost();
   boloRecalc();
 }
 
@@ -15498,6 +15536,7 @@ function boloShapeOrPurityChanged() {
   } else if (note) {
     note.textContent = (shape && purity === 'plat') ? 'No standard weight for platinum — enter the pendant weight manually.' : '';
   }
+  if (boloStrandType() === 'chain') boloFillChainCost();  // chain price follows the pendant purity
   boloRecalc();
 }
 
@@ -15558,6 +15597,7 @@ function openBoloBuilder() {
     +   '<input id="bolo-goldchain-desc" type="text" placeholder="e.g. 1.5mm gold bead chain, 17in" style="'+inputStyle+'">'
     +   '<div style="'+labelStyle+';margin-top:8px">Gold bead chain cost ($)</div>'
     +   '<input id="bolo-goldchain-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
+    +   '<div id="bolo-goldchain-note" style="font-size:11px;color:var(--text-dim);margin-top:4px"></div>'
     + '</div>'
     + '<div style="'+sectionStyle+'">Pendant metal</div>'
     + '<div style="'+labelStyle+'">Pendant shape</div>'
@@ -15779,6 +15819,12 @@ function saveBolo(quoteType) {
       addOrUpdateBoloStoneType(stoneSel.value, stonePrice);
     }
   }
+  // If this is a gold bead chain, remember the (possibly edited) wholesale price for its purity.
+  if (boloStrandType() === 'chain') {
+    var chPurity = (document.getElementById('bolo-purity') || {}).value || '18k';
+    var chCostEl = document.getElementById('bolo-goldchain-cost');
+    setBoloChainPrice(chPurity, chCostEl ? chCostEl.value : 0);
+  }
   var q = _boloBuildObj(quoteType);
   if (!q.total) { showToast('Add costs for the bolo first'); return; }
   window._savedQuotes = [q].concat(getSavedQuotes());
@@ -15907,6 +15953,7 @@ function saveBolo(quoteType) {
       saveVendors: (data) => set(ref(db, 'vendors'), data),
       saveBeadTypes: (data) => set(ref(db, 'beadTypes'), data),
       saveBoloStoneTypes: (data) => set(ref(db, 'boloStoneTypes'), data),
+      saveBoloChainPrices: (data) => set(ref(db, 'boloChainPrices'), data),
       saveInvoices: (data) => set(ref(db, 'invoices'), data),
       saveProduction: (data) => set(ref(db, 'production'), data),
       saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
@@ -16052,6 +16099,12 @@ function saveBolo(quoteType) {
     const saved = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     window._boloStoneTypes = saved.length ? saved : (typeof boloDefaultStoneTypes === 'function' ? boloDefaultStoneTypes() : []);
     if (typeof renderBoloStoneOptions === 'function' && document.getElementById('bolo-stone-sel')) renderBoloStoneOptions();
+  });
+
+  onValue(ref(db, 'boloChainPrices'), snap => {
+    const val = snap.val();
+    window._boloChainPrices = (val && typeof val === 'object') ? val : (typeof boloDefaultChainPrices === 'function' ? boloDefaultChainPrices() : {});
+    if (typeof boloFillChainCost === 'function' && document.getElementById('bolo-goldchain-cost')) boloFillChainCost();
   });
 
 
