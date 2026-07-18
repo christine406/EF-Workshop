@@ -15615,8 +15615,6 @@ function openBoloBuilder() {
     + '<div id="bolo-strand-chain-wrap" style="display:none;margin-top:8px">'
     +   '<div style="'+labelStyle+'">Bead chain</div>'
     +   '<select id="bolo-chain-sel" onchange="boloChainSelChanged()" style="'+inputStyle+';appearance:none"></select>'
-    +   '<div style="'+labelStyle+';margin-top:8px">Description (optional)</div>'
-    +   '<input id="bolo-goldchain-desc" type="text" placeholder="e.g. 1.5mm bead chain, 17in" style="'+inputStyle+'">'
     +   '<div style="'+labelStyle+';margin-top:8px">Chain cost ($)</div>'
     +   '<input id="bolo-goldchain-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
     +   '<div id="bolo-goldchain-note" style="font-size:11px;color:var(--text-dim);margin-top:4px"></div>'
@@ -15689,8 +15687,9 @@ function _boloBuildObj(quoteType) {
   var goldChainCost = isChain ? num('bolo-goldchain-cost') : 0; // gold bead chain → findings ×1.35
   var findingsTotal = goldBeadCost + goldChainCost;
   var beadSelVal = val('bolo-bead-sel');
+  var chainSelP = (document.getElementById('bolo-chain-sel') || {}).value || '';
   var beadName = isChain
-    ? (val('bolo-goldchain-desc') || '').trim()
+    ? ((BOLO_PURITY_LABELS[chainSelP] || chainSelP || 'gold') + ' bead chain')
     : (beadSelVal === '__new__' ? (val('bolo-bead-new-name') || '').trim() : (beadSelVal || ''));
   var purity = val('bolo-purity') || '18k';
   var shape = val('bolo-shape') || '';
@@ -15726,7 +15725,7 @@ function _boloBuildObj(quoteType) {
     stones: centerCost ? [centerStone] : [],
     stoneCost: centerCost,
     meleeCost: beadCost,
-    chainName: isChain ? ('gold bead chain' + (beadName ? ' — ' + beadName : '')) : (goldBeadQty ? (goldBeadQty + ' × 2.5mm gold beads') : ''),
+    chainName: isChain ? beadName : (goldBeadQty ? (goldBeadQty + ' × 2.5mm gold beads') : ''),
     chainCost: findingsTotal,
     designFee: designFee,
     discountValue: 0,
