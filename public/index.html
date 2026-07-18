@@ -15456,7 +15456,9 @@ function openBoloBuilder() {
     + '<input id="bolo-design" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
     + '<div style="'+labelStyle+';margin-top:10px">Notes (optional)</div>'
     + '<textarea id="bolo-notes" rows="2" style="'+inputStyle+';font-size:12px"></textarea>'
-    + '<div style="border-top:1px solid var(--border);margin-top:14px;padding-top:12px;display:flex;justify-content:space-between;align-items:baseline">'
+    + '<div style="'+sectionStyle+'">How it prices</div>'
+    + '<div id="bolo-breakdown" style="font-family:var(--font-mono);font-size:11px;color:var(--text-mid);line-height:1.5"></div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">'
     +   '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim)">Suggested retail</div>'
     +   '<div id="bolo-retail" style="font-size:22px;color:var(--gold);font-weight:600">$0</div>'
     + '</div>'
@@ -15551,9 +15553,43 @@ function boloRecalc() {
   var stringing = stringingEl ? (parseFloat(stringingEl.value) || 0) : 0;
   var sumEl = document.getElementById('bolo-labor-sum');
   if (sumEl) sumEl.textContent = 'Total labor: ' + fmt(setting + stringing);
+
   var q = _boloBuildObj('quote');
+  // Recompute the same components calcSuggestedRetail uses, so every line reconciles to the total.
+  var beadCost = q.meleeCost || 0, centerCost = q.stoneCost || 0, labor = q.laborEst || 0, designFee = q.designFee || 0;
+  var grams = q.grams || 0, purity = q.purity || '18k';
+  var gpg = goldPerGram(purity) || 0;
+  var metalRetail = Math.round(grams * gpg * 1.25 * 1.05 * 1.35);
+  var meleeRetail = Math.round(beadCost * 1.75);
+  var laborRetail = Math.round(labor * 1.4);
+  var mk = stoneMarkupProject(centerCost);
+  var stoneRetail = Math.round(centerCost * mk);
+  var rest = metalRetail + laborRetail + meleeRetail + designFee;
+  var overhead = Math.round(rest * 0.13);
+  var total = calcSuggestedRetail(q);
+
+  function row(label, detail, amount) {
+    return '<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:2px">'
+      + '<span><span style="color:var(--text)">' + label + '</span>'
+      + (detail ? ' <span style="color:var(--text-dim)">' + detail + '</span>' : '') + '</span>'
+      + '<span style="white-space:nowrap">' + fmt(amount) + '</span></div>';
+  }
+  var rows = [];
+  if (centerCost) rows.push(row('Center stone', fmt(centerCost) + ' × ' + mk, stoneRetail));
+  if (beadCost)   rows.push(row('Beads', fmt(beadCost) + ' × 1.75', meleeRetail));
+  if (grams)      rows.push(row('Metal', grams + 'g × $' + gpg.toFixed(2) + '/g × 1.25 × 1.05 × 1.35', metalRetail));
+  if (labor)      rows.push(row('Labor', fmt(labor) + ' × 1.4', laborRetail));
+  if (designFee)  rows.push(row('Design fee', 'no markup', designFee));
+  if (overhead)   rows.push(row('Overhead', '13% on beads, metal, labor, design', overhead));
+
+  var bd = document.getElementById('bolo-breakdown');
+  if (bd) {
+    bd.innerHTML = rows.length
+      ? rows.join('') + '<div style="color:var(--text-dim);margin-top:5px;padding-top:5px;border-top:1px dashed var(--border)">Center stone is priced outside the 13% overhead. Total rounded to nearest $50.</div>'
+      : '<div style="color:var(--text-dim)">Enter costs to see the breakdown.</div>';
+  }
   var retailEl = document.getElementById('bolo-retail');
-  if (retailEl) retailEl.textContent = fmt(calcSuggestedRetail(q));
+  if (retailEl) retailEl.textContent = fmt(total);
 }
 
 function saveBolo(quoteType) {
