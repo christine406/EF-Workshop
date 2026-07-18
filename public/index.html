@@ -15361,6 +15361,70 @@ function boloBeadSelChanged() {
   boloRecalc();
 }
 
+// =================== BOLO CENTER STONE TYPES ===================
+// Preset center-stone options with default wholesale costs. Seeded on first use,
+// then persisted to Firebase under 'boloStoneTypes'. Same behaviour as bead types:
+// selecting one prefills its cost (still editable), and new ones are saved on save.
+function boloDefaultStoneTypes() {
+  return [
+    { name: 'Diamond, elongated, 2 ct', price: 7000 },
+    { name: 'Diamond, round brilliant .90 ct', price: 3000 },
+    { name: 'LG diamond, elongated, 2 ct', price: 600 },
+    { name: 'LG diamond, round brilliant .90 ct', price: 150 },
+    { name: 'White zircon, oval', price: 300 },
+    { name: 'White sapphire, oval', price: 800 },
+    { name: 'Champagne zircon, oval', price: 600 }
+  ];
+}
+function getBoloStoneTypes() {
+  return (window._boloStoneTypes && window._boloStoneTypes.length) ? window._boloStoneTypes : boloDefaultStoneTypes();
+}
+function persistBoloStoneTypes() { if (window._fb && window._fb.saveBoloStoneTypes) window._fb.saveBoloStoneTypes(getBoloStoneTypes()); }
+function addOrUpdateBoloStoneType(name, price) {
+  var nm = (name || '').trim();
+  if (!nm) return;
+  price = parseFloat(price) || 0;
+  var list = getBoloStoneTypes().map(function(d){ return { name: d.name, price: d.price }; });
+  var found = list.find(function(x){ return x.name && x.name.toLowerCase() === nm.toLowerCase(); });
+  if (found) {
+    if (price > 0 && price !== found.price) found.price = price;
+  } else {
+    list.push({ name: nm, price: price });
+  }
+  window._boloStoneTypes = list;
+  persistBoloStoneTypes();
+}
+function renderBoloStoneOptions() {
+  var sel = document.getElementById('bolo-stone-sel');
+  if (!sel) return;
+  var prev = sel.value;
+  var opts = '<option value="">— select stone —</option>';
+  getBoloStoneTypes().forEach(function(s){
+    if (s && s.name) opts += '<option value="' + s.name.replace(/"/g,'&quot;') + '">' + s.name + ' ($' + (Math.round(s.price)||0) + ')</option>';
+  });
+  opts += '<option value="__new__">＋ Add new stone type</option>';
+  sel.innerHTML = opts;
+  sel.value = prev || '';
+}
+function boloStoneSelChanged() {
+  var sel = document.getElementById('bolo-stone-sel');
+  var newWrap = document.getElementById('bolo-stone-new-wrap');
+  var costEl = document.getElementById('bolo-center-cost');
+  if (!sel) return;
+  if (sel.value === '__new__') {
+    if (newWrap) newWrap.style.display = 'block';
+    if (costEl) costEl.value = '';
+    var nn = document.getElementById('bolo-stone-new-name'); if (nn) nn.focus();
+  } else {
+    if (newWrap) newWrap.style.display = 'none';
+    if (sel.value) {
+      var s = getBoloStoneTypes().find(function(x){ return x && x.name === sel.value; });
+      if (s && costEl) costEl.value = s.price || 0;
+    }
+  }
+  boloRecalc();
+}
+
 // =================== BOLO PENDANT SHAPES ===================
 // Fixed pendant weights by shape and gold purity. White-gold variants share the
 // yellow-gold weight (same alloy density). Platinum has no standard weight — entered manually.
@@ -15440,10 +15504,16 @@ function openBoloBuilder() {
     + '</div>'
     + '<div id="bolo-shape-note" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>'
     + '<div style="'+sectionStyle+'">Center stone (tiered markup)</div>'
-    + '<div style="'+labelStyle+'">Stone description</div>'
-    + '<input id="bolo-center-desc" type="text" placeholder="e.g. 1.20ct OMC" style="'+inputStyle+'">'
+    + '<div style="'+labelStyle+'">Stone type</div>'
+    + '<select id="bolo-stone-sel" onchange="boloStoneSelChanged()" style="'+inputStyle+';appearance:none"></select>'
+    + '<div id="bolo-stone-new-wrap" style="display:none;margin-top:8px">'
+    +   '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +     '<div><div style="'+labelStyle+'">New stone name</div><input id="bolo-stone-new-name" type="text" placeholder="e.g. blue sapphire, oval" style="'+inputStyle+'"></div>'
+    +     '<div><div style="'+labelStyle+'">Default cost ($)</div><input id="bolo-stone-new-price" type="number" min="0" placeholder="0" oninput="var c=document.getElementById(\'bolo-center-cost\');if(c)c.value=this.value;boloRecalc()" style="'+inputStyle+'"></div>'
+    +   '</div>'
+    + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
-    +   '<div><div style="'+labelStyle+'">Stone cost ($)</div><input id="bolo-center-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
+    +   '<div><div style="'+labelStyle+'">Stone cost for this piece ($)</div><input id="bolo-center-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
     +   '<div><div style="'+labelStyle+'">GIA # (optional)</div><input id="bolo-center-gia" type="text" placeholder="" style="'+inputStyle+'"></div>'
     + '</div>'
     + '<div style="'+sectionStyle+'">Labor</div>'
@@ -15470,6 +15540,7 @@ function openBoloBuilder() {
   document.body.appendChild(overlay);
   var pel = document.getElementById('bolo-purity'); if (pel) pel.value = '18k';
   renderBoloBeadOptions();
+  renderBoloStoneOptions();
   boloRecalc();
 }
 
@@ -15495,7 +15566,9 @@ function _boloBuildObj(quoteType) {
   var designFee = num('bolo-design');
   var labor = setting + stringing;
   var beadDesc = beadName;
-  var centerDesc = (val('bolo-center-desc') || '').trim();
+  var stoneSelVal = val('bolo-stone-sel');
+  var centerName = stoneSelVal === '__new__' ? (val('bolo-stone-new-name') || '').trim() : (stoneSelVal || '');
+  var centerDesc = centerName;
   var gia = (val('bolo-center-gia') || '').trim();
   var isProject = quoteType === 'semi-custom';
   // Raw metal cost before the ×1.35 materials markup (casting ×1.25, sprue ×1.05).
@@ -15603,6 +15676,18 @@ function saveBolo(quoteType) {
       if (nm.trim()) addOrUpdateBeadType(nm, beadPrice);
     } else if (beadSel.value) {
       addOrUpdateBeadType(beadSel.value, beadPrice);
+    }
+  }
+  // Save/update the center stone type with its current cost.
+  var stoneSel = document.getElementById('bolo-stone-sel');
+  var stoneCostEl = document.getElementById('bolo-center-cost');
+  var stonePrice = stoneCostEl ? (parseFloat(stoneCostEl.value) || 0) : 0;
+  if (stoneSel) {
+    if (stoneSel.value === '__new__') {
+      var snm = (document.getElementById('bolo-stone-new-name') || {}).value || '';
+      if (snm.trim()) addOrUpdateBoloStoneType(snm, stonePrice);
+    } else if (stoneSel.value) {
+      addOrUpdateBoloStoneType(stoneSel.value, stonePrice);
     }
   }
   var q = _boloBuildObj(quoteType);
@@ -15732,6 +15817,7 @@ function saveBolo(quoteType) {
       saveFieldLog: (data) => set(ref(db, 'fieldLog'), data),
       saveVendors: (data) => set(ref(db, 'vendors'), data),
       saveBeadTypes: (data) => set(ref(db, 'beadTypes'), data),
+      saveBoloStoneTypes: (data) => set(ref(db, 'boloStoneTypes'), data),
       saveInvoices: (data) => set(ref(db, 'invoices'), data),
       saveProduction: (data) => set(ref(db, 'production'), data),
       saveDdTasks: (data) => set(ref(db, 'ddTasks'), data),
@@ -15869,6 +15955,13 @@ function saveBolo(quoteType) {
     const val = snap.val();
     window._beadTypes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
     if (typeof renderBoloBeadOptions === 'function' && document.getElementById('bolo-bead-sel')) renderBoloBeadOptions();
+  });
+
+  onValue(ref(db, 'boloStoneTypes'), snap => {
+    const val = snap.val();
+    const saved = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    window._boloStoneTypes = saved.length ? saved : (typeof boloDefaultStoneTypes === 'function' ? boloDefaultStoneTypes() : []);
+    if (typeof renderBoloStoneOptions === 'function' && document.getElementById('bolo-stone-sel')) renderBoloStoneOptions();
   });
 
 
