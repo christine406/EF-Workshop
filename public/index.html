@@ -4257,7 +4257,6 @@ function calculate() {
       + rawMetalOutOfPocket
       + chainWholesaleCost
       + labor
-      + designFee
       + meleeCostRaw;
 
     const profitBefore = total - Math.round(actualCost);
@@ -5108,18 +5107,15 @@ function saveQuote(quoteType = 'client') {
     if (s.inventoryId) {
       const invStone = inv.find(i => i.id === s.inventoryId);
       if (invStone) {
+        // Connect the stone to this quote/project WITHOUT changing its status.
+        // Reservation to owned-reserved happens only when you finalize the stone choice.
         if (reservesStones) {
-          // Reserve: status flips to unavailable; category goes to memo (consignment) or owned-reserved.
-          invStone.status = 'unavailable';
-          invStone.category = quote.consignment ? 'memo' : 'owned-reserved';
           invStone.usedInProjectId = quote.id;
           invStone.usedInQuoteId = null;
-          invStone.usedInQuoteClient = null;
         } else {
-          // It's just a tentative quote — tag it but don't change status.
           invStone.usedInQuoteId = quote.id;
-          invStone.usedInQuoteClient = quote.client || 'quote';
         }
+        invStone.usedInQuoteClient = quote.client || 'quote';
         invChanged = true;
       }
     } else if (s.gia || s.carat || (s.color && s.clarity)) {
@@ -5128,7 +5124,7 @@ function saveQuote(quoteType = 'client') {
       const desc = [s.carat ? parseFloat(s.carat).toFixed(2) + ' ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' · ');
       const newInvStone = {
         id: Date.now() + Math.random(),
-        category: reservesStones ? (quote.consignment ? 'memo' : 'owned-reserved') : 'owned-available',
+        category: 'owned-available',
         cut: s.cut || '',
         carat: parseFloat(s.carat) || 0,
         color: s.color || '',
@@ -5138,7 +5134,7 @@ function saveQuote(quoteType = 'client') {
         cost: s.cost || 0,
         notes: 'Added from quote: ' + client,
         antique: s.antique || false,
-        status: reservesStones ? 'unavailable' : 'available',
+        status: 'available',
         usedInProjectId: reservesStones ? quote.id : null,
         usedInQuoteId: reservesStones ? null : quote.id,
         dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
@@ -5486,6 +5482,29 @@ function editQuoteCard(id, e, _synthQ, _pieceIdx) {
   }
 }
 
+// When a stone is removed from a saved quote/project, release any inventory stone it
+// had reserved so it returns to Available instead of being stranded as reserved/unavailable.
+function releaseRemovedStoneReservation(quoteId, removedStone, q) {
+  if (!removedStone || removedStone.inventoryId == null) return;
+  // Still referenced elsewhere in this quote (another piece)? Keep the reservation.
+  var refs = function(arr){ return (Array.isArray(arr) ? arr : (arr ? Object.values(arr) : [])).some(function(x){ return x && String(x.inventoryId) === String(removedStone.inventoryId); }); };
+  var pieces = q && (Array.isArray(q.pieces) ? q.pieces : (q.pieces ? Object.values(q.pieces) : []));
+  if (refs(q && q.stones) || (pieces && pieces.some(function(pc){ return pc && refs(pc.stones); }))) return;
+  var inv = getInventory();
+  var invStone = inv.find(function(i){ return String(i.id) === String(removedStone.inventoryId); });
+  if (!invStone) return;
+  var reservedHere = String(invStone.usedInProjectId) === String(quoteId) || String(invStone.usedInQuoteId) === String(quoteId);
+  var keep = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+  if (!reservedHere || keep.indexOf(invStone.status) !== -1) return;
+  invStone.status = 'available';
+  if (invStone.category === 'owned-reserved') invStone.category = 'owned-available';
+  invStone.usedInProjectId = null;
+  invStone.usedInQuoteId = null;
+  invStone.usedInQuoteClient = null;
+  window._inventory = inv;
+  persistInventory();
+}
+
 // Remove a stone from the edit form. Works for both single-piece quotes and individual pieces in a set.
 // Recreates the edit form with one fewer stone so edits already typed are preserved via captureEditStoneEdits.
 function removeEditStone(quoteId, stoneIdx) {
@@ -5507,6 +5526,7 @@ function removeEditStone(quoteId, stoneIdx) {
     stonesArr = Array.isArray(q.stones) ? q.stones : (q.stones ? Object.values(q.stones) : []);
   }
   if (!stonesArr[stoneIdx]) return;
+  const _removedStone = stonesArr[stoneIdx];
 
   // Capture any in-progress edits first so they survive the re-render
   captureEditStoneEdits(stonesArr, quoteId);
@@ -5520,6 +5540,7 @@ function removeEditStone(quoteId, stoneIdx) {
   }
   window._savedQuotes = quotes;
   persistQuotes();
+  releaseRemovedStoneReservation(quoteId, _removedStone, q);
 
   // Reopen the edit form so the removed stone disappears from UI
   if (overlay) overlay.remove();
@@ -5696,8 +5717,8 @@ function saveQuoteEdit(id) {
         cost: q.actualStoneCost || 0,
         antique: stoneDetail.antique,
         notes: 'Added from project: ' + q.client,
-        status: 'unavailable',
-        category: (q.consignment ? 'memo' : 'owned-reserved'),
+        status: 'available',
+        category: 'owned-available',
         usedInProjectId: id,
         dateAdded: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}),
         inquiries: [],
@@ -6403,19 +6424,20 @@ function buildMultiPieceCard(q) {
     
     // Mark which option is currently the primary stone (by matching GIA number if available)
     // If no GIA match, mark the option with chosen=true as primary
-    var _displayList = _stoneOpts.map(function(opt) {
+    var _displayList = _stoneOpts.map(function(opt, _origIdx) {
       var optGia = opt.gia ? String(opt.gia).replace(/\D/g, '') : null;
       var matchesPrimary = _primaryGia && optGia && _primaryGia === optGia;
       var shouldMarkPrimary = matchesPrimary || (opt.chosen && _stoneOpts.filter(function(o){return o.chosen;}).length === 1);
-      return shouldMarkPrimary ? Object.assign({}, opt, { isPrimary: true }) : opt;
+      return Object.assign({}, opt, { _origIdx: _origIdx, isPrimary: !!shouldMarkPrimary });
     });
+    _displayList.sort(function(a,b){ return (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0); });
 
     html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:10px 12px;border:1px solid #ccc07a">';
     html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
     html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5c3a;font-weight:500">Stone options</div>';
-    var _chosenIdx = _displayList.findIndex(function(o){return o && o.isPrimary;});
-    if (_chosenIdx >= 0) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">✓ chosen</div>';
+    html += '<button onclick="finalizeStoneChoice(' + q.id + ')" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 9px;border-radius:0;cursor:pointer">Finalize stone</button>';
     html += '</div>';
+    if (q.finalStoneInvId != null) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright);margin-bottom:6px">🔒 stone finalized</div>';
     if (_displayList.length) {
       _displayList.forEach(function(opt, optIdx) {
         var hypothetical;
@@ -6438,12 +6460,12 @@ function buildMultiPieceCard(q) {
         var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
         var labelStyle = opt.isPrimary ? 'color:var(--gold);font-weight:500' : 'color:var(--text)';
         var labelText = opt.isPrimary
-          ? (opt.label || 'Option ' + String.fromCharCode(65+optIdx)) + ' <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
-          : (opt.label || ('Option ' + String.fromCharCode(65+optIdx)));
+          ? (opt.label || 'Option ' + String.fromCharCode(65+opt._origIdx)) + ' <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
+          : (opt.label || ('Option ' + String.fromCharCode(65+opt._origIdx)));
         var btns = '';
         if (!opt.isPrimary) {
-          btns += '<button onclick="chooseStoneOption(' + q.id + ',' + optIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>';
-          btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + optIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
+          btns += '<button onclick="chooseStoneOption(' + q.id + ',' + opt._origIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>';
+          btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + opt._origIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
         }
         var rowBg = (opt.isPrimary && _displayList.length > 1) ? 'background:#fdf6d8;' : '';
         var rowPad = (opt.isPrimary && _displayList.length > 1) ? 'padding:8px 10px;margin:0 -10px;' : 'padding:8px 0;';
@@ -6755,19 +6777,20 @@ function buildQuoteCard(q) {
     
     // Mark which option is currently the primary stone (by matching GIA number if available)
     // If no GIA match, mark the option with chosen=true as primary
-    var _displayList2 = _stoneOpts2.map(function(opt) {
+    var _displayList2 = _stoneOpts2.map(function(opt, _origIdx) {
       var optGia = opt.gia ? String(opt.gia).replace(/\D/g, '') : null;
       var matchesPrimary = _primaryGia && optGia && _primaryGia === optGia;
       var shouldMarkPrimary = matchesPrimary || (opt.chosen && _stoneOpts2.filter(function(o){return o.chosen;}).length === 1);
-      return shouldMarkPrimary ? Object.assign({}, opt, { isPrimary: true }) : opt;
+      return Object.assign({}, opt, { _origIdx: _origIdx, isPrimary: !!shouldMarkPrimary });
     });
+    _displayList2.sort(function(a,b){ return (parseFloat(b.carat)||0) - (parseFloat(a.carat)||0); });
 
     html += '<div style="margin-bottom:8px;background:#fafaf7;border-radius:0;padding:10px 12px;border:1px solid #ccc07a">';
     html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
     html += '<div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#7a5c3a;font-weight:500">Stone options</div>';
-    var _chosenIdx2 = _displayList2.findIndex(function(o){return o && o.isPrimary;});
-    if (_chosenIdx2 >= 0) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">✓ chosen</div>';
+    html += '<button onclick="finalizeStoneChoice(' + q.id + ')" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 9px;border-radius:0;cursor:pointer">Finalize stone</button>';
     html += '</div>';
+    if (q.finalStoneInvId != null) html += '<div style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright);margin-bottom:6px">🔒 stone finalized</div>';
     if (_displayList2.length) {
       _displayList2.forEach(function(opt, optIdx) {
         var hypothetical;
@@ -6790,12 +6813,12 @@ function buildQuoteCard(q) {
         var giaPart = opt.gia ? '<a href="javascript:void(0)" onclick="openGiaReport(\'' + opt.gia + '\',event)" style="color:var(--teal-dim);font-size:11px;font-family:var(--font-mono);text-decoration:none;cursor:pointer">GIA ' + opt.gia + ' ↗</a>' : '';
         var labelStyle = opt.isPrimary ? 'color:var(--gold);font-weight:500' : 'color:var(--text)';
         var labelText = opt.isPrimary
-          ? (opt.label || 'Option ' + String.fromCharCode(65+optIdx)) + ' <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
-          : (opt.label || ('Option ' + String.fromCharCode(65+optIdx)));
+          ? (opt.label || 'Option ' + String.fromCharCode(65+opt._origIdx)) + ' <span style="font-size:9px;letter-spacing:0.08em;color:var(--text-dim)">— current</span>'
+          : (opt.label || ('Option ' + String.fromCharCode(65+opt._origIdx)));
         var btns = '';
         if (!opt.isPrimary) {
-          btns += '<button onclick="chooseStoneOption(' + q.id + ',' + optIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>';
-          btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + optIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
+          btns += '<button onclick="chooseStoneOption(' + q.id + ',' + opt._origIdx + ',event)" style="background:#fafaf7;border:1px solid var(--green-bright);color:var(--green-bright);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 8px;border-radius:0;cursor:pointer">Choose this</button>';
+          btns += ' <button onclick="removeSavedStoneOption(' + q.id + ',' + opt._origIdx + ',event)" title="Remove this option" style="background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer;padding:0 4px">×</button>';
         }
         var rowBg = (opt.isPrimary && _displayList2.length > 1) ? 'background:#fdf6d8;' : '';
         var rowPad = (opt.isPrimary && _displayList2.length > 1) ? 'padding:8px 10px;margin:0 -10px;' : 'padding:8px 0;';
@@ -7612,6 +7635,7 @@ function chooseStoneOption(id, optIdx, e) {
     q.stoneOptions.push(archivedFromPrimary);
   }
 
+  q.finalStoneInvId = newPrimary.inventoryId || null;
   window._savedQuotes = quotes;
   persistQuotes();
 
@@ -7654,6 +7678,120 @@ function chooseStoneOption(id, optIdx, e) {
   if (typeof renderPipeline === 'function') renderPipeline();
   showToast('Stone option locked in');
 }
+
+function finalizeStoneChoice(quoteId) {
+  var quotes = getSavedQuotes();
+  var q = quotes.find(function(x){ return x.id === quoteId; });
+  if (!q) return;
+  var inv = getInventory();
+  var seen = {};
+  var candidates = [];
+  function addCand(invId, label, gia) {
+    if (invId == null || seen[invId]) return;
+    var i = inv.find(function(x){ return String(x.id) === String(invId); });
+    if (!i) return;
+    seen[invId] = true;
+    candidates.push({ invId: invId, carat: parseFloat(i.carat) || 0,
+      label: label || [i.carat ? parseFloat(i.carat).toFixed(2)+'ct' : '', i.cut, i.color, i.clarity].filter(Boolean).join(' ') || 'Stone',
+      gia: gia || i.gia || '' });
+  }
+  (Array.isArray(q.stones) ? q.stones : []).filter(function(s){ return s && !s.isSmall; }).forEach(function(s){
+    addCand(s.inventoryId, [s.carat ? parseFloat(s.carat).toFixed(2)+'ct' : '', s.cut, s.color, s.clarity].filter(Boolean).join(' '), s.gia);
+  });
+  (Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : [])).forEach(function(o){
+    addCand(o.inventoryId, o.label || [o.carat ? parseFloat(o.carat).toFixed(2)+'ct' : '', o.cut, o.color, o.clarity].filter(Boolean).join(' '), o.gia);
+  });
+  if (!candidates.length) { showToast('Add an inventory stone to this project first'); return; }
+  candidates.sort(function(a,b){ return b.carat - a.carat; });
+
+  var overlay = document.createElement('div');
+  overlay.id = 'finalizeStoneOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+  var modal = document.createElement('div');
+  modal.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;padding:20px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto';
+  var title = document.createElement('div');
+  title.style.cssText = 'font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:4px';
+  title.textContent = 'Finalize the stone';
+  modal.appendChild(title);
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:12px;color:var(--text-dim);margin-bottom:14px';
+  sub.textContent = 'Pick the one stone for this project. It becomes owned-reserved; the rest stay as they are.';
+  modal.appendChild(sub);
+  candidates.forEach(function(c){
+    var isCur = q.finalStoneInvId != null && String(q.finalStoneInvId) === String(c.invId);
+    var row = document.createElement('button');
+    row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;background:' + (isCur ? '#fdf6d8' : '#fff') + ';border:1px solid ' + (isCur ? 'var(--gold)' : 'var(--border)') + ';padding:10px 12px;margin-bottom:8px;border-radius:0;cursor:pointer;font-family:var(--font-mono)';
+    row.innerHTML = '<span style="font-size:13px;color:var(--text)">' + c.label + (c.gia ? ' <span style="color:var(--text-dim);font-size:11px">GIA ' + c.gia + '</span>' : '') + '</span>' + (isCur ? '<span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold)">current</span>' : '<span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--green-bright)">Finalize</span>');
+    row.addEventListener('click', function(){ _applyFinalizeStone(quoteId, c.invId); });
+    modal.appendChild(row);
+  });
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px;margin-top:6px';
+  if (q.finalStoneInvId != null) {
+    var clearBtn = document.createElement('button');
+    clearBtn.textContent = 'Clear choice';
+    clearBtn.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--text-dim);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:9px;border-radius:0;cursor:pointer';
+    clearBtn.addEventListener('click', function(){ _applyFinalizeStone(quoteId, null); });
+    btnRow.appendChild(clearBtn);
+  }
+  var cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText = 'flex:1;background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:9px;border-radius:0;cursor:pointer';
+  cancelBtn.addEventListener('click', function(){ overlay.remove(); });
+  btnRow.appendChild(cancelBtn);
+  modal.appendChild(btnRow);
+  overlay.appendChild(modal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function _applyFinalizeStone(quoteId, invId) {
+  var quotes = getSavedQuotes();
+  var q = quotes.find(function(x){ return x.id === quoteId; });
+  if (!q) return;
+  q.finalStoneInvId = (invId == null ? null : invId);
+  window._savedQuotes = quotes;
+  persistQuotes();
+  var inv = getInventory();
+  var changed = false;
+  var keep = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+  inv.forEach(function(s){
+    if (String(s.usedInProjectId) !== String(quoteId)) return;
+    if (keep.indexOf(s.status) !== -1) return;
+    if (invId != null && String(s.id) === String(invId)) {
+      if (s.baseCategory == null && s.category !== 'owned-reserved') s.baseCategory = s.category;
+      s.category = 'owned-reserved';
+      s.status = 'unavailable';
+      changed = true;
+    } else {
+      if (s.status === 'in-use' || s.status === 'unavailable' || s.category === 'owned-reserved') {
+        s.status = 'available';
+        s.category = (s.baseCategory != null) ? s.baseCategory : (s.category === 'owned-reserved' ? 'owned-available' : s.category);
+        if (s.baseCategory != null) delete s.baseCategory;
+        changed = true;
+      }
+    }
+  });
+  if (invId != null) {
+    var chosen = inv.find(function(s){ return String(s.id) === String(invId); });
+    if (chosen && keep.indexOf(chosen.status) === -1) {
+      chosen.usedInProjectId = quoteId;
+      chosen.usedInQuoteId = null;
+      chosen.usedInQuoteClient = q.client || null;
+      if (chosen.baseCategory == null && chosen.category !== 'owned-reserved') chosen.baseCategory = chosen.category;
+      chosen.category = 'owned-reserved';
+      chosen.status = 'unavailable';
+      changed = true;
+    }
+  }
+  if (changed) { window._inventory = inv; persistInventory(); }
+  var ov = document.getElementById('finalizeStoneOverlay');
+  if (ov) ov.remove();
+  if (typeof renderSaved === 'function') renderSaved();
+  if (typeof renderStoneInventory === 'function') renderStoneInventory();
+  showToast(invId == null ? 'Stone choice cleared' : 'Stone finalized — reserved in inventory');
+}
+
 
 function unarchiveItem(id, e) {
   e.stopPropagation();
@@ -17077,7 +17215,8 @@ function saveBolo(quoteType) {
       if (!linkedQ) {
         // Project no longer exists — clear link
         s.usedInProjectId = null;
-        s.status = s.category === 'owned-reserved' ? 'unavailable' : 'available';
+        if (s.category === 'owned-reserved') s.category = 'owned-available';
+        s.status = 'available';
         changed = true;
         return;
       }
@@ -17089,7 +17228,8 @@ function saveBolo(quoteType) {
       if (!confirmed) {
         // Stone was wrongly linked — clear it
         s.usedInProjectId = null;
-        s.status = s.category === 'owned-reserved' ? 'unavailable' : 'available';
+        if (s.category === 'owned-reserved') s.category = 'owned-available';
+        s.status = 'available';
         changed = true;
         return;
       }
@@ -17291,6 +17431,44 @@ function saveBolo(quoteType) {
         }
       }
     });
+    // ===== Reservation follows the FINALIZED stone choice, not mere linkage =====
+    // A stone is reserved (owned-reserved / unavailable) ONLY when it is its project's finalized
+    // choice (q.finalStoneInvId). Every other stone connected to a project stays available but
+    // keeps its project tag, so it still shows as "in [client]'s project".
+    let _quotesChangedFinal = false;
+    // Migration: a project with exactly one inventory-linked main stone is treated as already
+    // finalized, so existing single-stone reservations are preserved. Multi-candidate projects
+    // stay unfinalized until you finalize a stone.
+    allQuotes.forEach(q => {
+      if (q.finalStoneInvId != null) return;
+      const isProj = ['project','collection','completed'].includes(q.status);
+      if (!isProj) return;
+      const mains = (Array.isArray(q.stones) ? q.stones : []).filter(st => st && !st.isSmall && st.inventoryId != null);
+      if (mains.length === 1) { q.finalStoneInvId = mains[0].inventoryId; _quotesChangedFinal = true; }
+    });
+    const _keepStatusFinal = ['sold-by-dealer','sold-by-ef','archived-with-project'];
+    (window._inventory || []).forEach(s => {
+      if (_keepStatusFinal.includes(s.status)) return;
+      if (s.usedInProjectId == null) return;
+      const proj = allQuotes.find(q => String(q.id) === String(s.usedInProjectId));
+      const isFinal = proj && proj.finalStoneInvId != null && String(proj.finalStoneInvId) === String(s.id);
+      if (isFinal) {
+        if (s.status !== 'unavailable' || s.category !== 'owned-reserved') {
+          if (s.baseCategory == null && s.category !== 'owned-reserved') s.baseCategory = s.category;
+          s.category = 'owned-reserved';
+          s.status = 'unavailable';
+          changed = true;
+        }
+      } else {
+        if (s.status === 'in-use' || s.status === 'unavailable' || s.category === 'owned-reserved') {
+          s.status = 'available';
+          s.category = (s.baseCategory != null) ? s.baseCategory : (s.category === 'owned-reserved' ? 'owned-available' : s.category);
+          if (s.baseCategory != null) delete s.baseCategory;
+          changed = true;
+        }
+      }
+    });
+    if (_quotesChangedFinal && typeof persistQuotes === 'function') persistQuotes();
     if (changed) persistInventory();
   }
   } // end initFirebaseData
