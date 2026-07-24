@@ -16528,6 +16528,20 @@ function setBoloChainPrice(purity, price) {
   }
 }
 var BOLO_PURITY_LABELS = { '14k': '14k yellow', '18k': '18k yellow', '18kw': '18k white', '14kw': '14k white', 'plat': 'platinum' };
+// Clasp cost by pendant purity — prefilled, editable per piece. Priced as a finding (1.35x).
+var BOLO_CLASP_PRICES = { '14k': 175, '14kw': 175, '18k': 280, '18kw': 280, 'plat': 0 };
+function boloClaspPriceFor(purity) { var v = BOLO_CLASP_PRICES[purity]; return v == null ? 0 : v; }
+function boloFillClaspCost(force) {
+  var purity = (document.getElementById('bolo-purity') || {}).value || '18k';
+  var el = document.getElementById('bolo-clasp-cost');
+  var note = document.getElementById('bolo-clasp-note');
+  if (!el) return;
+  var price = boloClaspPriceFor(purity);
+  if (force || !el.value) el.value = price ? price : '';
+  if (note) note.textContent = (purity === 'plat')
+    ? 'No standard clasp price for platinum — enter it manually.'
+    : ((BOLO_PURITY_LABELS[purity] || purity) + ' clasp: ' + fmt(price) + ' (editable)');
+}
 // Populate the bead-chain dropdown with the four wholesale options, preserving any selection.
 function renderBoloChainOptions() {
   var sel = document.getElementById('bolo-chain-sel');
@@ -16604,6 +16618,12 @@ function boloShapeOrPurityChanged() {
   } else if (note) {
     note.textContent = (shape && purity === 'plat') ? 'No standard weight for platinum — enter the pendant weight manually.' : '';
   }
+  // Anything metal follows the pendant purity (the first metal choice).
+  if (boloStrandType() === 'chain') {
+    var chSel = document.getElementById('bolo-chain-sel');
+    if (chSel && ['14k','18k','18kw','14kw'].indexOf(purity) !== -1) { chSel.value = purity; boloChainSelChanged(); }
+  }
+  boloFillClaspCost(true);
   boloRecalc();
 }
 
@@ -16674,6 +16694,9 @@ function openBoloBuilder() {
     +   '<div><div style="'+labelStyle+'">Pendant weight (g)</div><input id="bolo-grams" type="number" min="0" step="0.01" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'"></div>'
     + '</div>'
     + '<div id="bolo-shape-note" style="font-size:11px;color:var(--text-dim);margin-top:6px"></div>'
+    + '<div style="'+labelStyle+';margin-top:10px">Clasp cost ($) <span style="text-transform:none;letter-spacing:0;color:var(--text-dim)">assumes the pendant metal</span></div>'
+    + '<input id="bolo-clasp-cost" type="number" min="0" placeholder="0" oninput="boloRecalc()" style="'+inputStyle+'">'
+    + '<div id="bolo-clasp-note" style="font-size:11px;color:var(--text-dim);margin-top:4px"></div>'
     + '<div style="'+sectionStyle+'">Center stone (tiered markup)</div>'
     + '<div style="'+labelStyle+'">Stone type</div>'
     + '<select id="bolo-stone-sel" onchange="boloStoneSelChanged()" style="'+inputStyle+';appearance:none"></select>'
@@ -16710,6 +16733,7 @@ function openBoloBuilder() {
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
   var pel = document.getElementById('bolo-purity'); if (pel) pel.value = '18k';
+  boloFillClaspCost(true);
   renderBoloBeadOptions();
   renderBoloStoneOptions();
   boloStrandTypeChanged();
@@ -16732,7 +16756,8 @@ function _boloBuildObj(quoteType) {
   var goldBeadCost = isChain ? 0 : boloGoldBeadCost();         // gold-bead add-on → findings ×1.35
   var goldBeadQty = isChain ? 0 : boloGoldBeadQty();
   var goldChainCost = isChain ? num('bolo-goldchain-cost') : 0; // gold bead chain → findings ×1.35
-  var findingsTotal = goldBeadCost + goldChainCost;
+  var claspCost = num('bolo-clasp-cost');                       // clasp (metal) → findings ×1.35
+  var findingsTotal = goldBeadCost + goldChainCost + claspCost;
   var beadSelVal = val('bolo-bead-sel');
   var chainSelP = (document.getElementById('bolo-chain-sel') || {}).value || '';
   var beadName = isChain
@@ -16763,7 +16788,7 @@ function _boloBuildObj(quoteType) {
     occasion: '',
     pieceType: 'bolo necklace',
     isBolo: true,
-    boloMeta: { strandType: strandType, beadDesc: beadDesc, setting: setting, stringing: stringing, shape: shape, goldBeadQty: goldBeadQty, goldBeadCost: goldBeadCost, goldChainCost: goldChainCost },
+    boloMeta: { strandType: strandType, beadDesc: beadDesc, setting: setting, stringing: stringing, shape: shape, goldBeadQty: goldBeadQty, goldBeadCost: goldBeadCost, goldChainCost: goldChainCost, claspCost: claspCost },
     needByDate: val('bolo-needby') || '',
     status: isProject ? 'project' : 'quote',
     purity: purity,
@@ -16817,7 +16842,8 @@ function boloRecalc() {
   var gemBeadCost = isChain ? 0 : (parseFloat((document.getElementById('bolo-bead-cost') || {}).value) || 0);
   var goldBeadCost = isChain ? 0 : boloGoldBeadCost();
   var goldChainCost = isChain ? (parseFloat((document.getElementById('bolo-goldchain-cost') || {}).value) || 0) : 0;
-  var findingsCost = goldBeadCost + goldChainCost;     // gold beads or gold bead chain → findings ×1.35
+  var claspCost = parseFloat((document.getElementById('bolo-clasp-cost') || {}).value) || 0;
+  var findingsCost = goldBeadCost + goldChainCost + claspCost;     // strand findings + clasp → findings ×1.35
   var metalRetail = Math.round(grams * gpg * 1.25 * 1.05 * 1.35);
   var meleeRetail = Math.round(gemBeadCost * 1.75);    // gemstone beads → melee
   var findingsRetail = Math.round(findingsCost * 1.35);
@@ -16850,6 +16876,7 @@ function boloRecalc() {
   if (grams)        rows.push(row('Metal', grams + 'g × $' + gpg.toFixed(2) + '/g × 1.25 × 1.05 × 1.35', metalRetail));
   if (labor)      rows.push(row('Labor', fmt(labor) + ' × 1.4', laborRetail));
   if (designFee)  rows.push(row('Design fee', 'no markup', designFee));
+  if (claspCost)  rows.push(row('Clasp', fmt(claspCost) + ' x 1.35 (findings)', Math.round(claspCost * 1.35)));
   if (overhead)   rows.push(row('Overhead', '13% on strand, metal, labor, design', overhead));
 
   var bd = document.getElementById('bolo-breakdown');
