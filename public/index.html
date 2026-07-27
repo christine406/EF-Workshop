@@ -7831,7 +7831,23 @@ function finalizeStoneChoice(quoteId) {
   (Array.isArray(q.stoneOptions) ? q.stoneOptions : (q.stoneOptions ? Object.values(q.stoneOptions) : [])).forEach(function(o){
     addCand(o.inventoryId, o.label || [o.carat ? parseFloat(o.carat).toFixed(2)+'ct' : '', o.cut, o.color, o.clarity].filter(Boolean).join(' '), o.gia);
   });
-  if (!candidates.length) { showToast('Add an inventory stone to this project first'); return; }
+  // Also include any inventory stone connected to this project — by usedInProjectId or by GIA —
+  // in case the project's stone entry was never tagged with an inventoryId (e.g. memo stones).
+  var _projGias = {};
+  var _normG = function(g){ return String(g || '').replace(/\D/g, ''); };
+  (Array.isArray(q.stones) ? q.stones : []).forEach(function(s){ if (s && s.gia) _projGias[_normG(s.gia)] = true; });
+  if (q.stoneDetail && q.stoneDetail.gia) _projGias[_normG(q.stoneDetail.gia)] = true;
+  (Array.isArray(q.pieces) ? q.pieces : []).forEach(function(p){
+    (Array.isArray(p.stones) ? p.stones : []).forEach(function(s){ if (s && s.gia) _projGias[_normG(s.gia)] = true; });
+    if (p && p.stoneDetail && p.stoneDetail.gia) _projGias[_normG(p.stoneDetail.gia)] = true;
+  });
+  inv.forEach(function(i){
+    if (!i) return;
+    var connected = i.usedInProjectId != null && String(i.usedInProjectId) === String(quoteId);
+    var giaMatch = i.gia && _projGias[_normG(i.gia)];
+    if (connected || giaMatch) addCand(i.id);
+  });
+  if (!candidates.length) { showToast('No inventory stone is linked to this project yet — add one from inventory first'); return; }
   candidates.sort(function(a,b){ return b.carat - a.carat; });
 
   var overlay = document.createElement('div');
