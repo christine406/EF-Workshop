@@ -1783,6 +1783,18 @@
         <div class="result-label">Gross margin</div>
         <div class="result-value" id="marginDisplay" style="font-size:14px">—</div>
       </div>
+      <div class="result-row" id="marginTargetRow" style="display:none;background:#fafaf7">
+        <div>
+          <div class="result-label">Price for target margin</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+            <input type="number" id="marginTargetInput" min="0" max="99" placeholder="65" oninput="calculate()" style="width:64px;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:4px 6px;border-radius:0;outline:none">
+            <span style="color:var(--text-dim);font-size:13px">% margin</span>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="result-value" id="marginTargetResult" style="font-size:16px;color:var(--gold)">—</div>
+        </div>
+      </div>
       <div class="result-row" id="budgetRow" style="display:none">
         <div>
           <div class="result-label">Client budget</div>
@@ -4339,11 +4351,27 @@ function calculate() {
       _mdisp.textContent = marginPctV.toFixed(1) + '%' + (_lowM ? ' ⚠ below 65%' : '');
       _mdisp.style.color = _lowM ? 'var(--red)' : 'var(--green-bright)';
     }
+    // Target margin -> suggested retail. Selling price = expenses / (1 - margin), rounded to $50.
+    var _mtRow = document.getElementById('marginTargetRow');
+    if (_mtRow) _mtRow.style.display = 'flex';
+    var _mtVal = parseFloat((document.getElementById('marginTargetInput') || {}).value);
+    var _mtRes = document.getElementById('marginTargetResult');
+    if (_mtRes) {
+      if (_mtVal > 0 && _mtVal < 100 && actualCost > 0) {
+        var _targetRetail = Math.round((Math.round(actualCost) / (1 - _mtVal / 100)) / 50) * 50;
+        _mtRes.textContent = '$' + _targetRetail.toLocaleString();
+        _mtRes.style.color = 'var(--gold)';
+      } else {
+        _mtRes.textContent = '—';
+        _mtRes.style.color = 'var(--text-dim)';
+      }
+    }
   } else {
     document.getElementById('totalDisplay').textContent = '—';
     document.getElementById('discountedRow').style.display = 'none';
     document.getElementById('profitRow').style.display = 'none';
     var _mrow2 = document.getElementById('marginRow'); if (_mrow2) _mrow2.style.display = 'none';
+    var _mtRow2 = document.getElementById('marginTargetRow'); if (_mtRow2) _mtRow2.style.display = 'none';
   }
   // Refresh alternate-stone-option retail readouts whenever any cost input changes
   if (typeof renderStoneOptions === 'function' && stoneOptions && stoneOptions.length) renderStoneOptions();
