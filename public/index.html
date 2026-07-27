@@ -1604,6 +1604,10 @@
             <div class="result-value" id="chainRetail" style="font-size:15px; padding: 4px 0; color: var(--gold)">—</div>
           </div>
         </div>
+        <div class="field" style="margin-top:8px">
+          <div class="field-label">Override chain price ($) <span style="text-transform:none;letter-spacing:0;color:var(--text-dim)">optional — replaces the stored price for this quote</span></div>
+          <input type="number" id="chainOverride" min="0" placeholder="stored price" oninput="onChainOverrideInput()" style="width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:9px 10px;border-radius:0;outline:none;box-sizing:border-box">
+        </div>
       </div>
     </div>
 
@@ -3172,7 +3176,7 @@ function toggleQuoteLivePricing() {
   // Also refresh the selected chain display if one is picked
   const c = window._selectedQuoteChain;
   if (c) {
-    const w = getQuoteChainWholesale(c);
+    const w = quoteChainCost(c);
     document.getElementById('chainWholesale').textContent = '$' + w.toLocaleString();
     document.getElementById('chainRetail').textContent = '$' + Math.round(w * 1.35).toLocaleString();
   }
@@ -3187,14 +3191,36 @@ function getQuoteChainWholesale(c) {
   return c.wholesale;
 }
 
+// Per-quote chain price override — when set, replaces the stored/live wholesale for this quote only.
+function quoteChainCost(c) {
+  var el = document.getElementById('chainOverride');
+  var ov = el ? parseFloat(el.value) : NaN;
+  if (ov > 0) return Math.round(ov);
+  return getQuoteChainWholesale(c);
+}
+function onChainOverrideInput() {
+  var idxEl = document.getElementById('chainSelect');
+  var idx = idxEl ? idxEl.value : '';
+  if (idx !== '') {
+    var c = getAllChains()[parseInt(idx)];
+    if (c) {
+      var w = quoteChainCost(c);
+      var wl = document.getElementById('chainWholesale'); if (wl) wl.textContent = '$' + w.toLocaleString();
+      var rl = document.getElementById('chainRetail'); if (rl) rl.textContent = '$' + Math.round(w * 1.35).toLocaleString();
+    }
+  }
+  calculate();
+}
+
 function populateChainSelect() {
   buildChainTreePicker('chainTree-quote', 'chainSelect', 'chainSelectedLabel', (idx) => {
+    var _ov = document.getElementById('chainOverride'); if (_ov) _ov.value = '';
     if (idx === '') {
       document.getElementById('chainWholesale').textContent = '—';
       document.getElementById('chainRetail').textContent = '—';
     } else {
       const c = getAllChains()[parseInt(idx)];
-      const w = getQuoteChainWholesale(c);
+      const w = quoteChainCost(c);
       document.getElementById('chainWholesale').textContent = '$' + w.toLocaleString();
       document.getElementById('chainRetail').textContent = '$' + Math.round(w * 1.35).toLocaleString();
     }
@@ -4215,7 +4241,7 @@ function calculate() {
     const chainIdx = document.getElementById('chainSelect').value;
     if (chainIdx !== '') {
       const c = getAllChains()[parseInt(chainIdx)];
-      chainWholesaleCost = getQuoteChainWholesale(c);
+      chainWholesaleCost = quoteChainCost(c);
       document.getElementById('chainCostDisplay').textContent = '$' + Math.round(chainWholesaleCost * 1.35).toLocaleString();
       document.getElementById('chainRow').style.display = 'flex';
     }
@@ -4462,7 +4488,7 @@ function stagePiece() {
   let chainWholesaleCost = 0, chainName = '';
   if (includeChain) {
     const chainIdx = document.getElementById('chainSelect').value;
-    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = getQuoteChainWholesale(c); chainName = c.name; }
+    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = quoteChainCost(c); chainName = c.name; }
   }
   const metalMarkup = Math.round(metalWithCasting);
   const chainMarkup = Math.round(chainWholesaleCost * 1.35);
@@ -4592,7 +4618,7 @@ function saveQuoteAsPiece(quoteType) {
   let chainWholesaleCost = 0, chainName = '';
   if (includeChain) {
     const chainIdx = document.getElementById('chainSelect').value;
-    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = getQuoteChainWholesale(c); chainName = c.name; }
+    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = quoteChainCost(c); chainName = c.name; }
   }
   const metalMarkup = Math.round(metalWithCasting);
   const chainMarkup = Math.round(chainWholesaleCost * 1.35);
@@ -4803,7 +4829,7 @@ function saveAsPiece() {
   let chainWholesaleCost = 0, chainName = '';
   if (includeChain) {
     const chainIdx = document.getElementById('chainSelect').value;
-    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = getQuoteChainWholesale(c); chainName = c.name; }
+    if (chainIdx !== '') { const c = getAllChains()[parseInt(chainIdx)]; chainWholesaleCost = quoteChainCost(c); chainName = c.name; }
   }
   const metalMarkup = Math.round(metalWithCasting);
   const chainMarkup = Math.round(chainWholesaleCost * 1.35);
@@ -5023,7 +5049,7 @@ function saveQuote(quoteType = 'client') {
     const chainIdx = document.getElementById('chainSelect').value;
     if (chainIdx !== '') {
       const c = getAllChains()[parseInt(chainIdx)];
-      chainWholesaleCost = getQuoteChainWholesale(c);
+      chainWholesaleCost = quoteChainCost(c);
       chainName = c.name;
     }
   }
