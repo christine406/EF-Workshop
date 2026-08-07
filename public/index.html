@@ -1830,6 +1830,9 @@
         <button class="btn-primary" onclick="saveQuote('semi-custom')" style="font-size:11px;padding:10px 6px;background:#7a5a20">Semi-custom</button>
         <button class="btn-primary" onclick="showCollectionModal()" style="font-size:11px;padding:10px 6px;background:var(--teal-dim)">Collection</button>
       </div>
+      <div style="padding:0 16px 8px">
+        <button class="btn-primary" onclick="saveQuote('sample')" style="width:100%;font-size:11px;padding:10px 6px;background:#fafaf7;color:var(--teal-dim);border:1px solid var(--teal-dim)">💍 Save as sample piece</button>
+      </div>
     </div>
 
     <!-- MULTI MODE: stage piece button -->
@@ -2307,9 +2310,9 @@
     <div class="section">
       <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
         Sample pieces
-        <button onclick="openSampleForm()" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;border-radius:0;cursor:pointer">+ New sample</button>
+        <button onclick="showScreen('quote')" style="background:var(--gold);color:var(--bg);border:none;font-family:var(--font-mono);font-size:11px;letter-spacing:0.08em;text-transform:uppercase;padding:7px 12px;border-radius:0;cursor:pointer">Build in Quote builder</button>
       </div>
-      <div style="font-size:12px;color:var(--text-dim);margin-top:8px;line-height:1.5">Try-on pieces kept in-studio — one of every ring, built with new stones. Not for sale, so these never touch the pipeline or P&amp;L.</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:8px;line-height:1.5">Build a sample in the Quote builder and choose “Save as sample piece.” It shows suggested retail like any quote, stays off the pipeline and P&amp;L, and you can add mold/CAD notes here.</div>
       <div id="sampleForm" style="display:none;background:#fafaf7;border-radius:0;padding:14px;margin-top:14px;margin-bottom:16px">
         <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:12px" id="sampleFormTitle">New sample piece</div>
         <div style="margin-bottom:10px">
@@ -5144,7 +5147,8 @@ function saveQuote(quoteType = 'client') {
     quoteType,
     occasion,
     needByDate: document.getElementById('needByDate')?.value || '',
-    status: quoteType === 'collection' ? 'collection-quote' : isProject ? 'project' : 'quote',
+    status: quoteType === 'sample' ? 'sample' : quoteType === 'collection' ? 'collection-quote' : isProject ? 'project' : 'quote',
+    isSample: quoteType === 'sample',
     purity,
     grams,
     laborEst: labor,
@@ -5274,8 +5278,15 @@ function saveQuote(quoteType = 'client') {
   if (invChanged) { window._inventory = inv; persistInventory(); }
 
   clearQuote();
-  showToast(quoteType === 'collection' ? 'Collection quote saved' : 'Quote saved');
-  renderSaved();
+  if (quoteType === 'sample') {
+    showToast('Sample piece saved');
+    renderSaved();
+    if (typeof renderSamples === 'function') renderSamples();
+    if (typeof showScreen === 'function') showScreen('samples');
+  } else {
+    showToast(quoteType === 'collection' ? 'Collection quote saved' : 'Quote saved');
+    renderSaved();
+  }
 
 }
 
@@ -6386,7 +6397,7 @@ function saveNeedBy(id, clear) {
 
 function buildMultiPieceCard(q) {
   const statusClass = q.status === 'project' ? 'status-project' : q.status === 'completed' ? 'status-completed' : q.status === 'abandoned' ? 'status-abandoned' : 'status-quote';
-  const statusLabel = q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : q.status === 'quote' ? 'QUOTE' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
+  const statusLabel = q.isSample ? 'SAMPLE' : q.status === 'abandoned' ? '✕ ABANDONED' : q.status === 'completed' ? '✓ ' + (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : q.status === 'project' ? (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE') : (q.status === 'collection-quote' || q.status === 'collection') ? 'COLLECTION' : q.status === 'quote' ? 'QUOTE' : (q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM' : 'BESPOKE');
   // Collect unique occasion emojis from all pieces
   const pieceEmojis = (q.pieces||[]).map(p => p.occasion ? (OCCASION_EMOJIS[p.occasion] || '') : (PIECE_EMOJIS[p.pieceType] || '')).filter(Boolean);
   const uniqueEmojis = [...new Set(pieceEmojis)];
@@ -6743,7 +6754,8 @@ function buildQuoteCard(q) {
     : q.status === 'completed' ? 'status-project'
     : q.status === 'abandoned' ? 'status-archived'
     : 'status-quote';
-  const statusLabel = archived.includes(q.status) ? 'ARCHIVED'
+  const statusLabel = q.isSample ? 'SAMPLE'
+    : archived.includes(q.status) ? 'ARCHIVED'
     : q.status === 'collection-quote' ? 'COLLECTION'
     : q.status === 'collection' ? 'COLLECTION'
     : q.status === 'project' && q.quoteType === 'semi-custom' ? 'SEMI-CUSTOM'
@@ -7318,6 +7330,8 @@ function renderSaved() {
   } else {
     filtered = allQuotes.filter(q => q.status === savedFilter);
   }
+  // Sample pieces live in their own Samples section, not the regular saved list.
+  filtered = filtered.filter(q => !(q.isSample || q.status === 'sample'));
 
   const emptyMsgs = {
     'all': 'No saved quotes yet.<br>Build one in the Quote tab.',
@@ -16378,122 +16392,63 @@ function changeSampleStatus(id, value) {
 
 function renderSamples() {
   var list = document.getElementById('sampleList'); if (!list) return;
-  var specs = getSamples();
-  if (!specs.length) { list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center">No sample pieces yet.</div>'; return; }
-  list.innerHTML = '';
-  var goldSpot = window._goldSpot || 0; var purityMap = {'10k':0.417,'14k':0.583,'18k':0.75,'22k':0.917,'24k':1.0};
-
-  var totalInvested = specs.reduce(function(sum,s){ return sum + ((s.stoneCost||0)+(s.meleeCost||0)+(s.metalCost||0)+(s.laborCost||0)+(s.findingsCost||0)+(s.designFee||0)); }, 0);
-  if (totalInvested) {
-    var totBar = document.createElement('div'); totBar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;border:1px solid var(--border);border-radius:0;margin-bottom:10px';
-    var tl = document.createElement('span'); tl.style.cssText = 'font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)'; tl.textContent = 'Total invested in samples';
-    var tv = document.createElement('span'); tv.style.cssText = 'font-family:var(--font-mono);font-size:15px;color:var(--gold);font-weight:600'; tv.textContent = fmt(totalInvested);
-    totBar.appendChild(tl); totBar.appendChild(tv); list.appendChild(totBar);
+  var samples = getSavedQuotes().filter(function(q){ return q && (q.isSample || q.status === 'sample'); });
+  if (!samples.length) {
+    list.innerHTML = '<div style="color:var(--text-dim);font-size:14px;padding:20px 0;text-align:center;line-height:1.6">No sample pieces yet.<br>Build one in the Quote builder and choose “Save as sample piece.”</div>';
+    return;
   }
-
-  var grouped = {}; var ungrouped = [];
-  specs.forEach(function(spec){ if (spec.group && spec.group.trim()) { (grouped[spec.group] = grouped[spec.group] || []).push(spec); } else { ungrouped.push(spec); } });
-
-  function renderSpec(spec, container) {
-    var card = document.createElement('div'); card.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);border-left:3px solid var(--gold);border-radius:0;margin-bottom:8px;overflow:hidden';
-    var totalCost = (spec.stoneCost||0)+(spec.meleeCost||0)+(spec.metalCost||0)+(spec.laborCost||0)+(spec.findingsCost||0);
-    var sm = sampleStatusMeta(spec.status);
-    var hdrRow = document.createElement('div'); hdrRow.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;user-select:none';
-    var hdrL = document.createElement('div');
-    var nameEl = document.createElement('div'); nameEl.style.cssText = 'font-size:15px;color:var(--text);font-weight:500'; nameEl.textContent = spec.name; hdrL.appendChild(nameEl);
-    var subLine = document.createElement('div'); subLine.style.cssText = 'font-size:11px;color:var(--text-dim);margin-top:2px';
-    var bits = []; if (spec.size) bits.push('size ' + spec.size); if (totalCost) bits.push(fmt(totalCost) + ' in'); subLine.textContent = bits.join(' · '); hdrL.appendChild(subLine);
-    var hdrR = document.createElement('div'); hdrR.style.cssText = 'display:flex;flex-direction:column;align-items:flex-end;gap:3px';
-    var pill = document.createElement('div'); pill.style.cssText = 'font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:'+sm.color+';border:1px solid '+sm.color+';padding:2px 7px;border-radius:0'; pill.textContent = sm.label; hdrR.appendChild(pill);
-    var chevron = document.createElement('div'); chevron.style.cssText = 'font-size:11px;color:var(--text-dim)'; chevron.textContent = '▾'; hdrR.appendChild(chevron);
-    hdrRow.appendChild(hdrL); hdrRow.appendChild(hdrR);
-    var body = document.createElement('div'); body.style.cssText = 'display:none;padding:0 14px 14px;border-top:1px solid var(--border)';
-    hdrRow.addEventListener('click', function(){ var open = body.style.display !== 'none'; body.style.display = open ? 'none' : 'block'; chevron.textContent = open ? '▾' : '▴'; });
-    card.appendChild(hdrRow); card.appendChild(body);
-
-    var actionRow = document.createElement('div'); actionRow.style.cssText = 'display:flex;gap:6px;padding-top:12px;margin-bottom:12px;flex-wrap:wrap;align-items:center';
-    var statusSel = document.createElement('select'); statusSel.style.cssText = 'font-family:var(--font-mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:5px 8px;border-radius:0;border:1px solid var(--border);background:#fafaf7;color:var(--text-dim);cursor:pointer';
-    [['to-make','To make'],['ordered','Ordered'],['in-hand','In hand']].forEach(function(o){ var op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; if ((spec.status||'to-make') === o[0]) op.selected = true; statusSel.appendChild(op); });
-    (function(sid){ statusSel.addEventListener('click', function(e){ e.stopPropagation(); }); statusSel.addEventListener('change', function(e){ e.stopPropagation(); changeSampleStatus(sid, statusSel.value); }); })(spec.id);
-    actionRow.appendChild(statusSel);
-    var editBtn = document.createElement('button'); editBtn.textContent = 'Edit'; editBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer'; (function(sid){ editBtn.addEventListener('click', function(e){ e.stopPropagation(); openSampleForm(sid); }); })(spec.id);
-    var dupBtn = document.createElement('button'); dupBtn.textContent = 'Duplicate'; dupBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--teal-dim);color:var(--teal-dim);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer'; (function(sid){ dupBtn.addEventListener('click', function(e){ e.stopPropagation(); duplicateSampleSpec(sid); }); })(spec.id);
-    var delBtn = document.createElement('button'); delBtn.textContent = 'Delete'; delBtn.style.cssText = 'background:#fafaf7;border:1px solid var(--red);color:var(--red);font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 10px;border-radius:0;cursor:pointer'; (function(sid){ delBtn.addEventListener('click', function(e){ e.stopPropagation(); deleteSampleSpec(sid); }); })(spec.id);
-    actionRow.appendChild(editBtn); actionRow.appendChild(dupBtn); actionRow.appendChild(delBtn); body.appendChild(actionRow);
-
-    var hasActuals = spec.stoneCost || spec.meleeCost || spec.metalCost || spec.laborCost || spec.findingsCost;
-    if (hasActuals) {
-      var costsDiv = document.createElement('div'); costsDiv.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;padding:8px;background:#fafaf7;border-radius:0;margin-bottom:10px';
-      [['Stone',spec.stoneCost],['Melee',spec.meleeCost],['Metal',spec.metalCost],['Labor',spec.laborCost],['Findings',spec.findingsCost]].forEach(function(p){ if (!p[1]) return; var span = document.createElement('span'); span.style.color = 'var(--text-dim)'; span.textContent = p[0] + ' ' + fmt(p[1]); costsDiv.appendChild(span); });
-      if (spec.retailPrice) { var rp = document.createElement('span'); rp.style.color = 'var(--gold)'; rp.textContent = 'Would retail ' + fmt(spec.retailPrice); costsDiv.appendChild(rp); }
-      body.appendChild(costsDiv);
-    }
-
-        // Molds — distinct background block
-    if(spec.molds&&spec.molds.length){
-      var moldSection=document.createElement('div');moldSection.style.cssText='background:rgba(122,170,138,0.08);border-radius:0;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(122,170,138,0.18)';
-      var totalEstToday=0;
-      spec.molds.forEach(function(m){
-        var w=parseFloat(m.weight)||0;var grams=m.weightUnit==='dwt'?w*1.55517:w;var dwt=m.weightUnit==='g'?w/1.55517:w;var purity=purityMap[m.purity]||0.75;var qty=parseInt(m.qty)||1;var estToday=goldSpot?Math.round((grams/31.1035)*goldSpot*purity*qty*1.25):0;totalEstToday+=estToday;
-        var mCard=document.createElement('div');mCard.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(122,170,138,0.2)';
-        var mL=document.createElement('div');var mName=document.createElement('div');mName.style.cssText='font-size:13px;color:var(--text);font-weight:500';mName.textContent=(m.moldType==='cad'?'CAD: ':'')+( m.name||'Mold');mL.appendChild(mName);var mInfo=document.createElement('div');mInfo.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';mInfo.textContent=m.purity+' · '+(m.weightUnit==='g'?w+'g / '+dwt.toFixed(2)+'dwt':dwt.toFixed(2)+'dwt / '+grams.toFixed(2)+'g')+' · x'+qty;mL.appendChild(mInfo);mCard.appendChild(mL);
-        if(estToday){var mR=document.createElement('div');mR.style.textAlign='right';var estVal=document.createElement('div');estVal.style.cssText='font-size:13px;color:var(--gold)';estVal.textContent=fmt(estToday);var estLbl=document.createElement('div');estLbl.style.cssText='font-size:10px;color:var(--text-dim)';estLbl.textContent='est. today';mR.appendChild(estVal);mR.appendChild(estLbl);mCard.appendChild(mR);}
-        moldSection.appendChild(mCard);
-      });
-      if(spec.molds.length>1&&totalEstToday){var totalRow=document.createElement('div');totalRow.style.cssText='display:flex;justify-content:space-between;padding:6px 0 0;font-size:12px;border-top:1px solid rgba(122,170,138,0.2);margin-top:2px';var tl=document.createElement('span');tl.style.color='var(--text-dim)';tl.textContent='Total est. today';var tv=document.createElement('span');tv.style.cssText='color:var(--gold);font-weight:500';tv.textContent=fmt(totalEstToday);totalRow.appendChild(tl);totalRow.appendChild(tv);moldSection.appendChild(totalRow);}
-      body.appendChild(moldSection);
-    }
-
-        // Stones — distinct background block
-    if(spec.stones&&spec.stones.length){
-      var stSection=document.createElement('div');stSection.style.cssText='background:rgba(160,124,197,0.08);border-radius:0;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(160,124,197,0.18)';
-      spec.stones.forEach(function(st){var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(160,124,197,0.2)';var rl=document.createElement('div');rl.style.cssText='flex:1;padding-right:8px';var info=document.createElement('div');info.style.cssText='font-size:13px;color:var(--text)';info.textContent=[st.shape,st.size,st.qty?'x'+st.qty:''].filter(Boolean).join(' · ');rl.appendChild(info);if(st.dealer){var dl=document.createElement('div');dl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';dl.textContent=st.dealer;rl.appendChild(dl);}if(st.notes){var nl=document.createElement('div');nl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px;font-style:italic';nl.textContent=st.notes;rl.appendChild(nl);}row.appendChild(rl);if(st.url){var la=document.createElement('a');la.href=st.url;la.target='_blank';la.rel='noopener';la.textContent='Link';la.style.cssText='font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:0;white-space:nowrap;flex-shrink:0';row.appendChild(la);}stSection.appendChild(row);});
-      body.appendChild(stSection);
-    }
-
-        // Findings — distinct background block
-    if(spec.findings&&spec.findings.length){
-      var fiSection=document.createElement('div');fiSection.style.cssText='background:rgba(100,180,180,0.08);border-radius:0;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(100,180,180,0.18)';
-      var fiLabel=document.createElement('div');fiLabel.style.cssText='font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px;font-weight:600';fiLabel.textContent='Findings & chain';fiSection.appendChild(fiLabel);
-      spec.findings.forEach(function(f){
-        var row=document.createElement('div');row.style.cssText='display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-top:1px solid rgba(100,180,180,0.15)';
-        var rl=document.createElement('div');
-        var info=document.createElement('div');info.style.cssText='font-size:13px;color:var(--text)';
-        if(f.chainIdx!=null&&typeof CHAINS!=='undefined'&&CHAINS[f.chainIdx]){
-          var c=CHAINS[f.chainIdx];info.textContent=c.name+' · '+c.karat;
-          var whl=document.createElement('div');whl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';whl.textContent='Wholesale: '+fmt(c.wholesale)+' · Downeast Jewelry';rl.appendChild(info);rl.appendChild(whl);
-        } else {
-          info.textContent=[f.type,f.spec].filter(Boolean).join(' — ');rl.appendChild(info);
-          if(f.source){var sl=document.createElement('div');sl.style.cssText='font-size:11px;color:var(--text-dim);margin-top:2px';sl.textContent=f.source;rl.appendChild(sl);}
-        }
-        row.appendChild(rl);
-        if(f.url){var la=document.createElement('a');la.href=f.url;la.target='_blank';la.rel='noopener';la.textContent='Link';la.style.cssText='font-size:11px;color:var(--teal-dim);text-decoration:none;border:1px solid var(--teal-dim);padding:3px 7px;border-radius:0;white-space:nowrap;flex-shrink:0;margin-left:8px';row.appendChild(la);}
-        fiSection.appendChild(row);
-      });
-      body.appendChild(fiSection);
-    }
-
-    if (spec.notes) { var notesEl = document.createElement('div'); notesEl.style.cssText = 'font-size:13px;color:var(--text-dim);font-style:italic;padding-top:8px'; notesEl.textContent = spec.notes; body.appendChild(notesEl); }
-
-    (container || list).appendChild(card);
-  } // end renderSpec
-
-  Object.keys(grouped).sort().forEach(function(groupName){
-    var groupSpecs = grouped[groupName];
-    var groupWrap = document.createElement('div'); groupWrap.style.cssText = 'margin-bottom:10px';
-    var groupHdr = document.createElement('div'); groupHdr.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#fafaf7;border:1px solid var(--teal-dim);border-radius:0;cursor:pointer;user-select:none;margin-bottom:4px';
-    var gL = document.createElement('div');
-    var gName = document.createElement('span'); gName.style.cssText = 'font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--teal-dim)'; gName.textContent = groupName;
-    var gCount = document.createElement('span'); gCount.style.cssText = 'font-size:11px;color:var(--text-dim);margin-left:8px'; gCount.textContent = '(' + groupSpecs.length + ')';
-    gL.appendChild(gName); gL.appendChild(gCount);
-    var gChevron = document.createElement('span'); gChevron.style.cssText = 'font-size:11px;color:var(--text-dim)'; gChevron.textContent = '▾';
-    groupHdr.appendChild(gL); groupHdr.appendChild(gChevron);
-    var groupBody = document.createElement('div'); groupBody.style.display = 'none';
-    groupHdr.addEventListener('click', function(){ var open = groupBody.style.display !== 'none'; groupBody.style.display = open ? 'none' : 'block'; gChevron.textContent = open ? '▾' : '▴'; });
-    groupSpecs.forEach(function(spec){ renderSpec(spec, groupBody); });
-    groupWrap.appendChild(groupHdr); groupWrap.appendChild(groupBody); list.appendChild(groupWrap);
+  list.innerHTML = '';
+  var totalInvested = samples.reduce(function(sum,q){ return sum + sampleExpenses(q); }, 0);
+  if (totalInvested) {
+    var totBar = document.createElement('div');
+    totBar.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fafaf7;border:1px solid var(--border);border-radius:0;margin-bottom:10px';
+    totBar.innerHTML = '<span style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim)">Total invested in samples</span>'
+      + '<span style="font-family:var(--font-mono);font-size:15px;color:var(--gold);font-weight:600">' + fmt(totalInvested) + '</span>';
+    list.appendChild(totBar);
+  }
+  samples.forEach(function(q){
+    var wrap = document.createElement('div');
+    wrap.className = 'quote-item';
+    wrap.dataset.id = q.id;
+    wrap.innerHTML = (q.isMultiPiece ? buildMultiPieceCard(q) : buildQuoteCard(q)) + sampleSpecsHtml(q);
+    list.appendChild(wrap);
   });
-  ungrouped.forEach(function(spec){ renderSpec(spec, list); });
+}
+// Expenses (out-of-pocket cost) for a sample quote, mirroring how the card computes cost.
+function sampleExpenses(q) {
+  if (q.isMultiPiece && Array.isArray(q.pieces)) {
+    return q.pieces.reduce(function(s,p){ return s + (Number(p.stoneCost)||0)+(Number(p.metalCost)||0)+(Number(p.laborEst)||0)+(Number(p.chainCost)||0)+(Number(p.meleeCost)||0); }, 0);
+  }
+  var stoneCost = q.actualStoneCost != null ? q.actualStoneCost : (Array.isArray(q.stones) ? q.stones.reduce(function(s,st){ return s + (st.cost||0); }, 0) : 0);
+  var metalCost = q.actualMetalCost != null ? q.actualMetalCost : (q.metalEstimate ? Math.round(q.metalEstimate / 1.35) : 0);
+  var laborCost = q.actualLabor != null ? q.actualLabor : (q.laborEst || 0);
+  var meleeCost = q.actualMeleeCost != null ? q.actualMeleeCost : (q.meleeCost || 0);
+  return (Number(stoneCost)||0) + (Number(metalCost)||0) + (Number(laborCost)||0) + (Number(q.chainCost)||0) + (Number(meleeCost)||0);
+}
+function _sampleEsc(v) { return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function sampleSpecsHtml(q) {
+  var m = _sampleEsc(q.sampleMold), c = _sampleEsc(q.sampleCad), n = _sampleEsc(q.sampleNotes);
+  var inp = 'width:100%;background:#fafaf7;border:1px solid var(--teal-dim);color:var(--text);font-family:var(--font-mono);font-size:13px;padding:8px;border-radius:0;outline:none;box-sizing:border-box';
+  return '<div style="background:#fafaf7;border:1px solid var(--border);border-radius:0;padding:10px 12px;margin:0 0 12px">'
+    + '<div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal-dim);margin-bottom:8px">Sample specs (optional)</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+    + '<div><div class="field-label">Mold name / #</div><input type="text" value="' + m + '" placeholder="e.g. M-042" onchange="setSampleSpec(' + q.id + ',\'mold\',this.value)" style="' + inp + '"></div>'
+    + '<div><div class="field-label">CAD file name</div><input type="text" value="' + c + '" placeholder="e.g. Lettera-B.3dm" onchange="setSampleSpec(' + q.id + ',\'cad\',this.value)" style="' + inp + '"></div>'
+    + '</div>'
+    + '<div class="field-label">Notes</div>'
+    + '<textarea rows="2" placeholder="e.g. center stone is a lab elongated" onchange="setSampleSpec(' + q.id + ',\'notes\',this.value)" style="' + inp + ';resize:none">' + n + '</textarea>'
+    + '</div>';
+}
+function setSampleSpec(id, field, val) {
+  var quotes = getSavedQuotes();
+  var q = quotes.find(function(x){ return String(x.id) === String(id); });
+  if (!q) return;
+  if (field === 'mold') q.sampleMold = val;
+  else if (field === 'cad') q.sampleCad = val;
+  else if (field === 'notes') q.sampleNotes = val;
+  window._savedQuotes = quotes;
+  persistQuotes();
+  if (typeof showToast === 'function') showToast('Saved');
 }
 
 
