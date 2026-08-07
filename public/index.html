@@ -6636,6 +6636,9 @@ function buildMultiPieceCard(q) {
     if (q.status === 'collection-quote') {
       html += '<button class="convert-btn" style="border-color:#951d5f;color:#951d5f" onclick="convertToProject(' + q.id + ',event)">→ Move to collection</button>';
     }
+  if (!q.isSample && ['quote','project','collection','collection-quote'].indexOf(q.status) !== -1) {
+      html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="makeSample(' + q.id + ',event)">💍 Make it a sample</button>';
+    }
     // Costs are updated per-piece via the Edit button on each piece row
     // For projects, Completed/Abandoned replace Archive (both remove from active list).
     // For quotes, Archive is still the only way to hide them.
@@ -6989,6 +6992,9 @@ function buildQuoteCard(q) {
     html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateCosts(' + q.id + ',event)">Update costs</button>';
   }
   if (q.status === 'collection' || q.status === 'collection-quote') html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="startSemiCustom(' + q.id + ',event)">→ Start semi-custom project</button>';
+  if (!q.isSample && ['quote','project','collection','collection-quote'].indexOf(q.status) !== -1) {
+    html += '<button class="convert-btn" style="border-color:var(--gold);color:var(--gold)" onclick="makeSample(' + q.id + ',event)">💍 Make it a sample</button>';
+  }
 
   if (q.status === 'project' || q.status === 'collection' || q.status === 'collection-quote') {
     html += '<button class="convert-btn" style="border-color:var(--gold-dim);color:var(--gold-dim)" onclick="updateCosts(' + q.id + ',event)">Update costs</button>';
@@ -8045,6 +8051,25 @@ function deleteItem(id, e) {
   renderSaved();
   if (typeof renderPipeline === 'function') renderPipeline();
   showToast('Deleted');
+}
+
+function makeSample(id, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Move this to Sample pieces? It leaves the pipeline and P&L, and its stones are no longer reserved.')) return;
+  var quotes = getSavedQuotes();
+  var q = quotes.find(function(x){ return x.id === id; });
+  if (!q) return;
+  q.isSample = true;
+  q.status = 'sample';
+  q.pipelineStage = null;
+  window._savedQuotes = quotes;
+  persistQuotes();
+  if (window._pipelineDetailQid === id && typeof closePipelineDetail === 'function') closePipelineDetail();
+  if (typeof renderSaved === 'function') renderSaved();
+  if (typeof renderPipeline === 'function') renderPipeline();
+  if (typeof renderSamples === 'function') renderSamples();
+  if (typeof showToast === 'function') showToast('Moved to Sample pieces');
+  if (typeof showScreen === 'function') showScreen('samples');
 }
 
 function convertToProject(id, e) {
